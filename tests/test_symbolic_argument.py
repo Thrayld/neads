@@ -133,17 +133,19 @@ class TestSimpleArgument(unittest.TestCase):
 class TestListArgument(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.symbols = [Symbol(0), Symbol(1), Symbol(2)]
-        self.values = [Value(10), Value(11), Value(12)]
+        self.SYMBOL_SIGNS = [0, 1, 2]
+        self.INT_VALUES = [10, 11, 12]
+        self.symbols = [Symbol(sign) for sign in self.SYMBOL_SIGNS]
+        self.values = [Value(val) for val in self.INT_VALUES]
         self.symbol_simple_args = [SimpleArgument(s) for s in self.symbols]
         self.value_simple_args = [SimpleArgument(v) for v in self.values]
 
         self.used_symbols_indices = (0, 1, 0)
-        self.symbols_010 = [
+        self.symbol_symbolic_args_010 = [
             self.symbol_simple_args[i] for i in self.used_symbols_indices
         ]
         self.list_arg_010 = ListArgument(
-            self.symbols_010
+            self.symbol_symbolic_args_010
         )
 
     def test_init_with_symbolic_arguments(self):
@@ -151,7 +153,7 @@ class TestListArgument(unittest.TestCase):
             *self.value_simple_args
         )
         self.assertEqual(
-            self.values,
+            self.INT_VALUES,
             list_arg.get_actual_argument_value()
         )
 
@@ -160,7 +162,7 @@ class TestListArgument(unittest.TestCase):
             self.value_simple_args
         )
         self.assertEqual(
-            self.values,
+            self.INT_VALUES,
             list_arg.get_actual_argument_value()
         )
 
@@ -208,7 +210,7 @@ class TestListArgument(unittest.TestCase):
         self.assertCountEqual(expected, self.list_arg_010.get_symbols())
 
         # --- Test final result
-        expected = [self.values[0], self.values[1], self.values[0]]
+        expected = [self.INT_VALUES[0], self.INT_VALUES[1], self.INT_VALUES[0]]
         self.assertSequenceEqual(
             expected,
             self.list_arg_010.get_actual_argument_value()
@@ -220,8 +222,8 @@ class TestListArgument(unittest.TestCase):
 
         self.assertEqual(False, ret_val)
         # Test that symbols of list_arg has not changed
-        expected = set(self.symbols_010)
-        self.assertEqual(
+        expected = [self.symbols[0], self.symbols[1]]
+        self.assertCountEqual(
             expected,
             self.list_arg_010.get_symbols()
         )
@@ -241,19 +243,18 @@ class TestListArgument(unittest.TestCase):
 
         self.assertEqual(False, ret_val)
         # Test that symbols of list_arg has not changed
-        expected = set(self.symbols_010)
-        self.assertEqual(
+        expected = [self.symbols[0], self.symbols[1]]
+        self.assertCountEqual(
             expected,
             self.list_arg_010.get_symbols()
         )
 
     def test_get_symbols_without_symbols(self):
         list_arg = ListArgument()
-
         self.assertCountEqual([], list_arg.get_symbols())
 
     def test_get_symbols_with_some_symbols(self):
-        expected = set(self.symbols_010)
+        expected = [self.symbols[0], self.symbols[1]]
         actual = self.list_arg_010.get_symbols()
         self.assertCountEqual(expected, actual)
 
@@ -265,10 +266,9 @@ class TestListArgument(unittest.TestCase):
 
     def test_get_actual_argument_value_nominal_case(self):
         list_arg = ListArgument(self.value_simple_args)
-        self.assertSequenceEqual(
-            self.values,
-            list_arg.get_actual_argument_value()
-        )
+        expected = self.INT_VALUES
+        actual = list_arg.get_actual_argument_value()
+        self.assertSequenceEqual(expected, actual)
 
 
 if __name__ == '__main__':

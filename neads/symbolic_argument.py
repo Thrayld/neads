@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable, Union, List
 import abc
+import itertools
 
 
 class SymbolicArgumentException(Exception):
@@ -324,7 +325,12 @@ class CompositeArgument(SymbolicArgument):
             the CompositeArgument. False otherwise.
         """
 
-        pass
+        subarguments = self._get_sub_arguments()
+        substitution_indicators = [
+            sub_arg.substitute_symbol(symbol_now, symbol_then)
+            for sub_arg in subarguments
+        ]
+        return any(substitution_indicators)
 
     def _substitute_value_clean(self, symbol_now: Symbol, value_then: Value):
         """Do the value substitution with clean arguments.
@@ -345,7 +351,12 @@ class CompositeArgument(SymbolicArgument):
             the CompositeArgument. False otherwise.
         """
 
-        pass
+        subarguments = self._get_sub_arguments()
+        substitution_indicators = [
+            sub_arg.substitute_value(symbol_now, value_then)
+            for sub_arg in subarguments
+        ]
+        return any(substitution_indicators)
 
     def get_symbols(self) -> Iterable[Symbol]:
         """Return a list of Symbols which occur in the CompositeArgument.
@@ -355,7 +366,10 @@ class CompositeArgument(SymbolicArgument):
             A list of all symbols which occur in the CompositeArgument.
         """
 
-        pass
+        subarguments = self._get_sub_arguments()
+        symbols_2d = [sub_arg.get_symbols() for sub_arg in subarguments]
+        symbols_iter = itertools.chain(*symbols_2d)
+        return set(symbols_iter)
 
     @abc.abstractmethod
     def get_actual_argument_value(self):
@@ -423,7 +437,24 @@ class ListArgument(CompositeArgument):
             SymbolicArgument.
         """
 
-        pass
+        self._subarguments: List[SymbolicArgument]
+
+        # If the only item in subarguments is to be considered as sequence
+        # of the actual subarguments
+        if len(subarguments) == 1 and \
+                not isinstance(subarguments[0], SymbolicArgument):
+            self._subarguments = [*subarguments[0]]
+        else:
+            # The subarguments sequence are the actual subarguments
+            self._subarguments = list(subarguments)
+
+        # Check type of subarguments
+        for sub_arg in self._subarguments:
+            if not isinstance(sub_arg, SymbolicArgument):
+                raise TypeError(
+                    'Subarguments of ListArgument must be instance of '
+                    'SymbolicArgument'
+                )
 
     def get_actual_argument_value(self) -> List:
         """Return the value which the ListArgument describes.
@@ -440,7 +471,10 @@ class ListArgument(CompositeArgument):
             If there are some Symbols left in the ListArgument.
         """
 
-        pass
+        subargument_values = [sub_arg.get_actual_argument_value()
+                              for sub_arg in self._subarguments]
+        # The values are already in a list
+        return subargument_values
 
     def _get_sub_arguments(self) -> Iterable[SymbolicArgument]:
         """Return an iterable of SymbolicArguments which occur in the argument.
@@ -451,12 +485,7 @@ class ListArgument(CompositeArgument):
             ListArgument.
         """
 
-        pass
-
-
-
-
-
+        return self._subarguments
 
 
 class Symbol:
