@@ -16,7 +16,6 @@ class SymbolicArgument(abc.ABC):
     argument.
     """
 
-    @abc.abstractmethod
     def substitute_symbol(self, symbol_now: Symbol, symbol_then: Symbol):
         """Substitute a Symbol for one of current Symbols.
 
@@ -34,13 +33,86 @@ class SymbolicArgument(abc.ABC):
         bool
             True, if any replacement occurred, i.e. `symbol_now` was present in
             the SymbolicArgument. False otherwise.
+
+        Raises
+        ------
+        TypeError
+            If type of either `symbol_now` or `symbol_then` is not Symbol.
         """
 
-        pass
+        # Check the types of both arguments
+        if not isinstance(symbol_now, Symbol):
+            raise TypeError(
+                f"Argument 'symbol_now' has wrong type: {type(symbol_now)}"
+            )
+        elif not isinstance(symbol_then, Symbol):
+            raise TypeError(
+                f"Argument 'symbol_then' has wrong type: {type(symbol_then)}"
+            )
+
+        return self._substitute_symbol_clean(symbol_now, symbol_then)
 
     @abc.abstractmethod
+    def _substitute_symbol_clean(self, symbol_now: Symbol, symbol_then: Symbol):
+        """Do the symbol substitution with clean arguments.
+
+        Parameters
+        ----------
+        symbol_now
+            Symbol which is replaced by the `symbol_then` Symbol in the
+            SymbolicArgument.
+        symbol_then
+            Symbol which replaces the `symbol_now` Symbol in the
+            SymbolicArgument.
+
+        Returns
+        -------
+        bool
+            True, if any replacement occurred, i.e. `symbol_now` was present in
+            the SymbolicArgument. False otherwise.
+        """
+        pass
+
     def substitute_value(self, symbol_now: Symbol, value_then: Value):
         """Substitute a Value for one of current Symbols.
+
+        Parameters
+        ----------
+        symbol_now
+            Symbol which is replaced by the `value_then` Value in the
+            SymbolicArgument.
+        value_then
+            Value which replaces the `symbol_now` Symbol in the
+            SymbolicArgument.
+
+        Returns
+        -------
+        bool
+            True, if any replacement occurred, i.e. `symbol_now` was present in
+            the SymbolicArgument. False otherwise.
+
+        Raises
+        ------
+        TypeError
+            If type `symbol_now` is not Symbol or type of `value_then` is not
+            Value.
+        """
+
+        # Check the types of both arguments
+        if not isinstance(symbol_now, Symbol):
+            raise TypeError(
+                f"Argument 'symbol_now' has wrong type: {type(symbol_now)}"
+            )
+        elif not isinstance(value_then, Value):
+            raise TypeError(
+                f"Argument 'value_then' has wrong type: {type(value_then)}"
+            )
+
+        return self._substitute_value_clean(symbol_now, value_then)
+
+    @abc.abstractmethod
+    def _substitute_value_clean(self, symbol_now: Symbol, value_then: Value):
+        """Do the value substitution with clean arguments.
 
         Parameters
         ----------
@@ -115,8 +187,8 @@ class SimpleArgument(SymbolicArgument):
 
         self._content = content
 
-    def substitute_symbol(self, symbol_now: Symbol, symbol_then: Symbol):
-        """Substitute a Symbol for the given Symbol.
+    def _substitute_symbol_clean(self, symbol_now: Symbol, symbol_then: Symbol):
+        """Do the symbol substitution with clean arguments.
 
         Parameters
         ----------
@@ -134,16 +206,6 @@ class SimpleArgument(SymbolicArgument):
             the SimpleArgument. False otherwise.
         """
 
-        # Check the types of both arguments
-        if not isinstance(symbol_now, Symbol):
-            raise TypeError(
-                f"Argument 'symbol_now' has wrong type: {type(symbol_now)}"
-            )
-        elif not isinstance(symbol_then, Symbol):
-            raise TypeError(
-                f"Argument 'symbol_then' has wrong type: {type(symbol_then)}"
-            )
-
         if self._has_symbol():
             if self._content == symbol_now:
                 # Substitution is possible
@@ -156,8 +218,8 @@ class SimpleArgument(SymbolicArgument):
             # SimpleArgument holds a Value, which cannot be substituted
             return False
 
-    def substitute_value(self, symbol_now: Symbol, value_then: Value):
-        """Substitute a Value for the given Symbol.
+    def _substitute_value_clean(self, symbol_now: Symbol, value_then: Value):
+        """Do the value substitution with clean arguments.
 
         The replacement occur only if the `symbol_now` correspond to the
         Symbol held by the SimpleArgument (in case it even holds a Symbol).
@@ -182,16 +244,6 @@ class SimpleArgument(SymbolicArgument):
         TypeError
             If either of the arguments has a wrong type.
         """
-
-        # Check the types of both arguments
-        if not isinstance(symbol_now, Symbol):
-            raise TypeError(
-                f"Argument 'symbol_now' has wrong type: {type(symbol_now)}"
-            )
-        elif not isinstance(value_then, Value):
-            raise TypeError(
-                f"Argument 'value_then' has wrong type: {type(value_then)}"
-            )
 
         if self._has_symbol():
             if self._content == symbol_now:
@@ -249,8 +301,8 @@ class SimpleArgument(SymbolicArgument):
 class CompositeArgument(SymbolicArgument):
     """Subtype of SymbolicArgument combining several subarguments."""
 
-    def substitute_symbol(self, symbol_now: Symbol, symbol_then: Symbol):
-        """Substitute a Symbol for one of current Symbols.
+    def _substitute_symbol_clean(self, symbol_now: Symbol, symbol_then: Symbol):
+        """Do the symbol substitution with clean arguments.
 
         Parameters
         ----------
@@ -270,8 +322,8 @@ class CompositeArgument(SymbolicArgument):
 
         pass
 
-    def substitute_value(self, symbol_now: Symbol, value_then: Value):
-        """Substitute a Value for one of current Symbols.
+    def _substitute_value_clean(self, symbol_now: Symbol, value_then: Value):
+        """Do the value substitution with clean arguments.
 
         Parameters
         ----------
