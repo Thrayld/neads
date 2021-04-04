@@ -130,5 +130,146 @@ class TestSimpleArgument(unittest.TestCase):
         )
 
 
+class TestListArgument(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.symbols = [Symbol(0), Symbol(1), Symbol(2)]
+        self.values = [Value(10), Value(11), Value(12)]
+        self.symbol_simple_args = [SimpleArgument(s) for s in self.symbols]
+        self.value_simple_args = [SimpleArgument(v) for v in self.values]
+
+        self.used_symbols_indices = (0, 1, 0)
+        self.symbols_010 = [
+            self.symbol_simple_args[i] for i in self.used_symbols_indices
+        ]
+        self.list_arg_010 = ListArgument(
+            self.symbols_010
+        )
+
+    def test_init_with_symbolic_arguments(self):
+        list_arg = ListArgument(
+            *self.value_simple_args
+        )
+        self.assertEqual(
+            self.values,
+            list_arg.get_actual_argument_value()
+        )
+
+    def test_init_with_one_sequence_non_symbolic_argument(self):
+        list_arg = ListArgument(
+            self.value_simple_args
+        )
+        self.assertEqual(
+            self.values,
+            list_arg.get_actual_argument_value()
+        )
+
+    @unittest.skip(reason='Currently, we do not have a subtype of both '
+                          'Sequence and SymbolicArgument')
+    def test_init_with_one_sequence_and_symbolic_argument(self):
+        raise NotImplementedError()
+
+    def test_init_with_not_symbolic_argument(self):
+        self.assertRaises(
+            TypeError,
+            ListArgument,
+            self.symbol_simple_args[0],
+            1
+        )
+
+    def test_init_with_sequence_of_non_symbolic_arguments(self):
+        self.assertRaises(
+            TypeError,
+            ListArgument,
+            'sequence of non-SymbolicArguments'
+        )
+
+    def test_substitute_value_nominal_case(self):
+        # --- Substitution for symbol 0
+        flag_symbol_0 = self.list_arg_010.substitute_value(self.symbols[0],
+                                                           self.values[0])
+
+        # --- Test for symbol 0
+        # Substitution occurred
+        self.assertEqual(True, flag_symbol_0)
+        # Just symbol 1 is now present
+        expected = [self.symbols[1]]
+        self.assertCountEqual(expected, self.list_arg_010.get_symbols())
+
+        # --- Substitution for symbol 1
+        flag_symbol_0 = self.list_arg_010.substitute_value(self.symbols[1],
+                                                           self.values[1])
+
+        # --- Test for symbol 1
+        # Substitution occurred
+        self.assertEqual(True, flag_symbol_0)
+        # No symbol is present
+        expected = []
+        self.assertCountEqual(expected, self.list_arg_010.get_symbols())
+
+        # --- Test final result
+        expected = [self.values[0], self.values[1], self.values[0]]
+        self.assertSequenceEqual(
+            expected,
+            self.list_arg_010.get_actual_argument_value()
+        )
+
+    def test_substitute_value_non_present_symbol(self):
+        ret_val = self.list_arg_010.substitute_value(self.symbols[2],
+                                                     self.values[0])
+
+        self.assertEqual(False, ret_val)
+        # Test that symbols of list_arg has not changed
+        expected = set(self.symbols_010)
+        self.assertEqual(
+            expected,
+            self.list_arg_010.get_symbols()
+        )
+
+    def test_substitute_symbol_nominal_case(self):
+        ret_val = self.list_arg_010.substitute_symbol(self.symbols[0],
+                                                      self.symbols[2])
+
+        self.assertEqual(True, ret_val)
+        # Just symbol 1 is now present
+        expected = [self.symbols[1], self.symbols[2]]
+        self.assertCountEqual(expected, self.list_arg_010.get_symbols())
+
+    def test_substitute_symbol_non_present_symbol(self):
+        ret_val = self.list_arg_010.substitute_symbol(self.symbols[2],
+                                                      self.symbols[0])
+
+        self.assertEqual(False, ret_val)
+        # Test that symbols of list_arg has not changed
+        expected = set(self.symbols_010)
+        self.assertEqual(
+            expected,
+            self.list_arg_010.get_symbols()
+        )
+
+    def test_get_symbols_without_symbols(self):
+        list_arg = ListArgument()
+
+        self.assertCountEqual([], list_arg.get_symbols())
+
+    def test_get_symbols_with_some_symbols(self):
+        expected = set(self.symbols_010)
+        actual = self.list_arg_010.get_symbols()
+        self.assertCountEqual(expected, actual)
+
+    def test_get_actual_argument_value_with_symbols(self):
+        self.assertRaises(
+            SymbolicArgumentException,
+            self.list_arg_010.get_actual_argument_value
+        )
+
+    def test_get_actual_argument_value_nominal_case(self):
+        list_arg = ListArgument(self.value_simple_args)
+        self.assertSequenceEqual(
+            self.values,
+            list_arg.get_actual_argument_value()
+        )
+
+
 if __name__ == '__main__':
     unittest.main()
