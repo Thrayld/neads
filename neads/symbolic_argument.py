@@ -254,8 +254,8 @@ class SimpleArgument(SymbolicArgument):
 class Symbol:
     """A single symbol in a SymbolicArgument."""
 
-    def __init__(self, object):
-        self._object = object
+    def __init__(self, object_):
+        self._object = object_
 
 
 class Value:
