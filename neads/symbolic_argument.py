@@ -107,6 +107,12 @@ class SimpleArgument(SymbolicArgument):
             Symbol or Value, which is contained in the created SymbolicArgument.
         """
 
+        if not isinstance(content, Symbol) and not isinstance(content, Value):
+            raise TypeError(
+                f'Argument of SimpleArgument is neither Symbol nor Value: '
+                f'{type(content)}'
+            )
+
         self._content = content
 
     def substitute_symbol(self, symbol_now: Symbol, symbol_then: Symbol):
