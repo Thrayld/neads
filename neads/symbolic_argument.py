@@ -20,21 +20,19 @@ class SymbolicArgument(abc.ABC):
     def substitute_symbol(self, symbol_now: Symbol, symbol_then: Symbol):
         """Substitute a Symbol for one of current Symbols.
 
-        The substitution is propagated to all the sub-arguments.
-
         Parameters
         ----------
         symbol_now
-            Symbol which is replaced by the *symbol_then* Symbol in the
+            Symbol which is replaced by the `symbol_then` Symbol in the
             SymbolicArgument.
         symbol_then
-            Symbol which replaces the *symbol_now* Symbol in the
+            Symbol which replaces the `symbol_now` Symbol in the
             SymbolicArgument.
 
         Returns
         -------
         bool
-            True, if any replacement occurred, i.e. symbol_now was present in
+            True, if any replacement occurred, i.e. `symbol_now` was present in
             the SymbolicArgument. False otherwise.
         """
 
@@ -44,21 +42,19 @@ class SymbolicArgument(abc.ABC):
     def substitute_value(self, symbol_now: Symbol, value_then: Value):
         """Substitute a Value for one of current Symbols.
 
-        The substitution is propagated to all the sub-arguments.
-
         Parameters
         ----------
         symbol_now
-            Symbol which is replaced by the *value_then* Value in the
+            Symbol which is replaced by the `value_then` Value in the
             SymbolicArgument.
         value_then
-            Value which replaces the *symbol_now* Symbol in the
+            Value which replaces the `symbol_now` Symbol in the
             SymbolicArgument.
 
         Returns
         -------
         bool
-            True, if any replacement occurred, i.e. symbol_now was present in
+            True, if any replacement occurred, i.e. `symbol_now` was present in
             the SymbolicArgument. False otherwise.
         """
 
@@ -77,13 +73,18 @@ class SymbolicArgument(abc.ABC):
 
     @abc.abstractmethod
     def get_actual_argument_value(self):
-        """Return the value which the SyntacticArgument describes.
+        """Return the value which the SymbolicArgument describes.
 
-        There must be no Symbol (i.e. free variable) in the SyntacticArgument.
+        There must be no Symbol (i.e. free variable) in the SymbolicArgument.
 
         Returns
         -------
-            Real value described by the SyntacticArgument
+            Real value described by the SymbolicArgument.
+
+        Raises
+        ------
+        SymbolicArgumentException
+            If there are some Symbols left in the SymbolicArgument.
         """
 
         pass
