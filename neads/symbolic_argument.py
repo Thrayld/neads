@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Union
+from typing import Iterable, Union, List
 import abc
 
 
@@ -266,6 +266,10 @@ class SimpleArgument(SymbolicArgument):
         """
 
         if self._has_symbol():
+            # Symbol is the actual type of self._content
+            # Thus the type of return value correspond to type hint
+
+            # noinspection PyTypeChecker
             return [self._content]
         else:
             return []
@@ -421,7 +425,7 @@ class ListArgument(CompositeArgument):
 
         pass
 
-    def get_actual_argument_value(self):
+    def get_actual_argument_value(self) -> List:
         """Return the value which the ListArgument describes.
 
         A ListArgument is a list of values of its subarguments.
