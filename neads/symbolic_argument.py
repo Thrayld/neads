@@ -246,6 +246,158 @@ class SimpleArgument(SymbolicArgument):
         return isinstance(self._content, Symbol)
 
 
+class CompositeArgument(SymbolicArgument):
+    """Subtype of SymbolicArgument combining several subarguments."""
+
+    def substitute_symbol(self, symbol_now: Symbol, symbol_then: Symbol):
+        """Substitute a Symbol for one of current Symbols.
+
+        Parameters
+        ----------
+        symbol_now
+            Symbol which is replaced by the `symbol_then` Symbol in the
+            CompositeArgument.
+        symbol_then
+            Symbol which replaces the `symbol_now` Symbol in the
+            CompositeArgument.
+
+        Returns
+        -------
+        bool
+            True, if any replacement occurred, i.e. `symbol_now` was present in
+            the CompositeArgument. False otherwise.
+        """
+
+        pass
+
+    def substitute_value(self, symbol_now: Symbol, value_then: Value):
+        """Substitute a Value for one of current Symbols.
+
+        Parameters
+        ----------
+        symbol_now
+            Symbol which is replaced by the `value_then` Value in the
+            CompositeArgument.
+        value_then
+            Value which replaces the `symbol_now` Symbol in the
+            CompositeArgument.
+
+        Returns
+        -------
+        bool
+            True, if any replacement occurred, i.e. `symbol_now` was present in
+            the CompositeArgument. False otherwise.
+        """
+
+        pass
+
+    def get_symbols(self) -> Iterable[Symbol]:
+        """Return a list of Symbols which occur in the CompositeArgument.
+
+        Returns
+        -------
+            A list of all symbols which occur in the CompositeArgument.
+        """
+
+        pass
+
+    @abc.abstractmethod
+    def get_actual_argument_value(self):
+        """Return the value which the CompositeArgument describes.
+
+        There must be no Symbol (i.e. free variable) in the CompositeArgument.
+
+        Returns
+        -------
+            Real value described by the CompositeArgument.
+
+        Raises
+        ------
+        SymbolicArgumentException
+            If there are some Symbols left in the CompositeArgument.
+        """
+
+        pass
+
+    @abc.abstractmethod
+    def _get_sub_arguments(self) -> Iterable[SymbolicArgument]:
+        """Return an iterable of SymbolicArguments which occur in the argument.
+
+        Returns
+        -------
+            An iterable of all SymbolicArguments which occur in the
+            CompositeArgument.
+        """
+
+        pass
+
+
+class ListArgument(CompositeArgument):
+    """Subtype of CompositeArgument for List of SymbolicArguments.
+
+    The value of ListArgument is a list in which entries are occupied by the
+    values of corresponding subarguments.
+    """
+
+    def __init__(self, *subarguments):
+        """Create ListArgument of given subarguments.
+
+        Parameters
+        ----------
+        subarguments
+            SymbolicArguments which are subarguments of created ListArgument.
+            Their values will follow the order in which the arguments were
+            passed.
+
+            Also, just one argument, sequence of SymbolicArguments, may be
+            passed. Then the subarguments of ListArgument are extracted from
+            the sequence.
+
+        Notes
+        -----
+            The differentiation between one subargument and a sequence of
+            subarguments, when just one value is passed, is on condition
+            whether the value is subtype of SymbolicArgument.
+
+            The test for being a sequence may appear to be wrong, in case a
+            subtype of SymbolicArgument is also a sequence and the user
+            wants to have it as a single subargument of a ListArgument.
+
+            If more than one argument is passed, they must be subtypes of
+            SymbolicArgument.
+        """
+
+        pass
+
+    def get_actual_argument_value(self):
+        """Return the value which the ListArgument describes.
+
+        A ListArgument is a list of values of its subarguments.
+
+        Returns
+        -------
+            List of values of the ListArgument subarguments.
+
+        Raises
+        ------
+        SymbolicArgumentException
+            If there are some Symbols left in the ListArgument.
+        """
+
+        pass
+
+    def _get_sub_arguments(self) -> Iterable[SymbolicArgument]:
+        """Return an iterable of SymbolicArguments which occur in the argument.
+
+        Returns
+        -------
+            An iterable of all SymbolicArguments which occur in the
+            ListArgument.
+        """
+
+        pass
+
+
 
 
 
