@@ -1,5 +1,4 @@
 import unittest
-import itertools
 
 from neads.symbolic_argument import *
 
