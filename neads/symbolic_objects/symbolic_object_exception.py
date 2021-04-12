@@ -1,0 +1,2 @@
+class SymbolicObjectException(Exception):
+    pass
