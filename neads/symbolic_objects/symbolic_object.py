@@ -26,9 +26,13 @@ class SymbolicObject(abc.ABC):
         Parameters
         ----------
         args
-            Either two arguments `symbol_from` and object_to`.
-            Or an iterable with the pairs `symbol_from`, `object_to` for
-            multiple substitutions in one go.
+            One of the following:
+
+            * Two arguments `symbol_from` and object_to`.
+
+            * Iterable with the pairs `symbol_from`, `object_to`.
+
+            * Dict with `symbol_from` as keys and `object_to` as values.
 
         Returns
         -------
@@ -40,7 +44,6 @@ class SymbolicObject(abc.ABC):
             If the arguments do not respect the required types.
         """
 
-        print('Aby se interpret neposral')
         raise NotImplementedError()
         # Check types
         # Check that Symbol is present
