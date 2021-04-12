@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from symbolic_object import SymbolicObject
+from neads.symbolic_objects.symbolic_object import SymbolicObject
 
 
 class Symbol(SymbolicObject):
