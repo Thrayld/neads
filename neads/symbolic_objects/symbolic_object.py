@@ -43,6 +43,9 @@ class SymbolicObject(abc.ABC):
         ------
         TypeError
             If the arguments do not respect the required types.
+        ValueError
+            If 0 or more than 2 arguments are passed, or one `symbol_from`
+            occurs multiple times.
         """
 
         # If pair `symbol_from`, `object_to` is passed
@@ -202,7 +205,7 @@ class Symbol(SymbolicObject):
     def __init__(self):
         pass
 
-    def _substitute_clean(self, substitution_pairs):
+    def _substitute_clean(self, substitution_pairs) -> SymbolicObject:
         """Apply substitution on Symbol.
 
         Parameters
