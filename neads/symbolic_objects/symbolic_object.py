@@ -110,7 +110,7 @@ class SymbolicObject(abc.ABC):
             # Check that each `symbol_from` appears at most once
             cnt = Counter(symbol_from for symbol_from, object_to
                           in substitution_pairs)
-            max_count, max_symbol = cnt.most_common(1)[0]
+            max_symbol, max_count = cnt.most_common(1)[0]
             if max_count > 1:
                 raise ValueError(
                     f"Symbol appears multiple times as 'symbol_from': "
@@ -220,6 +220,7 @@ class Symbol(SymbolicObject):
             if symbol_from == self:
                 return object_to
         else:
+            # If on `self` is no substitution request
             return self
 
     def get_symbols(self) -> Iterable[Symbol]:
