@@ -1,5 +1,7 @@
 from typing import Iterable
 
+from copy import deepcopy
+
 from neads.symbolic_objects.symbolic_object import SymbolicObject, Symbol
 
 
@@ -18,7 +20,7 @@ class Value(SymbolicObject):
             Object which the Value held.
         """
 
-        self._value = value
+        self._value = deepcopy(value)
 
     def _substitute_clean(self, substitution_pairs):
         """Apply substitution on Value.
@@ -35,7 +37,8 @@ class Value(SymbolicObject):
         -------
             `Self`, as no substitution can occur.
         """
-        pass
+
+        return self
 
     def get_symbols(self) -> Iterable[Symbol]:
         """Return empty tuple for Symbols in Value.
@@ -44,7 +47,8 @@ class Value(SymbolicObject):
         -------
             Empty tuple, as Value has no Symbols.
         """
-        pass
+
+        return ()
 
     def get_value(self):
         """Return the actual value, which the Value contains.
@@ -57,7 +61,8 @@ class Value(SymbolicObject):
         -------
             The actual value, which the Value contains.
         """
-        pass
+
+        return deepcopy(self._value)
 
     def __eq__(self, other: SymbolicObject) -> bool:
         """Perform comparison of `self` with the other SymbolicObject.
@@ -73,4 +78,7 @@ class Value(SymbolicObject):
             `other` are value-equal (i.e. operator == is used). Otherwise False.
         """
 
-        pass
+        if isinstance(other, Value):
+            return self._value == other._value
+        else:
+            return False
