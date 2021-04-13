@@ -17,7 +17,7 @@ class TestSymbolicObject(unittest.TestCase):
 
     def test_substitute_3_args(self):
         self.assertRaises(
-            SymbolicObjectException,
+            ValueError,
             self.test_object.substitute,
             self.symbol_1,
             self.value_1,
@@ -26,7 +26,7 @@ class TestSymbolicObject(unittest.TestCase):
 
     def test_substitute_2_args_first_not_symbol(self):
         self.assertRaises(
-            SymbolicObjectException,
+            TypeError,
             self.test_object.substitute,
             self.value_1,
             self.value_2
@@ -34,7 +34,7 @@ class TestSymbolicObject(unittest.TestCase):
 
     def test_substitute_2_args_second_not_symbolic_object(self):
         self.assertRaises(
-            SymbolicObjectException,
+            TypeError,
             self.test_object.substitute,
             self.symbol_1,
             'not_symbolic_object'
@@ -42,42 +42,42 @@ class TestSymbolicObject(unittest.TestCase):
 
     def test_substitute_1_args_not_dict_not_iterable(self):
         self.assertRaises(
-            SymbolicObjectException,
+            TypeError,
             self.test_object.substitute,
             0
         )
 
     def test_substitute_1_args_dict_not_symbol_as_key(self):
         self.assertRaises(
-            SymbolicObjectException,
+            TypeError,
             self.test_object.substitute,
             {self.value_1: self.value_2}
         )
 
     def test_substitute_1_args_dict_not_symbolic_object_as_value(self):
         self.assertRaises(
-            SymbolicObjectException,
+            TypeError,
             self.test_object.substitute,
             {self.symbol_1: 'not_symbolic_object'}
         )
 
     def test_substitute_1_args_iterable_not_pairs(self):
         self.assertRaises(
-            SymbolicObjectException,
+            TypeError,
             self.test_object.substitute,
             [self.symbol_1, self.value_1]
         )
 
     def test_substitute_1_args_iterable_not_symbol_in_pair(self):
         self.assertRaises(
-            SymbolicObjectException,
+            TypeError,
             self.test_object.substitute,
             [(self.value_1, self.value_2)]
         )
 
     def test_substitute_1_args_iterable_not_symbolic_object_in_pair(self):
         self.assertRaises(
-            SymbolicObjectException,
+            TypeError,
             self.test_object.substitute,
             [(self.symbol_1, 'not_symbolic_object')]
         )
@@ -89,14 +89,14 @@ class TestSymbolicObject(unittest.TestCase):
         ]
 
         self.assertRaises(
-            SymbolicObjectException,
+            ValueError,
             self.test_object.substitute,
             subs_iterable
         )
 
     def test_substitute_2_args_ok(self):
         one_subs = self.test_object.substitute(self.symbol_1, self.value_1)
-        two_subs = one_subs.substitute(self.symbol_2, self.value_1)
+        two_subs = one_subs.substitute(self.symbol_2, self.value_2)
         result = two_subs.get_value()
 
         expected = [1, 2]
