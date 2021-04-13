@@ -1,8 +1,7 @@
 from typing import Iterable
 import abc
 
-from neads.symbolic_objects.symbolic_object import SymbolicObject
-from neads.symbolic_objects.symbol import Symbol
+from neads.symbolic_objects.symbolic_object import SymbolicObject, Symbol
 
 
 class CompositeObject(SymbolicObject):

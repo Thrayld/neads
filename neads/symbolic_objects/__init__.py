@@ -1,4 +1,4 @@
-from .symbol import Symbol
+from .symbolic_object import Symbol
 from .value import Value
 from .symbolic_object_exception import SymbolicObjectException
 
