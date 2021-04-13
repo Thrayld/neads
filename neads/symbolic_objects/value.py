@@ -1,4 +1,5 @@
 from typing import Iterable
+import collections
 
 from copy import deepcopy
 
@@ -82,3 +83,9 @@ class Value(SymbolicObject):
             return self._value == other._value
         else:
             return False
+
+    def __hash__(self):
+        if isinstance(self._value, collections.Hashable):
+            return hash(self._value)
+        else:
+            TypeError(f'Content of Value is not hashable: {type(self._value)}')
