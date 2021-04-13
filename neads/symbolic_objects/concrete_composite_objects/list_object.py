@@ -1,4 +1,6 @@
-from typing import Iterable
+from __future__ import annotations
+
+from typing import Iterable, Sequence
 
 from neads.symbolic_objects.symbolic_object import SymbolicObject
 from neads.symbolic_objects.composite_object import CompositeObject
@@ -22,32 +24,21 @@ class ListObject(CompositeObject):
             passed.
         """
 
-        raise NotImplementedError()
+        self._subobjects: Sequence[SymbolicObject] = subobjects
 
-        self._subobjects: List[SymbolicObject]
-
-        # If the only item in subarguments is to be considered as sequence
-        # of the actual subarguments
-        if len(subobjects) == 1 and \
-                not isinstance(subobjects[0], SymbolicObject):
-            self._subobjects = [*subobjects[0]]
-        else:
-            # The subarguments sequence are the actual subarguments
-            self._subobjects = list(subobjects)
-
-        # Check type of subarguments
-        for sub_arg in self._subobjects:
-            if not isinstance(sub_arg, SymbolicObject):
+        # Check type of sub-objects
+        for sub_obj in self._subobjects:
+            if not isinstance(sub_obj, SymbolicObject):
                 raise TypeError(
-                    'Subarguments of ListArgument must be instance of '
-                    'SymbolicArgument'
+                    f'Given sub-object of ListObject is not instance of '
+                    f'SymbolicObject: {sub_obj}'
                 )
 
-    def _substitute_clean(self, substitution_pairs) -> SymbolicObject:
-        """Do the substitution with iterable of pairs for substitution.
+    def _perform_substitution(self, substitution_pairs) -> ListObject:
+        """Actually perform substitution.
 
-        If a replacement occurs, new ListObject is created from `self`,
-        because SymbolicObject is immutable.
+        Create ListObject whose entries are occupied by corresponding
+        sub-objects after substitution.
 
         Parameters
         ----------
@@ -56,11 +47,14 @@ class ListObject(CompositeObject):
 
         Returns
         -------
-            ListObject whose entries are filled with sub-objects after
-            substitution.
+            Copy of self with sub-objects after substitution.
         """
 
-        pass
+        sub_obj_after_substitution = [
+            sub_obj._substitute_clean(substitution_pairs)
+            for sub_obj in self._subobjects
+        ]
+        return ListObject(*sub_obj_after_substitution)
 
     def get_value(self):
         """Return a list of values of sub-objects of the ListObject.
@@ -77,7 +71,7 @@ class ListObject(CompositeObject):
             If there are some Symbols left in the ListObject.
         """
 
-        pass
+        return [sub_obj.get_value() for sub_obj in self._subobjects]
 
     def __eq__(self, other: SymbolicObject) -> bool:
         """Perform comparison of `self` with the other SymbolicObject.
@@ -94,29 +88,21 @@ class ListObject(CompositeObject):
             used). Otherwise False.
         """
 
-        pass
+        if isinstance(other, ListObject):
+            if len(self._subobjects) == len(other._subobjects):
+                # Check equality of corresponding sub-objects
+                for sub_self, sub_other in zip(self._subobjects,
+                                               other._subobjects):
+                    if sub_self != sub_other:
+                        return False
+                else:
+                    return True
+            else:
+                return False
+        else:
+            return False
 
-    # def get_actual_argument_value(self) -> List:
-    #     """Return the value which the ListArgument describes.
-    #
-    #     A ListArgument is a list of values of its subarguments.
-    #
-    #     Returns
-    #     -------
-    #         List of values of the ListArgument subarguments.
-    #
-    #     Raises
-    #     ------
-    #     SymbolicArgumentException
-    #         If there are some Symbols left in the ListArgument.
-    #     """
-    #
-    #     subargument_values = [sub_arg.get_actual_argument_value()
-    #                           for sub_arg in self._subobjects]
-    #     # The values are already in a list
-    #     return subargument_values
-
-    def _get_sub_arguments(self) -> Iterable[SymbolicObject]:
+    def _get_subobjects(self) -> Iterable[SymbolicObject]:
         """Return an iterable of sub-objects which occur in the object.
 
         Returns
@@ -124,4 +110,4 @@ class ListObject(CompositeObject):
             An iterable of all sub-objects which occur in the ListObject.
         """
 
-        pass
+        return self._subobjects
