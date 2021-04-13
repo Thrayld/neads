@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Iterable
 
 from neads.symbolic_objects.symbolic_object import SymbolicObject
+from neads.symbolic_objects.symbolic_object_exception \
+    import SymbolicObjectException
 
 
 class Symbol(SymbolicObject):
@@ -24,7 +26,10 @@ class Symbol(SymbolicObject):
             `Self`, if the Symbol in not included in `substitution_pairs` as
             one of the `symbol_from`. Otherwise, the corresponding `object_to`.
         """
-        pass
+
+        for symbol_from, object_to in substitution_pairs:
+            if symbol_from == self:
+                return object_to
 
     def get_symbols(self) -> Iterable[Symbol]:
         """Return (`self`,) as the only symbol.
@@ -33,7 +38,8 @@ class Symbol(SymbolicObject):
         -------
             Return (`self`,) as the only symbol.
         """
-        pass
+
+        return self,
 
     def get_value(self):
         """Raise exception as Symbol cannot be transferred to value.
@@ -43,7 +49,8 @@ class Symbol(SymbolicObject):
         SymbolicObjectException
             Symbol cannot be transferred to value.
         """
-        pass
+
+        raise SymbolicObjectException('Symbol cannot be transferred to value.')
 
     def __eq__(self, other: SymbolicObject) -> bool:
         """Reference-wise compares `self` with the `other` SymbolicObject.
@@ -58,4 +65,4 @@ class Symbol(SymbolicObject):
             Result of the expression: `self` is `other`.
         """
 
-        pass
+        return self is other
