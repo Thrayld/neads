@@ -88,4 +88,5 @@ class Value(SymbolicObject):
         if isinstance(self._value, collections.Hashable):
             return hash(self._value)
         else:
-            TypeError(f'Content of Value is not hashable: {type(self._value)}')
+            raise TypeError(f'Content of Value is not hashable:'
+                            f' {type(self._value)}')
