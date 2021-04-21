@@ -29,7 +29,7 @@ class SymbolicObject(abc.ABC):
         args
             One of the following:
 
-            * Two arguments `symbol_from` and object_to`.
+            * Two arguments `symbol_from` and `object_to`.
 
             * Iterable with the pairs `symbol_from`, `object_to`.
 
