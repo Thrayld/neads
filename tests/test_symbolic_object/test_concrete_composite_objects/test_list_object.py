@@ -17,6 +17,13 @@ class TestListObjectFlat(unittest.TestCase):
             self.value
         )
 
+    def test_init_bad_types(self):
+        self.assertRaises(
+            TypeError,
+            ListObject,
+            0
+        )
+
     def test_substitute_all_at_once(self):
         value_10 = Value(10)
         value_15 = Value(15)

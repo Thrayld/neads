@@ -20,6 +20,13 @@ class TestDictObjectFlat(unittest.TestCase):
             }
         )
 
+    def test_init_bad_types(self):
+        self.assertRaises(
+            TypeError,
+            DictObject,
+            {self.string: self.value_int}
+        )
+
     def test_substitute(self):
         value_10 = Value(10)
         value_15 = Value(15)
@@ -42,7 +49,7 @@ class TestDictObjectFlat(unittest.TestCase):
 
         actual = self.dict_object.get_symbols()
 
-        self.assertEqual(expected, actual)
+        self.assertCountEqual(expected, actual)
 
     def test_get_value_with_invalid_type_for_key(self):
         bad_value = Value([1])
@@ -113,14 +120,14 @@ class TestDictObjectNested(unittest.TestCase):
 
     def test_substitute_and_get_value_nominal(self):
         to_subs = {
-            self.symbol_1: self.int,
-            self.symbol_2: self.string
+            self.symbol_1: self.value_int,
+            self.symbol_2: self.value_string
         }
         expected = {
             self.string: {self.int: self.int}
         }
 
-        actual = self.inner.substitute(to_subs).get_value()
+        actual = self.outer.substitute(to_subs).get_value()
 
         self.assertEqual(expected, actual)
 
