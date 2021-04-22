@@ -4,7 +4,7 @@ from typing import Iterable, Sequence
 import abc
 from collections import Counter
 
-from neads.symbolic_objects.symbolic_object_exception \
+from neads.activation_model.symbolic_objects.symbolic_object_exception \
     import SymbolicObjectException
 
 

@@ -2,7 +2,7 @@ import unittest
 
 import copy
 
-from neads.symbolic_objects import *
+from neads.activation_model.symbolic_objects import *
 
 
 class TestSymbol(unittest.TestCase):

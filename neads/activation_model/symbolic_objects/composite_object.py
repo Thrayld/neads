@@ -4,7 +4,7 @@ from typing import Iterable
 import abc
 import itertools
 
-from neads.symbolic_objects.symbolic_object import SymbolicObject, Symbol
+from neads.activation_model.symbolic_objects.symbolic_object import SymbolicObject, Symbol
 
 
 class CompositeObject(SymbolicObject):

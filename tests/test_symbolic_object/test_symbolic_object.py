@@ -1,7 +1,6 @@
 import unittest
 
-from neads.symbolic_objects import Symbol, Value, SymbolicObjectException, \
-    ListObject
+from neads.activation_model.symbolic_objects import Symbol, Value, ListObject
 
 
 class TestSymbolicObject(unittest.TestCase):

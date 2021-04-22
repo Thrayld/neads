@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Iterable, Sequence
 
-from neads.symbolic_objects.symbolic_object import SymbolicObject
-from neads.symbolic_objects.composite_object import CompositeObject
+from neads.activation_model.symbolic_objects.symbolic_object import SymbolicObject
+from neads.activation_model.symbolic_objects.composite_object import CompositeObject
 
 
 class ListObject(CompositeObject):

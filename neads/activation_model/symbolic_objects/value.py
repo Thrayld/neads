@@ -3,7 +3,7 @@ import collections
 
 from copy import deepcopy
 
-from neads.symbolic_objects.symbolic_object import SymbolicObject, Symbol
+from neads.activation_model.symbolic_objects.symbolic_object import SymbolicObject, Symbol
 
 
 class Value(SymbolicObject):
