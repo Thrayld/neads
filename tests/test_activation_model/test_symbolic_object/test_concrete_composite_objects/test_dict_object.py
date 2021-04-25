@@ -159,7 +159,7 @@ class TestDictObjectFlat(unittest.TestCase):
     def test_hash_for_different_objects(self):
         other = DictObject({self.symbol_1: self.value_int})
 
-        self.assertEqual(hash(self.dict_object), hash(other))
+        self.assertNotEqual(hash(self.dict_object), hash(other))
 
 
 class TestDictObjectNested(unittest.TestCase):
