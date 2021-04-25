@@ -24,9 +24,6 @@ class SymbolicObject(abc.ABC):
         If a replacement occurs, new SymbolicObject is created from `self`,
         because SymbolicObject is immutable.
 
-        TODO: explicitly say that if no substitution occurs, the returned
-         object is `self
-
         Parameters
         ----------
         args
@@ -40,7 +37,8 @@ class SymbolicObject(abc.ABC):
 
         Returns
         -------
-            SymbolicObject after substitution.
+            `Self`, if none substitution occurs. Otherwise, SymbolicObject
+            after substitution.
 
         Raises
         ------
@@ -50,8 +48,10 @@ class SymbolicObject(abc.ABC):
             If 0 or more than 2 arguments are passed, or one `symbol_from`
             occurs multiple times.
 
-        TODO: add See also and Notes about differences between `substitute`
-         and `get_value`
+        See Also
+        --------
+            `get_value` for discussion on differences between
+            `substitute` and `get_value`
         """
 
         # If pair `symbol_from`, `object_to` is passed
@@ -70,7 +70,8 @@ class SymbolicObject(abc.ABC):
         self._check_substitution_pairs(substitution_pairs)
         return self._substitute_clean(substitution_pairs)
 
-    def _check_substitution_pairs(self, substitution_pairs):
+    @staticmethod
+    def _check_substitution_pairs(substitution_pairs):
         """Check that given object is valid iterable of substitution pairs.
 
         That is, the object is iterable of pairs (sequence of length 2).
@@ -138,6 +139,8 @@ class SymbolicObject(abc.ABC):
         If a replacement occurs, new SymbolicObject is created from `self`,
         because SymbolicObject is immutable.
 
+        The `substitution_pairs` are check to be a clean arguments.
+
         Parameters
         ----------
         substitution_pairs
@@ -162,11 +165,34 @@ class SymbolicObject(abc.ABC):
         # IDEA: What about establishing an order and returning a sequence?
         pass
 
-    @abc.abstractmethod
-    def get_value(self):
+    def get_value(self, *args, copy=True):
         """Return the object which the SymbolicObject describes.
 
-        There must be no Symbol (i.e. free variable) in the SymbolicObject.
+        If there are Symbols (i.e. free variables) in the SymbolicObject,
+        they must be replaced by some objects. The objects are handled as
+        they are, unlike in `substitute` method, where only SymbolicObjects
+        are allowed (and a real value extracted is from them).
+
+        Parameters
+        ----------
+        args
+            One of the following:
+
+            * No argument, if there is no Symbol left in the SymbolicObject.
+
+            * Two arguments `symbol_from` and `object_to`.
+
+            * Iterable with the pairs `symbol_from`, `object_to`.
+
+            * Dict with `symbol_from` as keys and `object_to` as values.
+        copy
+            Whether a deep copy of given objects should appear in the
+            resulting arguments.
+
+            It is safer to create the copy to prevent intertwining between
+            the original objects and the objects in the arguments. The
+            modification of non-copied objects may result in unexpected
+            behavior.
 
         Returns
         -------
@@ -175,14 +201,54 @@ class SymbolicObject(abc.ABC):
         Raises
         ------
         SymbolicObjectException
-            If there are some Symbols left in the SymbolicObject.
+            If there are still some Symbols left in the SymbolicObject.
 
-        TODO: add See also and Notes about differences between `substitute`
-         and `get_value`
+        Notes
+        -----
+            There are a few differences between `get_value` and `substitute`
+            methods.
+
+            Returned object:
+            * `get_value` returns an object
+            * `substitute` returns SymbolicObject
+
+            Replacement for Symbols:
+            * `get_value` accepts any object
+            * `substitute` requires SymbolicObject
+
+            Remaining Symbols:
+            * When calling `get_value`, all Symbols must be substituted
+            * When calling `substitute`, some Symbols may remain
+
+            Copying input objects:
+            * `get_value` copies them once by default (per each replacement)
+            * When using `substitute` (and `get_value` later), objects must
+            be copied twice (to ensure immutability of SymbolicObject)
         """
 
         # TODO: add substitution with / without copy
         # IDEA: return without copy
+        pass
+
+    @abc.abstractmethod
+    def _get_value_clean(self, substitution_pairs, copy=True):
+        """Do return the object which the SymbolicObject describes.
+
+        The `substitution_pairs` are check to be a clean arguments.
+
+        Parameters
+        ----------
+        substitution_pairs
+            Iterable of pairs `symbol_from`, `object_to` for substitution.
+        copy
+            Whether a deep copy of given objects should appear in the
+            resulting arguments.
+
+        Returns
+        -------
+            SymbolicObject after substitution.
+        """
+
         pass
 
     @abc.abstractmethod
@@ -209,7 +275,9 @@ class SymbolicObject(abc.ABC):
 
         pass
 
-    # TODO: add __hash__
+    @abc.abstractmethod
+    def __hash__(self):
+        pass
 
 
 class Symbol(SymbolicObject):
