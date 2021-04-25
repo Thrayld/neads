@@ -54,15 +54,8 @@ class SymbolicArgumentSet:
 
         self._bound_args = self._convert_to_symbolic_objects(bound)
 
-        # Serves as a cache
-        # It does not hurt to create it eagerly, it is used everywhere anyway
-        # self._arguments_iterable: Tuple[SymbolicObject] = tuple(
-        #     *self._bound_args.args,
-        #     *self._bound_args.kwargs.items()
-        # )
-
+    @staticmethod
     def _extract_signature(
-            self,
             signature_bearer: Union[inspect.Signature, Callable]
     ) -> inspect.Signature:
         """Extract and return signature from the `signature_bearer`.
@@ -162,6 +155,9 @@ class SymbolicArgumentSet:
         ValueError
             If 0 or more than 2 arguments are passed, or one `symbol_from`
             occurs multiple times.
+
+        TODO: add See also `get_actual_arguments` and Notes about differences
+         between `substitute` and `get_actual_arguments`
         """
 
         def _substitution_occurred():
@@ -200,6 +196,9 @@ class SymbolicArgumentSet:
         args
             One of the following:
 
+            * No argument, if there is no Symbol left in the
+            SymbolicArgumentSet.
+
             * Two arguments `symbol_from` and `object_to`.
 
             * Iterable with the pairs `symbol_from`, `object_to`.
@@ -223,8 +222,9 @@ class SymbolicArgumentSet:
         TypeError
             If the arguments do not respect the required types.
         ValueError
-            If 0 or more than 2 arguments are passed, or one `symbol_from`
+            If more than 2 arguments are passed, or one `symbol_from`
             occurs multiple times.
+        TODO: change the exception type
         SymbolicObjectException
             If there are some unsubstituted Symbols left in the
             SymbolicArgumentSet.
