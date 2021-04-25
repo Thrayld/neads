@@ -58,24 +58,6 @@ class ListObject(CompositeObject):
         ]
         return ListObject(*sub_obj_after_substitution)
 
-    # TODO: remove obsolete code
-    # def get_value(self):
-    #     """Return a list of values of sub-objects of the ListObject.
-    #
-    #     There must be no Symbol (i.e. free variable) in the ListObject.
-    #
-    #     Returns
-    #     -------
-    #         List of values of sub-objects of the ListObject.
-    #
-    #     Raises
-    #     ------
-    #     SymbolicObjectException
-    #         If there are some Symbols left in the ListObject.
-    #     """
-    #
-    #     return [sub_obj.get_value() for sub_obj in self._subobjects]
-
     def _get_value_clean(self, substitution_pairs, share):
         """Return a list of values of sub-objects of the ListObject.
 
@@ -115,20 +97,8 @@ class ListObject(CompositeObject):
             used). Otherwise False.
         """
 
-        # TODO: WTF?!
-        #  Just do self._subobjects == other._subobjects!
-
         if isinstance(other, ListObject):
-            if len(self._subobjects) == len(other._subobjects):
-                # Check equality of corresponding sub-objects
-                for sub_self, sub_other in zip(self._subobjects,
-                                               other._subobjects):
-                    if sub_self != sub_other:
-                        return False
-                else:
-                    return True
-            else:
-                return False
+            return self._subobjects == other._subobjects
         else:
             return False
 

@@ -41,8 +41,6 @@ class DictObject(CompositeObject):
                         f'SymbolicObject: {sub_obj}'
                     )
 
-        # TODO: is it possible to use dict to store them?
-        #  rather a frozendict, which is hashable
         self._dict_subobjects = frozendict(dict_)
 
     def _perform_substitution(self, substitution_pairs) -> DictObject:
@@ -67,28 +65,6 @@ class DictObject(CompositeObject):
             for key, val in self._dict_subobjects.items()
         }
         return DictObject(dict_after_subs)
-
-    # TODO: remove obsolete code
-    # def get_value(self):
-    #     """Return a dict of values of sub-objects of the DictObject.
-    #
-    #     There must be no Symbol (i.e. free variable) in the DictObject.
-    #
-    #     Returns
-    #     -------
-    #         Dict of values of sub-objects of the DictObject.
-    #
-    #     Raises
-    #     ------
-    #     SymbolicObjectException
-    #         If there are some Symbols left in the DictObject.
-    #     """
-    #
-    #     dict_value = {
-    #         key.get_value(): val.get_value()
-    #         for key, val in self._key_val_subobjects
-    #     }
-    #     return dict_value
 
     def _get_value_clean(self, substitution_pairs, share):
         """Return a dict of values of sub-objects of the DictObject.
@@ -133,7 +109,6 @@ class DictObject(CompositeObject):
             used). Otherwise False.
         """
 
-        # TODO: that is not how dicts should be compared
         if isinstance(other, DictObject):
             return self._dict_subobjects == other._dict_subobjects
         else:
@@ -147,7 +122,6 @@ class DictObject(CompositeObject):
             An iterable of all sub-objects which occur in the DictObject.
         """
 
-        # TODO: figure out how to do that
         items_pairs = self._dict_subobjects.items()
         return (item for item in itertools.chain(*items_pairs))
 

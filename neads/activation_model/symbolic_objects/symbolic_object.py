@@ -442,18 +442,6 @@ class Symbol(SymbolicObject):
 
         return self,
 
-    # TODO: remove obsolete code
-    # def get_value(self):
-    #     """Raise exception as Symbol cannot be transferred to value.
-    #
-    #     Raises
-    #     ------
-    #     SymbolicObjectException
-    #         Symbol cannot be transferred to value.
-    #     """
-    #
-    #     raise SymbolicObjectException('Symbol cannot be transferred to value.')
-
     def _get_value_clean(self, substitution_pairs, share):
         """Return corresponding `object_to` to the Symbols according to args.
 
