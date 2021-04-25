@@ -55,23 +55,10 @@ class SymbolicObject(abc.ABC):
             `substitute` and `get_value`
         """
 
-        # TODO: use _extract_substitution_pairs
-
-        # If pair `symbol_from`, `object_to` is passed
-        if len(args) == 2:
-            substitution_pairs = (args,)
-        # If one arg is passed, its either dict or pairs directly
-        elif len(args) == 1:
-            arg = args[0]
-            if isinstance(arg, dict):
-                substitution_pairs = arg.items()
-            else:
-                substitution_pairs = arg
-        else:
-            raise ValueError(f'Invalid number of arguments passed: {len(args)}')
-
-        self._check_substitution_pairs(substitution_pairs,
-                                       required_object_type=SymbolicObject)
+        substitution_pairs = self._extract_substitution_pairs(
+            *args,
+            required_object_type=SymbolicObject
+        )
         return self._substitute_clean(substitution_pairs)
 
     @staticmethod
