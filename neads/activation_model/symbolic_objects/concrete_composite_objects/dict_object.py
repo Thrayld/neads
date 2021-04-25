@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Iterable
 import itertools
 
+from frozendict import frozendict
+
 from neads.activation_model.symbolic_objects.symbolic_object import \
     SymbolicObject
 from neads.activation_model.symbolic_objects.composite_object import \
@@ -41,7 +43,7 @@ class DictObject(CompositeObject):
 
         # TODO: is it possible to use dict to store them?
         #  rather a frozendict, which is hashable
-        self._key_val_subobjects = dict_.items()
+        self._dict_subobjects = frozendict(dict_)
 
     def _perform_substitution(self, substitution_pairs) -> DictObject:
         """Actually perform substitution.
@@ -59,15 +61,12 @@ class DictObject(CompositeObject):
             Copy of self with sub-objects after substitution.
         """
 
-        items_after_subs = (
-            (
-                key.substitute(substitution_pairs),
-                val.substitute(substitution_pairs)
-            )
-            for key, val in self._key_val_subobjects
-        )
-        dict_ = dict(items_after_subs)
-        return DictObject(dict_)
+        s_p = substitution_pairs  # Assign to a variable with shorter name
+        dict_after_subs = {
+            key.substitute(s_p): val.substitute(s_p)
+            for key, val in self._dict_subobjects.items()
+        }
+        return DictObject(dict_after_subs)
 
     # TODO: remove obsolete code
     # def get_value(self):
@@ -115,7 +114,7 @@ class DictObject(CompositeObject):
         s_p = substitution_pairs  # Assign to a variable with shorter name
         dict_value = {
             key._get_value_clean(s_p, share): val._get_value_clean(s_p, share)
-            for key, val in self._key_val_subobjects
+            for key, val in self._dict_subobjects.items()
         }
         return dict_value
 
@@ -136,16 +135,7 @@ class DictObject(CompositeObject):
 
         # TODO: that is not how dicts should be compared
         if isinstance(other, DictObject):
-            if len(self._key_val_subobjects) == len(other._key_val_subobjects):
-                # Check equality of corresponding sub-objects
-                for sub_self, sub_other in zip(self._key_val_subobjects,
-                                               other._key_val_subobjects):
-                    if sub_self != sub_other:
-                        return False
-                else:
-                    return True
-            else:
-                return False
+            return self._dict_subobjects == other._dict_subobjects
         else:
             return False
 
@@ -157,7 +147,9 @@ class DictObject(CompositeObject):
             An iterable of all sub-objects which occur in the DictObject.
         """
 
-        return (item for item in itertools.chain(*self._key_val_subobjects))
+        # TODO: figure out how to do that
+        items_pairs = self._dict_subobjects.items()
+        return (item for item in itertools.chain(*items_pairs))
 
     def __hash__(self):
-        return hash(self._key_val_subobjects)
+        return hash(self._dict_subobjects)
