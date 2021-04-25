@@ -51,20 +51,6 @@ class TestDictObjectFlat(unittest.TestCase):
 
         self.assertCountEqual(expected, actual)
 
-    # def test_get_value_with_invalid_type_for_key(self):
-    #     ### The test cannot work, as [1] in Value is not hashable and that
-    #     ### is OK
-    #     TODO: add it to documentation
-    #
-    #     bad_value = Value([1])
-    #     dict_ = {bad_value: self.value_int}
-    #     dict_object = DictObject(dict_)
-    #
-    #     self.assertRaises(
-    #         TypeError,
-    #         dict_object.get_value
-    #     )
-
     def test_get_value_with_symbols_left(self):
         self.assertRaises(
             SymbolicObjectException,
