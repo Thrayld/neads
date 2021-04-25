@@ -3,8 +3,10 @@ from __future__ import annotations
 from typing import Iterable
 import itertools
 
-from neads.activation_model.symbolic_objects.symbolic_object import SymbolicObject
-from neads.activation_model.symbolic_objects.composite_object import CompositeObject
+from neads.activation_model.symbolic_objects.symbolic_object import \
+    SymbolicObject
+from neads.activation_model.symbolic_objects.composite_object import \
+    CompositeObject
 
 
 class DictObject(CompositeObject):
@@ -37,6 +39,8 @@ class DictObject(CompositeObject):
                         f'SymbolicObject: {sub_obj}'
                     )
 
+        # TODO: is it possible to use dict to store them?
+        #  rather a frozendict, which is hashable
         self._key_val_subobjects = dict_.items()
 
     def _perform_substitution(self, substitution_pairs) -> DictObject:
@@ -101,6 +105,7 @@ class DictObject(CompositeObject):
             used). Otherwise False.
         """
 
+        # TODO: that is not how dicts should be compared
         if isinstance(other, DictObject):
             if len(self._key_val_subobjects) == len(other._key_val_subobjects):
                 # Check equality of corresponding sub-objects

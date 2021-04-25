@@ -3,7 +3,8 @@ import collections
 
 from copy import deepcopy
 
-from neads.activation_model.symbolic_objects.symbolic_object import SymbolicObject, Symbol
+from neads.activation_model.symbolic_objects.symbolic_object import \
+    SymbolicObject, Symbol
 
 
 class Value(SymbolicObject):
@@ -85,8 +86,8 @@ class Value(SymbolicObject):
             return False
 
     def __hash__(self):
-        if isinstance(self._value, collections.Hashable):
+        try:
             return hash(self._value)
-        else:
+        except Exception as e:
             raise TypeError(f'Content of Value is not hashable:'
-                            f' {type(self._value)}')
+                            f' {type(self._value)}') from e

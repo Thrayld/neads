@@ -4,7 +4,8 @@ from typing import Iterable
 import abc
 import itertools
 
-from neads.activation_model.symbolic_objects.symbolic_object import SymbolicObject, Symbol
+from neads.activation_model.symbolic_objects.symbolic_object import \
+    SymbolicObject, Symbol
 
 
 class CompositeObject(SymbolicObject):
@@ -49,8 +50,7 @@ class CompositeObject(SymbolicObject):
         """
 
         self_symbols = set(self.get_symbols())
-        symbol_to_substitute = set(symbol for symbol, object
-                                   in substitution_pairs)
+        symbol_to_substitute = set(symbol for symbol, _ in substitution_pairs)
         common_symbols = self_symbols.intersection(symbol_to_substitute)
         return len(common_symbols) > 0
 

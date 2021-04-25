@@ -24,6 +24,9 @@ class SymbolicObject(abc.ABC):
         If a replacement occurs, new SymbolicObject is created from `self`,
         because SymbolicObject is immutable.
 
+        TODO: explicitly say that if no substitution occurs, the returned
+         object is `self
+
         Parameters
         ----------
         args
@@ -46,6 +49,9 @@ class SymbolicObject(abc.ABC):
         ValueError
             If 0 or more than 2 arguments are passed, or one `symbol_from`
             occurs multiple times.
+
+        TODO: add See also and Notes about differences between `substitute`
+         and `get_value`
         """
 
         # If pair `symbol_from`, `object_to` is passed
@@ -108,7 +114,7 @@ class SymbolicObject(abc.ABC):
                 else:
                     raise TypeError(
                         f'Item of substitution pairs iterable is not '
-                        f'substitution pair: {item}'
+                        f'a pair: {item}'
                     )
             # Check that each `symbol_from` appears at most once
             cnt = Counter(symbol_from for symbol_from, object_to
@@ -146,13 +152,14 @@ class SymbolicObject(abc.ABC):
 
     @abc.abstractmethod
     def get_symbols(self) -> Iterable[Symbol]:
-        """Return a list of Symbols which occur in the SymbolicObject.
+        """Return an iterable of Symbols which occur in the SymbolicObject.
 
         Returns
         -------
-            A list of all symbols which occur in the SymbolicObject.
+            An iterable of all symbols which occur in the SymbolicObject.
         """
 
+        # IDEA: What about establishing an order and returning a sequence?
         pass
 
     @abc.abstractmethod
@@ -169,8 +176,12 @@ class SymbolicObject(abc.ABC):
         ------
         SymbolicObjectException
             If there are some Symbols left in the SymbolicObject.
+
+        TODO: add See also and Notes about differences between `substitute`
+         and `get_value`
         """
 
+        # TODO: add substitution with / without copy
         # IDEA: return without copy
         pass
 
@@ -188,7 +199,7 @@ class SymbolicObject(abc.ABC):
         Parameters
         ----------
         other
-            The other SymbolicObject, which is compared to `self`.
+            The other SymbolicObject, which is compared with `self`.
 
         Returns
         -------
@@ -197,6 +208,8 @@ class SymbolicObject(abc.ABC):
         """
 
         pass
+
+    # TODO: add __hash__
 
 
 class Symbol(SymbolicObject):
@@ -245,6 +258,7 @@ class Symbol(SymbolicObject):
             Symbol cannot be transferred to value.
         """
 
+        # TODO: add substitution with / without copy
         raise SymbolicObjectException('Symbol cannot be transferred to value.')
 
     def __eq__(self, other: SymbolicObject) -> bool:

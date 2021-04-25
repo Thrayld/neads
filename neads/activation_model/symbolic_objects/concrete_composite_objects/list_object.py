@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from typing import Iterable, Tuple
 
 from neads.activation_model.symbolic_objects.symbolic_object import SymbolicObject
 from neads.activation_model.symbolic_objects.composite_object import CompositeObject
@@ -24,7 +24,7 @@ class ListObject(CompositeObject):
             passed.
         """
 
-        self._subobjects: Sequence[SymbolicObject] = subobjects
+        self._subobjects: Tuple[SymbolicObject] = subobjects
 
         # Check type of sub-objects
         for sub_obj in self._subobjects:
@@ -87,6 +87,9 @@ class ListObject(CompositeObject):
             `self` and `other` are pairwise value-equal (i.e. operator == is
             used). Otherwise False.
         """
+
+        # TODO: WTF?!
+        #  Just do self._subobjects == other._subobjects!
 
         if isinstance(other, ListObject):
             if len(self._subobjects) == len(other._subobjects):
