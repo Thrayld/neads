@@ -165,7 +165,7 @@ class SymbolicObject(abc.ABC):
         # IDEA: What about establishing an order and returning a sequence?
         pass
 
-    def get_value(self, *args, copy=True):
+    def get_value(self, *args, copy=True, share=True):
         """Return the object which the SymbolicObject describes.
 
         If there are Symbols (i.e. free variables) in the SymbolicObject,
@@ -193,6 +193,19 @@ class SymbolicObject(abc.ABC):
             the original objects and the objects in the arguments. The
             modification of non-copied objects may result in unexpected
             behavior.
+        share
+            Whether one deepcopy of the original object should be shared
+            among all replacements for the particular Symbol.
+            If not, each replacement of the Symbol have its own deepcopy
+            of the original object.
+
+            This argument is considered only if `copy` is True.
+
+            Also note that in case of `copy` and `share` being True,
+            one object won't be shared among occurrences of different Symbols
+            (although the identical object were passed as a substitution for
+            both Symbols). To arrange this behavior, one must perform
+            a substitution of those Symbols first.
 
         Returns
         -------
