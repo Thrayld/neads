@@ -67,7 +67,43 @@ class TestDictObjectFlat(unittest.TestCase):
             self.dict_object.get_value
         )
 
-    def test_get_value_nominal_case(self):
+    def test_get_value_copy_share(self):
+        list_ = [1]
+        to_subs = {
+            self.symbol_1: list_,
+        }
+
+        after_subs = self.dict_object.substitute(self.symbol_2, self.symbol_1)
+        actual = after_subs.get_value(to_subs)
+
+        self.assertIsNot(list_, actual[self.value_int])
+        self.assertIs(actual[self.value_int], actual[self.value_string])
+
+    def test_get_value_copy_not_share(self):
+        list_ = [1]
+        to_subs = {
+            self.symbol_1: list_,
+        }
+
+        after_subs = self.dict_object.substitute(self.symbol_2, self.symbol_1)
+        actual = after_subs.get_value(to_subs, share=False)
+
+        self.assertIsNot(list_, actual[self.value_int])
+        self.assertIsNot(actual[self.value_int], actual[self.value_string])
+
+    def test_get_value_not_copy(self):
+        list_ = [1]
+        to_subs = {
+            self.symbol_1: list_,
+        }
+
+        after_subs = self.dict_object.substitute(self.symbol_2, self.symbol_1)
+        actual = after_subs.get_value(to_subs, copy=False)
+
+        self.assertIs(list_, actual[self.value_int])
+        self.assertIs(actual[self.value_int], actual[self.value_string])
+
+    def test_get_value_without_symbols(self):
         dict_object = DictObject({self.value_string: self.value_int})
         expected = {self.string: self.int}
 

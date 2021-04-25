@@ -33,11 +33,31 @@ class TestSymbol(unittest.TestCase):
 
         self.assertCountEqual(expected, actual)
 
-    def test_get_value(self):
+    def test_get_value_without_subs(self):
         self.assertRaises(
             SymbolicObjectException,
             self.symbol.get_value
         )
+
+    def test_get_value_with_subs_simple(self):
+        actual = self.symbol.get_value(self.symbol, 1)
+
+        self.assertEqual(1, actual)
+
+    def test_get_value_with_subs_list_copy(self):
+        list_ = [1]
+
+        actual = self.symbol.get_value(self.symbol, list_)
+
+        self.assertEqual(list_, actual)
+        self.assertIsNot(list_, actual)
+
+    def test_get_value_with_subs_list_not_copy(self):
+        list_ = [1]
+
+        actual = self.symbol.get_value(self.symbol, list_, copy=False)
+
+        self.assertIs(list_, actual)
 
     def test_eq_comparison_with_self(self):
         expected = True

@@ -69,7 +69,7 @@ class TestListObjectFlat(unittest.TestCase):
 
         self.assertCountEqual(expected, actual)
 
-    def test_get_value_nominal_case(self):
+    def test_get_value_without_symbols(self):
         list_obj = ListObject(self.value, self.value)
         expected = [self.int_value, self.int_value]
 
@@ -77,7 +77,46 @@ class TestListObjectFlat(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-    def test_get_value_with_symbols(self):
+    def test_get_value_copy_share(self):
+        list_ = [1]
+        to_subs = {
+            self.symbol_1: list_,
+            self.symbol_2: list_
+        }
+
+        actual = self.list_object(to_subs)
+
+        self.assertIsNot(list_, actual[0])
+        self.assertIs(actual[0], actual[1])
+        self.assertIsNot(actual[0], actual[2])
+
+    def test_get_value_copy_not_share(self):
+        list_ = [1]
+        to_subs = {
+            self.symbol_1: list_,
+            self.symbol_2: list_
+        }
+
+        actual = self.list_object(to_subs, share=False)
+
+        self.assertIsNot(list_, actual[0])
+        self.assertIsNot(actual[0], actual[1])
+        self.assertIsNot(actual[0], actual[2])
+
+    def test_get_value_not_copy(self):
+        list_ = [1]
+        to_subs = {
+            self.symbol_1: list_,
+            self.symbol_2: list_
+        }
+
+        actual = self.list_object(to_subs, copy=False)
+
+        self.assertIs(list_, actual[0])
+        self.assertIs(actual[0], actual[1])
+        self.assertIs(actual[0], actual[2])
+
+    def test_get_value_with_unsubstituted_symbols(self):
         self.assertRaises(
             SymbolicObjectException,
             self.list_object.get_value
