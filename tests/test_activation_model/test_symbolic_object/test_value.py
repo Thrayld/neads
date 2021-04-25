@@ -88,6 +88,35 @@ class TestSymbol(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_hash_constant_in_two_calls(self):
+        self.assertEqual(hash(self.value), hash(self.value))
+
+    def test_hash_same_for_equal_objects(self):
+        x = 1000
+        y = x + 0 - 0  # To create different instances of int
+        val_x = Value(x)
+        val_y = Value(y)
+
+        self.assertIsNot(x, y)
+        self.assertEqual(hash(val_x), hash(val_y))
+
+    def test_hash_for_different_objects(self):
+        x = 1000
+        y = x + 1
+        val_x = Value(x)
+        val_y = Value(y)
+
+        self.assertNotEqual(hash(val_x), hash(val_y))
+
+    def test_hash_of_un_hashable(self):
+        val = Value([1])
+
+        self.assertRaises(
+            TypeError,
+            hash,
+            val
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

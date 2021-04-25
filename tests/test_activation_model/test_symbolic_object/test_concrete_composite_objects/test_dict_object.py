@@ -54,6 +54,7 @@ class TestDictObjectFlat(unittest.TestCase):
     # def test_get_value_with_invalid_type_for_key(self):
     #     ### The test cannot work, as [1] in Value is not hashable and that
     #     ### is OK
+    #     TODO: add it to documentation
     #
     #     bad_value = Value([1])
     #     dict_ = {bad_value: self.value_int}
@@ -122,9 +123,15 @@ class TestDictObjectFlat(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_eq_comparison_with_same_structured_dict(self):
+        other = DictObject(
+            {
+                self.value_string: self.symbol_2,
+                self.value_int: self.symbol_1
+            }
+        )
         expected = True
 
-        actual = self.dict_object == self.dict_object
+        actual = self.dict_object == other
 
         self.assertEqual(expected, actual)
 
@@ -135,6 +142,24 @@ class TestDictObjectFlat(unittest.TestCase):
         actual = self.dict_object == other
 
         self.assertEqual(expected, actual)
+
+    def test_hash_constant_in_two_calls(self):
+        self.assertEqual(hash(self.dict_object), hash(self.dict_object))
+
+    def test_hash_same_for_equal_objects(self):
+        other = DictObject(
+            {
+                self.value_string: self.symbol_2,
+                self.value_int: self.symbol_1
+            }
+        )
+
+        self.assertEqual(hash(self.dict_object), hash(other))
+
+    def test_hash_for_different_objects(self):
+        other = DictObject({self.symbol_1: self.value_int})
+
+        self.assertEqual(hash(self.dict_object), hash(other))
 
 
 class TestDictObjectNested(unittest.TestCase):

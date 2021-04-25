@@ -163,6 +163,24 @@ class TestListObjectFlat(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_hash_constant_in_two_calls(self):
+        self.assertEqual(hash(self.list_object), hash(self.list_object))
+
+    def test_hash_same_for_equal_objects(self):
+        other = ListObject(
+            self.symbol_1,
+            self.symbol_1,
+            self.symbol_2,
+            self.value
+        )
+
+        self.assertEqual(hash(self.list_object), hash(other))
+
+    def test_hash_for_different_objects(self):
+        other = ListObject(self.symbol_1)
+
+        self.assertNotEqual(hash(self.list_object), hash(other))
+
 
 class TestListObjectNested(unittest.TestCase):
     def setUp(self) -> None:

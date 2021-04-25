@@ -73,6 +73,14 @@ class TestSymbol(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_hash_constant_in_two_calls(self):
+        self.assertEqual(hash(self.symbol), hash(self.symbol))
+
+    def test_hash_of_different_symbols(self):
+        other_symbol = Symbol()
+
+        self.assertNotEqual(hash(self.symbol), hash(other_symbol))
+
 
 if __name__ == '__main__':
     unittest.main()
