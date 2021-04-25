@@ -103,6 +103,18 @@ class Value(SymbolicObject):
             return False
 
     def __hash__(self):
+        """Return hash of the contained object.
+
+        Returns
+        -------
+            Hash of the contained object.
+
+        Raises
+        ------
+        TypeError
+            If the content of Value is of an un-hashable type.
+        """
+
         try:
             return hash(self._value)
         except Exception as e:

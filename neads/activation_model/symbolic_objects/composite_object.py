@@ -157,4 +157,19 @@ class CompositeObject(SymbolicObject):
 
         pass
 
-    # TODO: implement __hash__
+    @abc.abstractmethod
+    def __hash__(self):
+        """Return a hash of the CompositeObject.
+
+        Returns
+        -------
+            Hash of the CompositeObject.
+
+        Raises
+        ------
+        TypeError
+            If there is a Value containing an object of an un-hashable type
+            in the CompositeObject.
+        """
+
+        pass

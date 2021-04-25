@@ -142,4 +142,5 @@ class ListObject(CompositeObject):
 
         return self._subobjects
 
-    # TODO: implement __hash__
+    def __hash__(self):
+        return hash(self._subobjects)

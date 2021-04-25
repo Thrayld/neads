@@ -159,4 +159,5 @@ class DictObject(CompositeObject):
 
         return (item for item in itertools.chain(*self._key_val_subobjects))
 
-    # TODO: implement __hash__
+    def __hash__(self):
+        return hash(self._key_val_subobjects)

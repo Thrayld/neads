@@ -389,6 +389,19 @@ class SymbolicObject(abc.ABC):
 
     @abc.abstractmethod
     def __hash__(self):
+        """Return a hash of the SymbolicObject.
+
+        Returns
+        -------
+            Hash of the SymbolicObject.
+
+        Raises
+        ------
+        TypeError
+            If there is a Value containing an object of an un-hashable type
+            in the SymbolicObject.
+        """
+
         pass
 
 
