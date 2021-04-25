@@ -84,7 +84,7 @@ class TestListObjectFlat(unittest.TestCase):
             self.symbol_2: list_
         }
 
-        actual = self.list_object(to_subs)
+        actual = self.list_object.get_value(to_subs)
 
         self.assertIsNot(list_, actual[0])
         self.assertIs(actual[0], actual[1])
@@ -97,7 +97,7 @@ class TestListObjectFlat(unittest.TestCase):
             self.symbol_2: list_
         }
 
-        actual = self.list_object(to_subs, share=False)
+        actual = self.list_object.get_value(to_subs, share=False)
 
         self.assertIsNot(list_, actual[0])
         self.assertIsNot(actual[0], actual[1])
@@ -110,7 +110,7 @@ class TestListObjectFlat(unittest.TestCase):
             self.symbol_2: list_
         }
 
-        actual = self.list_object(to_subs, copy=False)
+        actual = self.list_object.get_value(to_subs, copy=False)
 
         self.assertIs(list_, actual[0])
         self.assertIs(actual[0], actual[1])

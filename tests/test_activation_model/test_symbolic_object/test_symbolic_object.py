@@ -216,7 +216,7 @@ class TestSymbolicObject(unittest.TestCase):
     def test_get_value_1_args_iterable_ok(self):
         subs_iterable = [
             (self.symbol_1, 1),
-            (self.symbol_2, 1)
+            (self.symbol_2, 2)
         ]
 
         actual = self.test_object.get_value(subs_iterable)

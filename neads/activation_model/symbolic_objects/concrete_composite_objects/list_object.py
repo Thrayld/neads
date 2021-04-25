@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import Iterable, Tuple
 
-from neads.activation_model.symbolic_objects.symbolic_object import SymbolicObject
-from neads.activation_model.symbolic_objects.composite_object import CompositeObject
+from neads.activation_model.symbolic_objects.symbolic_object import \
+    SymbolicObject
+from neads.activation_model.symbolic_objects.composite_object import \
+    CompositeObject
 
 
 class ListObject(CompositeObject):
@@ -56,10 +58,34 @@ class ListObject(CompositeObject):
         ]
         return ListObject(*sub_obj_after_substitution)
 
-    def get_value(self):
+    # TODO: remove obsolete code
+    # def get_value(self):
+    #     """Return a list of values of sub-objects of the ListObject.
+    #
+    #     There must be no Symbol (i.e. free variable) in the ListObject.
+    #
+    #     Returns
+    #     -------
+    #         List of values of sub-objects of the ListObject.
+    #
+    #     Raises
+    #     ------
+    #     SymbolicObjectException
+    #         If there are some Symbols left in the ListObject.
+    #     """
+    #
+    #     return [sub_obj.get_value() for sub_obj in self._subobjects]
+
+    def _get_value_clean(self, substitution_pairs, share):
         """Return a list of values of sub-objects of the ListObject.
 
-        There must be no Symbol (i.e. free variable) in the ListObject.
+        Parameters
+        ----------
+        substitution_pairs
+            Iterable of pairs `symbol_from`, `object_to` for substitution.
+        share
+            Whether the given object for a Symbol should be shared
+            among all replacements for the particular Symbol.
 
         Returns
         -------
@@ -68,10 +94,11 @@ class ListObject(CompositeObject):
         Raises
         ------
         SymbolicObjectException
-            If there are some Symbols left in the ListObject.
+            If there are still some Symbols left in the ListObject.
         """
 
-        return [sub_obj.get_value() for sub_obj in self._subobjects]
+        return [sub_obj._get_value_clean(substitution_pairs, share)
+                for sub_obj in self._subobjects]
 
     def __eq__(self, other: SymbolicObject) -> bool:
         """Perform comparison of `self` with the other SymbolicObject.
@@ -114,3 +141,5 @@ class ListObject(CompositeObject):
         """
 
         return self._subobjects
+
+    # TODO: implement __hash__

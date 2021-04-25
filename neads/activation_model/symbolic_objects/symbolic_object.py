@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from typing import Iterable, Sequence, Optional, Type
 import abc
 from collections import Counter
+import copy as copy_module
 
 from neads.activation_model.symbolic_objects.symbolic_object_exception \
     import SymbolicObjectException
@@ -54,6 +55,8 @@ class SymbolicObject(abc.ABC):
             `substitute` and `get_value`
         """
 
+        # TODO: use _extract_substitution_pairs
+
         # If pair `symbol_from`, `object_to` is passed
         if len(args) == 2:
             substitution_pairs = (args,)
@@ -67,23 +70,100 @@ class SymbolicObject(abc.ABC):
         else:
             raise ValueError(f'Invalid number of arguments passed: {len(args)}')
 
-        self._check_substitution_pairs(substitution_pairs)
+        self._check_substitution_pairs(substitution_pairs,
+                                       required_object_type=SymbolicObject)
         return self._substitute_clean(substitution_pairs)
 
     @staticmethod
-    def _check_substitution_pairs(substitution_pairs):
+    def _extract_substitution_pairs(
+            *args,
+            required_object_type: Optional[Type] = object
+    ):
+        # TODO: move to own utility class in another module
+        """Utility method for extraction of subs pairs from general argument.
+
+        While extracting, also checks some invariants regarding the shape and
+        content of the substitution pairs.
+
+        The object is iterable of pairs (sequence of length 2).
+        The first element is a pair occur only once among first elements
+        (i.e. given Symbol has uniquely determined `object_to`).
+        Then, type of the first element in a pair is Symbol, type of the second
+        element is the `required_object_type`.
+
+        It is possible to require as certain type of the `object_to`
+        instances using the argument `required_object_type`.
+
+        Parameters
+        ----------
+        args
+            One of the following:
+
+            * No argument, if there is no Symbol left in the SymbolicObject.
+
+            * Two arguments `symbol_from` and `object_to`.
+
+            * Iterable with the pairs `symbol_from`, `object_to`.
+
+            * Dict with `symbol_from` as keys and `object_to` as values.
+
+        required_object_type
+            Type which will be checked on `object_to` instances.
+
+        Returns
+        -------
+            An iterable of pairs `symbol_from`, `object_to`.
+
+        Raises
+        ------
+        ValueError
+            If one Symbol occurs multiple times as `symbol_from`, i.e. as
+            the first element of pair.
+        TypeError
+            If there is any other problem with substitution pairs object,
+            as listed above.
+        """
+
+        # Solving the trivial case
+        if len(args) == 0:
+            return ()
+
+        if len(args) == 2:
+            substitution_pairs = (args,)
+        # If one arg is passed, its either dict or pairs directly
+        elif len(args) == 1:
+            arg = args[0]
+            if isinstance(arg, dict):
+                substitution_pairs = arg.items()
+            else:
+                substitution_pairs = arg
+        else:
+            raise ValueError(f'Invalid number of arguments passed: {len(args)}')
+
+        # Check correctness before returning the result
+        SymbolicObject._check_substitution_pairs(
+            substitution_pairs,
+            required_object_type=required_object_type
+        )
+
+        return substitution_pairs
+
+    @staticmethod
+    def _check_substitution_pairs(substitution_pairs, required_object_type):
         """Check that given object is valid iterable of substitution pairs.
 
         That is, the object is iterable of pairs (sequence of length 2).
         The first element is a pair occur only once among first elements
         (i.e. given Symbol has uniquely determined `object_to`).
         Then, type of the first element in a pair is Symbol, type of the second
-        element is SymbolicObject.
+        element is the `required_object_type`.
 
         Parameters
         ----------
         substitution_pairs
             Candidate for substitution_pairs object.
+        required_object_type
+            Type which will be checked on `object_to` instances.
 
         Raises
         ------
@@ -107,7 +187,7 @@ class SymbolicObject(abc.ABC):
                             f'First element in pair has wrong type: '
                             f'{first}, {type(first)}'
                         )
-                    if not isinstance(second, SymbolicObject):
+                    if not isinstance(second, required_object_type):
                         raise TypeError(
                             f'Second element in pair has wrong type: '
                             f'{second}, {type(second)}'
@@ -194,10 +274,11 @@ class SymbolicObject(abc.ABC):
             modification of non-copied objects may result in unexpected
             behavior.
         share
-            Whether one deepcopy of the original object should be shared
-            among all replacements for the particular Symbol.
-            If not, each replacement of the Symbol have its own deepcopy
-            of the original object.
+            Object should be shared among all replacements for the particular
+            Symbol. It depends on the `copy` argument, whether it will be the
+            original object, or its copy.
+            If `share` is False, each replacement of the Symbol have its
+            own deepcopy of the original object.
 
             This argument is considered only if `copy` is True.
 
@@ -215,6 +296,11 @@ class SymbolicObject(abc.ABC):
         ------
         SymbolicObjectException
             If there are still some Symbols left in the SymbolicObject.
+        TypeError
+            If the arguments do not respect the required types.
+        ValueError
+            If more than 2 arguments are passed, or one `symbol_from`
+            occurs multiple times.
 
         Notes
         -----
@@ -239,12 +325,20 @@ class SymbolicObject(abc.ABC):
             be copied twice (to ensure immutability of SymbolicObject)
         """
 
-        # TODO: add substitution with / without copy
-        # IDEA: return without copy
-        pass
+        substitution_pairs = self._extract_substitution_pairs(*args)
+        if copy:
+            # Created copies of object first
+            substitution_pairs = [
+                (sym, copy_module.deepcopy(obj))
+                for sym, obj in substitution_pairs
+            ]
+            return self._get_value_clean(substitution_pairs, share)
+        else:
+            # Object is automatically shared, if `copy` is False
+            return self._get_value_clean(substitution_pairs, share=True)
 
     @abc.abstractmethod
-    def _get_value_clean(self, substitution_pairs, copy=True):
+    def _get_value_clean(self, substitution_pairs, share):
         """Do return the object which the SymbolicObject describes.
 
         The `substitution_pairs` are check to be a clean arguments.
@@ -253,13 +347,18 @@ class SymbolicObject(abc.ABC):
         ----------
         substitution_pairs
             Iterable of pairs `symbol_from`, `object_to` for substitution.
-        copy
-            Whether a deep copy of given objects should appear in the
-            resulting arguments.
+        share
+            Whether the given object for a Symbol should be shared
+            among all replacements for the particular Symbol.
 
         Returns
         -------
-            SymbolicObject after substitution.
+            Object described by the SymbolicObject after substitutions.
+
+        Raises
+        ------
+        SymbolicObjectException
+            If there are still some Symbols left in the SymbolicObject.
         """
 
         pass
@@ -330,17 +429,57 @@ class Symbol(SymbolicObject):
 
         return self,
 
-    def get_value(self):
-        """Raise exception as Symbol cannot be transferred to value.
+    # TODO: remove obsolete code
+    # def get_value(self):
+    #     """Raise exception as Symbol cannot be transferred to value.
+    #
+    #     Raises
+    #     ------
+    #     SymbolicObjectException
+    #         Symbol cannot be transferred to value.
+    #     """
+    #
+    #     raise SymbolicObjectException('Symbol cannot be transferred to value.')
+
+    def _get_value_clean(self, substitution_pairs, share):
+        """Return corresponding `object_to` to the Symbols according to args.
+
+        Parameters
+        ----------
+        substitution_pairs
+            Iterable of pairs `symbol_from`, `object_to` for substitution.
+        share
+            Whether the given object for a Symbol should be shared
+            among all replacements for the particular Symbol.
+
+        Returns
+        -------
+            If there is an object corresponding to `self`, then the object
+            or its deepcopy is returned. Depends whether `share` is True or
+            False, respectively.
 
         Raises
         ------
         SymbolicObjectException
-            Symbol cannot be transferred to value.
+            If there is not an object corresponding to `self`.
         """
 
-        # TODO: add substitution with / without copy
-        raise SymbolicObjectException('Symbol cannot be transferred to value.')
+        # Find the corresponding object
+        for symbol_from, object_to in substitution_pairs:
+            if symbol_from == self:
+                corresponding_object = object_to
+                break
+        else:
+            raise SymbolicObjectException(
+                f'No object was provided for the Symbol: {self}'
+            )
+
+        # It share is False, make sure a new copy is created
+        # (to not have the object shared)
+        if share:
+            return corresponding_object
+        else:
+            return copy_module.deepcopy(corresponding_object)
 
     def __eq__(self, other: SymbolicObject) -> bool:
         """Reference-wise compares `self` with the `other` SymbolicObject.

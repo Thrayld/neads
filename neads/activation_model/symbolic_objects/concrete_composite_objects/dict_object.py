@@ -69,10 +69,38 @@ class DictObject(CompositeObject):
         dict_ = dict(items_after_subs)
         return DictObject(dict_)
 
-    def get_value(self):
+    # TODO: remove obsolete code
+    # def get_value(self):
+    #     """Return a dict of values of sub-objects of the DictObject.
+    #
+    #     There must be no Symbol (i.e. free variable) in the DictObject.
+    #
+    #     Returns
+    #     -------
+    #         Dict of values of sub-objects of the DictObject.
+    #
+    #     Raises
+    #     ------
+    #     SymbolicObjectException
+    #         If there are some Symbols left in the DictObject.
+    #     """
+    #
+    #     dict_value = {
+    #         key.get_value(): val.get_value()
+    #         for key, val in self._key_val_subobjects
+    #     }
+    #     return dict_value
+
+    def _get_value_clean(self, substitution_pairs, share):
         """Return a dict of values of sub-objects of the DictObject.
 
-        There must be no Symbol (i.e. free variable) in the DictObject.
+        Parameters
+        ----------
+        substitution_pairs
+            Iterable of pairs `symbol_from`, `object_to` for substitution.
+        share
+            Whether the given object for a Symbol should be shared
+            among all replacements for the particular Symbol.
 
         Returns
         -------
@@ -81,11 +109,12 @@ class DictObject(CompositeObject):
         Raises
         ------
         SymbolicObjectException
-            If there are some Symbols left in the DictObject.
+            If there are still some Symbols left in the DictObject.
         """
 
+        s_p = substitution_pairs  # Assign to a variable with shorter name
         dict_value = {
-            key.get_value(): val.get_value()
+            key._get_value_clean(s_p, share): val._get_value_clean(s_p, share)
             for key, val in self._key_val_subobjects
         }
         return dict_value
@@ -129,3 +158,5 @@ class DictObject(CompositeObject):
         """
 
         return (item for item in itertools.chain(*self._key_val_subobjects))
+
+    # TODO: implement __hash__

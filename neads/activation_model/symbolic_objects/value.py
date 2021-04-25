@@ -52,8 +52,25 @@ class Value(SymbolicObject):
 
         return ()
 
-    def get_value(self):
+    # TODO: remove obsolete code
+    # def get_value(self):
+    #     """Return the actual value, which the Value contains.
+    #
+    #     The value is copied in order to maintain immutability of Value as
+    #     SymbolicObject in general. Thus, changes in the returned object do
+    #     not affect the Value or any SymbolicObject in which is contained.
+    #
+    #     Returns
+    #     -------
+    #         The actual value, which the Value contains.
+    #     """
+    #
+    #     return deepcopy(self._value)
+
+    def _get_value_clean(self, substitution_pairs, share):
         """Return the actual value, which the Value contains.
+
+        The arguments are not really important for Value.
 
         The value is copied in order to maintain immutability of Value as
         SymbolicObject in general. Thus, changes in the returned object do

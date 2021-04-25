@@ -86,20 +86,45 @@ class CompositeObject(SymbolicObject):
         symbols_iter = itertools.chain(*symbols_2d)
         return set(symbols_iter)
 
-    @abc.abstractmethod
-    def get_value(self):
-        """Return the object which the CompositeObject describes.
+    # TODO: remove obsolete code
+    # @abc.abstractmethod
+    # def get_value(self):
+    #     """Return the object which the CompositeObject describes.
+    #
+    #     There must be no Symbol (i.e. free variable) in the CompositeObject.
+    #
+    #     Returns
+    #     -------
+    #         Object described by the CompositeObject.
+    #
+    #     Raises
+    #     ------
+    #     SymbolicObjectException
+    #         If there are some Symbols left in the CompositeObject.
+    #     """
+    #
+    #     pass
 
-        There must be no Symbol (i.e. free variable) in the CompositeObject.
+    @abc.abstractmethod
+    def _get_value_clean(self, substitution_pairs, share):
+        """Do return the object which the SymbolicObject describes.
+
+        Parameters
+        ----------
+        substitution_pairs
+            Iterable of pairs `symbol_from`, `object_to` for substitution.
+        share
+            Whether the given object for a Symbol should be shared
+            among all replacements for the particular Symbol.
 
         Returns
         -------
-            Object described by the CompositeObject.
+            Object described by the CompositeObject after substitutions.
 
         Raises
         ------
         SymbolicObjectException
-            If there are some Symbols left in the CompositeObject.
+            If there are still some Symbols left in the CompositeObject.
         """
 
         pass
@@ -131,3 +156,5 @@ class CompositeObject(SymbolicObject):
         """
 
         pass
+
+    # TODO: implement __hash__

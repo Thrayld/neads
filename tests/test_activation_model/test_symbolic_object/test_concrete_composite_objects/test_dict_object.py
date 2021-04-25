@@ -51,15 +51,18 @@ class TestDictObjectFlat(unittest.TestCase):
 
         self.assertCountEqual(expected, actual)
 
-    def test_get_value_with_invalid_type_for_key(self):
-        bad_value = Value([1])
-        dict_ = {bad_value: self.value_int}
-        dict_object = DictObject(dict_)
-
-        self.assertRaises(
-            TypeError,
-            dict_object.get_value
-        )
+    # def test_get_value_with_invalid_type_for_key(self):
+    #     ### The test cannot work, as [1] in Value is not hashable and that
+    #     ### is OK
+    #
+    #     bad_value = Value([1])
+    #     dict_ = {bad_value: self.value_int}
+    #     dict_object = DictObject(dict_)
+    #
+    #     self.assertRaises(
+    #         TypeError,
+    #         dict_object.get_value
+    #     )
 
     def test_get_value_with_symbols_left(self):
         self.assertRaises(
@@ -76,8 +79,8 @@ class TestDictObjectFlat(unittest.TestCase):
         after_subs = self.dict_object.substitute(self.symbol_2, self.symbol_1)
         actual = after_subs.get_value(to_subs)
 
-        self.assertIsNot(list_, actual[self.value_int])
-        self.assertIs(actual[self.value_int], actual[self.value_string])
+        self.assertIsNot(list_, actual[self.int])
+        self.assertIs(actual[self.int], actual[self.string])
 
     def test_get_value_copy_not_share(self):
         list_ = [1]
@@ -88,8 +91,8 @@ class TestDictObjectFlat(unittest.TestCase):
         after_subs = self.dict_object.substitute(self.symbol_2, self.symbol_1)
         actual = after_subs.get_value(to_subs, share=False)
 
-        self.assertIsNot(list_, actual[self.value_int])
-        self.assertIsNot(actual[self.value_int], actual[self.value_string])
+        self.assertIsNot(list_, actual[self.int])
+        self.assertIsNot(actual[self.int], actual[self.string])
 
     def test_get_value_not_copy(self):
         list_ = [1]
@@ -100,8 +103,8 @@ class TestDictObjectFlat(unittest.TestCase):
         after_subs = self.dict_object.substitute(self.symbol_2, self.symbol_1)
         actual = after_subs.get_value(to_subs, copy=False)
 
-        self.assertIs(list_, actual[self.value_int])
-        self.assertIs(actual[self.value_int], actual[self.value_string])
+        self.assertIs(list_, actual[self.int])
+        self.assertIs(actual[self.int], actual[self.string])
 
     def test_get_value_without_symbols(self):
         dict_object = DictObject({self.value_string: self.value_int})
