@@ -55,149 +55,11 @@ class SymbolicObject(abc.ABC):
             `substitute` and `get_value`
         """
 
-        substitution_pairs = self._extract_substitution_pairs(
+        substitution_pairs = SubstitutionPairsParsingUtility.parse(
             *args,
             required_object_type=SymbolicObject
         )
         return self._substitute_clean(substitution_pairs)
-
-    @staticmethod
-    def _extract_substitution_pairs(
-            *args,
-            required_object_type: Optional[Type] = object
-    ):
-        # TODO: move to own utility class in another module
-        """Utility method for extraction of subs pairs from general argument.
-
-        While extracting, also checks some invariants regarding the shape and
-        content of the substitution pairs.
-
-        The object is iterable of pairs (sequence of length 2).
-        The first element is a pair occur only once among first elements
-        (i.e. given Symbol has uniquely determined `object_to`).
-        Then, type of the first element in a pair is Symbol, type of the second
-        element is the `required_object_type`.
-
-        It is possible to require as certain type of the `object_to`
-        instances using the argument `required_object_type`.
-
-        Parameters
-        ----------
-        args
-            One of the following:
-
-            * No argument, if there is no Symbol left in the SymbolicObject.
-
-            * Two arguments `symbol_from` and `object_to`.
-
-            * Iterable with the pairs `symbol_from`, `object_to`.
-
-            * Dict with `symbol_from` as keys and `object_to` as values.
-
-        required_object_type
-            Type which will be checked on `object_to` instances.
-
-        Returns
-        -------
-            An iterable of pairs `symbol_from`, `object_to`.
-
-        Raises
-        ------
-        ValueError
-            If one Symbol occurs multiple times as `symbol_from`, i.e. as
-            the first element of pair.
-        TypeError
-            If there is any other problem with substitution pairs object,
-            as listed above.
-        """
-
-        # Solving the trivial case
-        if len(args) == 0:
-            return ()
-
-        if len(args) == 2:
-            substitution_pairs = (args,)
-        # If one arg is passed, its either dict or pairs directly
-        elif len(args) == 1:
-            arg = args[0]
-            if isinstance(arg, dict):
-                substitution_pairs = arg.items()
-            else:
-                substitution_pairs = arg
-        else:
-            raise ValueError(f'Invalid number of arguments passed: {len(args)}')
-
-        # Check correctness before returning the result
-        SymbolicObject._check_substitution_pairs(
-            substitution_pairs,
-            required_object_type=required_object_type
-        )
-
-        return substitution_pairs
-
-    @staticmethod
-    def _check_substitution_pairs(substitution_pairs, required_object_type):
-        """Check that given object is valid iterable of substitution pairs.
-
-        That is, the object is iterable of pairs (sequence of length 2).
-        The first element is a pair occur only once among first elements
-        (i.e. given Symbol has uniquely determined `object_to`).
-        Then, type of the first element in a pair is Symbol, type of the second
-        element is the `required_object_type`.
-
-        Parameters
-        ----------
-        substitution_pairs
-            Candidate for substitution_pairs object.
-        required_object_type
-            Type which will be checked on `object_to` instances.
-
-        Raises
-        ------
-        ValueError
-            If one Symbol occurs multiple times as `symbol_from`, i.e. as
-            the first element of pair.
-        TypeError
-            If there is any other problem with substitution pairs object,
-            as listed above.
-        """
-
-        if isinstance(substitution_pairs, Iterable):
-            # Check each item individually
-            for item in substitution_pairs:
-                # If item is a pair
-                if isinstance(item, Sequence) and len(item) == 2:
-                    first, second = item
-                    # Check types of elements of the pair
-                    if not isinstance(first, Symbol):
-                        raise TypeError(
-                            f'First element in pair has wrong type: '
-                            f'{first}, {type(first)}'
-                        )
-                    if not isinstance(second, required_object_type):
-                        raise TypeError(
-                            f'Second element in pair has wrong type: '
-                            f'{second}, {type(second)}'
-                        )
-                else:
-                    raise TypeError(
-                        f'Item of substitution pairs iterable is not '
-                        f'a pair: {item}'
-                    )
-            # Check that each `symbol_from` appears at most once
-            cnt = Counter(symbol_from for symbol_from, object_to
-                          in substitution_pairs)
-            max_symbol, max_count = cnt.most_common(1)[0]
-            if max_count > 1:
-                raise ValueError(
-                    f"Symbol appears multiple times as 'symbol_from': "
-                    f"{max_symbol}"
-                )
-        else:
-            raise TypeError(
-                f'Substitution pairs argument is not iterable: '
-                f'{substitution_pairs}'
-            )
 
     @abc.abstractmethod
     def _substitute_clean(self, substitution_pairs) -> SymbolicObject:
@@ -245,7 +107,7 @@ class SymbolicObject(abc.ABC):
         args
             One of the following:
 
-            * No argument, if there is no Symbol left in the SymbolicObject.
+            * No argument.
 
             * Two arguments `symbol_from` and `object_to`.
 
@@ -312,7 +174,7 @@ class SymbolicObject(abc.ABC):
             be copied twice (to ensure immutability of SymbolicObject)
         """
 
-        substitution_pairs = self._extract_substitution_pairs(*args)
+        substitution_pairs = SubstitutionPairsParsingUtility.parse(*args)
         if copy:
             # Created copies of object first
             substitution_pairs = [
@@ -486,3 +348,143 @@ class Symbol(SymbolicObject):
 
     def __hash__(self):
         return id(self)
+
+
+class SubstitutionPairsParsingUtility:
+
+    @staticmethod
+    def parse(
+            *args,
+            required_object_type: Optional[Type] = object
+    ):
+        """Extracts substitution pairs from general argument and check them.
+
+        While extracting, also checks some invariants regarding the shape and
+        content of the substitution pairs.
+
+        The object is iterable of pairs (sequence of length 2).
+        The first element is a pair occur only once among first elements
+        (i.e. given Symbol has uniquely determined `object_to`).
+        Then, type of the first element in a pair is Symbol, type of the second
+        element is the `required_object_type`.
+
+        It is possible to require as certain type of the `object_to`
+        instances using the argument `required_object_type`.
+
+        Parameters
+        ----------
+        args
+            One of the following:
+
+            * No argument.
+
+            * Two arguments `symbol_from` and `object_to`.
+
+            * Iterable with the pairs `symbol_from`, `object_to`.
+
+            * Dict with `symbol_from` as keys and `object_to` as values.
+
+        required_object_type
+            Type which will be checked on `object_to` instances.
+
+        Returns
+        -------
+            An iterable of pairs `symbol_from`, `object_to`.
+
+        Raises
+        ------
+        ValueError
+            If one Symbol occurs multiple times as `symbol_from`, i.e. as
+            the first element of pair.
+        TypeError
+            If there is any other problem with substitution pairs object,
+            as listed above.
+        """
+
+        # Solving the trivial case
+        if len(args) == 0:
+            return ()
+
+        if len(args) == 2:
+            substitution_pairs = (args,)
+        # If one arg is passed, its either dict or pairs directly
+        elif len(args) == 1:
+            arg = args[0]
+            if isinstance(arg, dict):
+                substitution_pairs = arg.items()
+            else:
+                substitution_pairs = arg
+        else:
+            raise ValueError(f'Invalid number of arguments passed: {len(args)}')
+
+        # Check correctness before returning the result
+        SubstitutionPairsParsingUtility._check_substitution_pairs(
+            substitution_pairs,
+            required_object_type=required_object_type
+        )
+
+        return substitution_pairs
+
+    @staticmethod
+    def _check_substitution_pairs(substitution_pairs, required_object_type):
+        """Check that given object is valid iterable of substitution pairs.
+
+        That is, the object is iterable of pairs (sequence of length 2).
+        The first element is a pair occur only once among first elements
+        (i.e. given Symbol has uniquely determined `object_to`).
+        Then, type of the first element in a pair is Symbol, type of the second
+        element is the `required_object_type`.
+
+        Parameters
+        ----------
+        substitution_pairs
+            Candidate for substitution_pairs object.
+        required_object_type
+            Type which will be checked on `object_to` instances.
+
+        Raises
+        ------
+        ValueError
+            If one Symbol occurs multiple times as `symbol_from`, i.e. as
+            the first element of pair.
+        TypeError
+            If there is any other problem with substitution pairs object,
+            as listed above.
+        """
+
+        if isinstance(substitution_pairs, Iterable):
+            # Check each item individually
+            for item in substitution_pairs:
+                # If item is a pair
+                if isinstance(item, Sequence) and len(item) == 2:
+                    first, second = item
+                    # Check types of elements of the pair
+                    if not isinstance(first, Symbol):
+                        raise TypeError(
+                            f'First element in pair has wrong type: '
+                            f'{first}, {type(first)}'
+                        )
+                    if not isinstance(second, required_object_type):
+                        raise TypeError(
+                            f'Second element in pair has wrong type: '
+                            f'{second}, {type(second)}'
+                        )
+                else:
+                    raise TypeError(
+                        f'Item of substitution pairs iterable is not '
+                        f'a pair: {item}'
+                    )
+            # Check that each `symbol_from` appears at most once
+            cnt = Counter(symbol_from for symbol_from, object_to
+                          in substitution_pairs)
+            max_symbol, max_count = cnt.most_common(1)[0]
+            if max_count > 1:
+                raise ValueError(
+                    f"Symbol appears multiple times as 'symbol_from': "
+                    f"{max_symbol}"
+                )
+        else:
+            raise TypeError(
+                f'Substitution pairs argument is not iterable: '
+                f'{substitution_pairs}'
+            )
