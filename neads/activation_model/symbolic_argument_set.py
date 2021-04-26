@@ -6,9 +6,12 @@ import itertools
 
 from .symbolic_objects import Value
 from .symbolic_objects.symbolic_object import SymbolicObject
+from .symbolic_objects.symbolic_object_exception import SymbolicObjectException
 
 if TYPE_CHECKING:
     from .symbolic_objects import Symbol
+
+# TODO: use .symbolic_objects.concrete_symbolic_objects.bounded_arguments_object
 
 
 class SymbolicArgumentSet:
@@ -153,7 +156,7 @@ class SymbolicArgumentSet:
         TypeError
             If the arguments do not respect the required types.
         ValueError
-            If 0 or more than 2 arguments are passed, or one `symbol_from`
+            If more than 2 arguments are passed, or one `symbol_from`
             occurs multiple times.
 
         TODO: add See also `get_actual_arguments` and Notes about differences
@@ -183,10 +186,11 @@ class SymbolicArgumentSet:
         else:
             return self
 
-    def get_actual_arguments(self, *args, copy=True) -> inspect.BoundArguments:
+    def get_actual_arguments(self, *args, copy=True, share=True
+                             ) -> inspect.BoundArguments:
         """Return the actual arguments described by SymbolicArgumentSet.
 
-        If there are Symbols (i.e. free variables) in the SymbolicObject,
+        If there are Symbols (i.e. free variables) in the SymbolicArgumentSet,
         they must be replaced by some objects. Unlike in the `substitute`
         method, here the objects are not required to be instances of
         SymbolicObject.
@@ -212,6 +216,20 @@ class SymbolicArgumentSet:
             the original objects and the objects in the arguments. The
             modification of non-copied objects may result in unexpected
             behavior.
+        share
+            Object should be shared among all replacements for the particular
+            Symbol. It depends on the `copy` argument, whether it will be the
+            original object, or its copy.
+            If `share` is False, each replacement of the Symbol have its
+            own deepcopy of the original object.
+
+            This argument is considered only if `copy` is True.
+
+            Also note that in case of `copy` and `share` being True,
+            one object won't be shared among occurrences of different Symbols
+            (although the identical object were passed as a substitution for
+            both Symbols). To arrange this behavior, one must perform
+            a substitution of those Symbols first.
 
         Returns
         -------
@@ -256,4 +274,9 @@ class SymbolicArgumentSet:
         return self._bound_args == other._bound_args
 
     def __hash__(self):
+        # TODO: make hashable
         return hash(self._bound_args)
+
+
+class SymbolicArgumentSetException(Exception):
+    pass
