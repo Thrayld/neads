@@ -4,14 +4,12 @@ from typing import TYPE_CHECKING, Iterable, Union, Callable
 import inspect
 import itertools
 
-from .symbolic_objects import Value
+from .symbolic_objects import Value, ListObject, DictObject
 from .symbolic_objects.symbolic_object import SymbolicObject
 from .symbolic_objects.symbolic_object_exception import SymbolicObjectException
 
 if TYPE_CHECKING:
     from .symbolic_objects import Symbol
-
-# TODO: use .symbolic_objects.concrete_symbolic_objects.bounded_arguments_object
 
 
 class SymbolicArgumentSet:
@@ -32,8 +30,11 @@ class SymbolicArgumentSet:
         """Initialize SymbolicArgumentSet instance.
 
         The signature of a function is passed as the first argument followed
-        by the actual arguments for the function. Some of them might be
-        instances of SymbolicObject.
+        by the actual arguments for the function.
+
+        The arguments can be instances of SymbolicObject. The operations such
+        as `substitute` and `get_actual_arguments` are performed on them.
+        That is, values of those are used as the real arguments.
 
         Parameters
         ----------
@@ -55,7 +56,11 @@ class SymbolicArgumentSet:
         bound = self._signature.bind(*args, **kwargs)
         bound.apply_defaults()
 
-        self._bound_args = self._convert_to_symbolic_objects(bound)
+        conv_args, conv_kwargs = self._convert_to_symbolic_objects(bound)
+        args = ListObject(*conv_args)
+        kwargs = DictObject(conv_kwargs)
+
+        self._bound_args_object = ListObject(args, kwargs)
 
     @staticmethod
     def _extract_signature(
@@ -86,8 +91,8 @@ class SymbolicArgumentSet:
             raise TypeError(f'The first argument is not a Signature nor a '
                             f'Callable: {signature_bearer}')
 
-    def _convert_to_symbolic_objects(self, bound: inspect.BoundArguments) \
-            -> inspect.BoundArguments:
+    @staticmethod
+    def _convert_to_symbolic_objects(bound: inspect.BoundArguments):
         """Convert given objects in BoundArguments to SymbolicArguments.
 
         If an argument is SymbolicObject, it is left as is. Otherwise,
@@ -109,26 +114,22 @@ class SymbolicArgumentSet:
             for obj in bound.args
         )
         converted_kwargs = {
-            key: (obj if isinstance(obj, SymbolicObject) else Value(obj))
+            Value(key): (obj if isinstance(obj, SymbolicObject) else Value(obj))
             for key, obj in bound.kwargs.items()
         }
 
-        return self._signature.bind(*converted_args, **converted_kwargs)
+        return converted_args, converted_kwargs
 
     def get_symbols(self) -> Iterable[Symbol]:
-        """Return an iterable of Symbols occurring in argument's SymbolicObject.
+        """Return an iterable of Symbols in arguments of type SymbolicObject.
 
         Returns
         -------
-            An iterable of all Symbols which occur is at least of the symbolic
-            arguments.
+            An iterable of all Symbols which occur is at least one of the
+            symbolic arguments.
         """
 
-        args_symbols = [arg.get_symbols()
-                        for arg in self._bound_args.args]
-        kwargs_symbols = [arg.get_symbols()
-                          for arg in self._bound_args.kwargs.values()]
-        return set(itertools.chain(*args_symbols, *kwargs_symbols))
+        return self._bound_args_object.get_symbols()
 
     def substitute(self, *args) -> SymbolicArgumentSet:
         """Substitute SymbolicObjects for Symbols in `self`.
@@ -158,33 +159,22 @@ class SymbolicArgumentSet:
         ValueError
             If more than 2 arguments are passed, or one `symbol_from`
             occurs multiple times.
-
-        TODO: add See also `get_actual_arguments` and Notes about differences
-         between `substitute` and `get_actual_arguments`
         """
 
-        def _substitution_occurred():
-            """Whether at least one of the arguments has changed."""
-            for arg, sub_arg in zip(self._bound_args.args, subs_args):
-                if arg is not sub_arg:
-                    return True
-            for arg, sub_arg in zip(self._bound_args.kwargs, subs_kwargs):
-                if arg is not sub_arg:
-                    return True
-            return False
-
-        substitution_instruction = args
-
-        subs_args = [arg.substitute(*substitution_instruction)
-                     for arg in self._bound_args.args]
-        subs_kwargs = {key: arg.substitute(*substitution_instruction)
-                       for key, arg in self._bound_args.kwargs.items()}
-
-        if _substitution_occurred():
-            return SymbolicArgumentSet(self._signature,
-                                       *subs_args, **subs_kwargs)
-        else:
+        substituted = self._bound_args_object.substitute(*args)
+        if substituted is self._bound_args_object:
+            # No substitution occurred, it is save to return `self`
             return self
+        else:
+            # Substitution occurred, new SymbolicArgumentSet must be created
+            sub_args, sub_kwargs = substituted
+            # Convert sub_kwargs (DictObject) to something un-packable
+            string_keys_kwargs = {
+                key.get_value(): sub_kwargs[key]
+                for key in sub_kwargs
+            }
+            return SymbolicArgumentSet(self._signature,
+                                       *sub_args, **string_keys_kwargs)
 
     def get_actual_arguments(self, *args, copy=True, share=True
                              ) -> inspect.BoundArguments:
@@ -200,8 +190,7 @@ class SymbolicArgumentSet:
         args
             One of the following:
 
-            * No argument, if there is no Symbol left in the
-            SymbolicArgumentSet.
+            * No arguments (`self` must be without Symbols).
 
             * Two arguments `symbol_from` and `object_to`.
 
@@ -217,9 +206,10 @@ class SymbolicArgumentSet:
             modification of non-copied objects may result in unexpected
             behavior.
         share
-            Object should be shared among all replacements for the particular
-            Symbol. It depends on the `copy` argument, whether it will be the
-            original object, or its copy.
+            If the objects should be shared among all replacements for the
+            particular Symbol. It depends on the `copy` argument, whether it
+            will be the original object, or its copy.
+
             If `share` is False, each replacement of the Symbol have its
             own deepcopy of the original object.
 
@@ -242,20 +232,14 @@ class SymbolicArgumentSet:
         ValueError
             If more than 2 arguments are passed, or one `symbol_from`
             occurs multiple times.
-        TODO: change the exception type
-        SymbolicObjectException
+        SymbolicArgumentSetException
             If there are some unsubstituted Symbols left in the
             SymbolicArgumentSet.
         """
 
-        substitution_instruction = args
-
-        subs_args = [arg.get_value(*substitution_instruction, copy)
-                     for arg in self._bound_args.args]
-        subs_kwargs = {key: arg.get_value(*substitution_instruction, copy)
-                       for key, arg in self._bound_args.kwargs.items()}
-
-        return self._signature.bind(*subs_args, **subs_kwargs)
+        args, kwargs = self._bound_args_object.get_value(*args, copy=copy,
+                                                         share=share)
+        return self._signature.bind(*args, **kwargs)
 
     def __eq__(self, other: SymbolicArgumentSet) -> bool:
         """Compare the SymbolicArgumentSet with another.
@@ -271,11 +255,10 @@ class SymbolicArgumentSet:
             correspond to each other.
         """
 
-        return self._bound_args == other._bound_args
+        return self._bound_args_object == other._bound_args_object
 
     def __hash__(self):
-        # TODO: make hashable
-        return hash(self._bound_args)
+        return hash(self._bound_args_object)
 
 
 class SymbolicArgumentSetException(Exception):

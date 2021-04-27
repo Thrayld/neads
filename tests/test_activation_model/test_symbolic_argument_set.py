@@ -13,8 +13,12 @@ class TestSymbolicArgumentSet(unittest.TestCase):
         def g(*args, **kwargs):
             pass
 
+        def h(x, y, z):
+            pass
+
         self.f_x_y = f
         self.g_args_kwargs = g
+        self.h_x_y_z = h
 
         self.bounded_f_1_2 = inspect.signature(f).bind(1, 2)
 
@@ -82,19 +86,28 @@ class TestSymbolicArgumentSet(unittest.TestCase):
         expected = [self.symbol_a, self.symbol_b]
         self.assertCountEqual(expected, actual)
 
-    def test_substitute_positive_example(self):
+    def test_substitute_positional_args(self):
         sas = SymbolicArgumentSet(self.f_x_y, self.symbol_a, 2)
 
         actual = sas.substitute(self.symbol_a, Value(1)).get_actual_arguments()
 
         self.assertEqual(self.bounded_f_1_2, actual)
 
+    def test_substitute_with_kwargs(self):
+        sas = SymbolicArgumentSet(self.g_args_kwargs, x=self.symbol_a)
+
+        actual = sas.substitute(self.symbol_a, Value(1)).get_actual_arguments()
+
+        expected = inspect.signature(self.g_args_kwargs).bind(x=1)
+        self.assertEqual(expected, actual)
+
     def test_substitute_negative_example(self):
         sas = SymbolicArgumentSet(self.f_x_y, self.symbol_a, 2)
 
         self.assertRaises(
             ValueError,
-            sas.substitute
+            sas.substitute,
+            Value(1), Value(1), Value(1)
         )
 
     def test_get_actual_arguments_positive_example(self):
@@ -122,27 +135,53 @@ class TestSymbolicArgumentSet(unittest.TestCase):
 
         actual = sas.get_actual_arguments()
 
-        self.assertEqual(self.bounded_f_1_2, actual)
+        expected = inspect.signature(f).bind(x=1, y=2)
+        self.assertEqual(expected, actual)
 
-    def test_get_actual_arguments_check_linked_lists_with_copy(self):
-        inner_list = [1]
-        arg_1 = [inner_list]
-        sas = SymbolicArgumentSet(self.f_x_y, arg_1, 2)
+    def test_get_value_copy_share(self):
+        list_ = [1]
+        to_subs = {
+            self.symbol_a: list_,
+            self.symbol_b: list_
+        }
 
-        bounded = sas.get_actual_arguments()
-        actual_1 = bounded.args[0]
+        sas = SymbolicArgumentSet(self.h_x_y_z,
+                                  self.symbol_a, self.symbol_a, self.symbol_b)
+        actual = sas.get_actual_arguments(to_subs).args
 
-        self.assertIsNot(inner_list, actual_1[0])
+        self.assertIsNot(list_, actual[0])
+        self.assertIs(actual[0], actual[1])
+        self.assertIsNot(actual[0], actual[2])
 
-    def test_get_actual_arguments_check_linked_lists_without_copy(self):
-        inner_list = [1]
-        arg_1 = [inner_list]
-        sas = SymbolicArgumentSet(self.f_x_y, arg_1, 2)
+    def test_get_value_copy_not_share(self):
+        list_ = [1]
+        to_subs = {
+            self.symbol_a: list_,
+            self.symbol_b: list_
+        }
 
-        bounded = sas.get_actual_arguments(copy=False)
-        actual_1 = bounded.args[0]
+        sas = SymbolicArgumentSet(self.h_x_y_z,
+                                  self.symbol_a, self.symbol_a, self.symbol_b)
+        actual = sas.get_actual_arguments(to_subs, share=False).args
 
-        self.assertIs(inner_list, actual_1[0])
+        self.assertIsNot(list_, actual[0])
+        self.assertIsNot(actual[0], actual[1])
+        self.assertIsNot(actual[0], actual[2])
+
+    def test_get_value_not_copy(self):
+        list_ = [1]
+        to_subs = {
+            self.symbol_a: list_,
+            self.symbol_b: list_
+        }
+
+        sas = SymbolicArgumentSet(self.h_x_y_z,
+                                  self.symbol_a, self.symbol_a, self.symbol_b)
+        actual = sas.get_actual_arguments(to_subs, copy=False).args
+
+        self.assertIs(list_, actual[0])
+        self.assertIs(actual[0], actual[1])
+        self.assertIs(actual[0], actual[2])
 
     def test_eq_keyword_or_positional_arguments(self):
         sas_1 = SymbolicArgumentSet(self.f_x_y, 1, 2)
