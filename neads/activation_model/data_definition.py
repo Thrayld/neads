@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional, Dict, Hashable
+import functools
 
 from .symbolic_objects import Value
 from .symbolic_objects import Symbol
@@ -83,7 +84,8 @@ class DataDefinition:
         Raises
         ------
         TypeError
-            If there is a type mismatch against the specification.
+            If there is a type mismatch against the specification or
+            `function_id` or `arguments` is not hashable.
         ValueError
             If an instance of DataDefinition is not provided for all Symbols.
         """
@@ -159,7 +161,7 @@ class DataDefinition:
         if symbols_definitions:
             substitution_pairs = {
                 sym: Value(ddf)
-                for sym, ddf in symbols_definitions
+                for sym, ddf in symbols_definitions.items()
             }
             normalized_args = arguments.substitute(substitution_pairs)
         else:
@@ -191,8 +193,7 @@ class DataDefinition:
     def __reduce_ex__(self, protocol):
         """To support pickling."""
 
-        # TODO: implement
-        return
+        return DataDefinition.get_instance, (self._function_id, self._arguments)
 
 
 class DataDefinitionException(Exception):

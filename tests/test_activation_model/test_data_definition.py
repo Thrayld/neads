@@ -12,7 +12,7 @@ from neads.activation_model.symbolic_objects import *
 
 class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
-        def f_1(x):
+        def f_1(x):  # noqa
             pass
 
         self.f_1 = f_1
@@ -63,7 +63,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_un_hashable_fid(self):
         self.assertRaises(
-            ValueError,
+            TypeError,
             DataDefinition.get_instance,
             ['un-hashable function_id'],
             self.sas_f_1__1
@@ -73,7 +73,7 @@ class MyTestCase(unittest.TestCase):
         sas = SymbolicArgumentSet(self.f_1, ['something un-hashable'])
 
         self.assertRaises(
-            ValueError,
+            TypeError,
             DataDefinition.get_instance,
             self.fid,
             sas
