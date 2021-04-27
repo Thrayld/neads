@@ -21,17 +21,20 @@ class BoundArgumentObject(CompositeObject):
     arguments are the values the sub-objects.
     """
 
-    def __init__(self, signature, /,
+    def __init__(self, signature_bearer, /,
                  *args: SymbolicObject, **kwargs: SymbolicObject):
         """Create BoundArgumentsObject of given sub-objects.
 
         The signature of a function is passed as the first argument followed
         by the actual arguments for the function as SymbolicObjects.
 
+        The default arguments from the signature are extracted as well.
+
         Parameters
         ----------
         signature_bearer
-            Signature of the function whose arguments are passed later.
+            Signature of the function, or directly the function whose arguments
+            are passed later.
         args
             Positional arguments for the function whose signature is passed.
         kwargs
