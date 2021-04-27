@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterable
+import collections.abc
 import itertools
 
 from frozendict import frozendict
@@ -11,7 +12,7 @@ from neads.activation_model.symbolic_objects.composite_object import \
     CompositeObject
 
 
-class DictObject(CompositeObject):
+class DictObject(collections.abc.Mapping, CompositeObject):
     """Subtype of CompositeObject for dict of SymbolicObjects.
 
     The value of DictObject is a dict whose key-value pairs are values of
@@ -127,3 +128,12 @@ class DictObject(CompositeObject):
 
     def __hash__(self):
         return hash(self._dict_subobjects)
+
+    def __iter__(self):
+        return iter(self._dict_subobjects)
+
+    def __len__(self) -> int:
+        return len(self._dict_subobjects)
+
+    def __getitem__(self, key):
+        return self._dict_subobjects[key]

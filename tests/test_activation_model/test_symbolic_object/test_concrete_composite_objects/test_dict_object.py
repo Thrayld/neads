@@ -94,10 +94,10 @@ class TestDictObjectFlat(unittest.TestCase):
         self.assertIs(actual[self.int], actual[self.string])
 
     def test_get_value_without_symbols(self):
-        dict_object = DictObject({self.value_string: self.value_int})
+        dict_o = DictObject({self.value_string: self.value_int})
         expected = {self.string: self.int}
 
-        actual = dict_object.get_value()
+        actual = dict_o.get_value()
 
         self.assertEqual(expected, actual)
 
@@ -146,6 +146,45 @@ class TestDictObjectFlat(unittest.TestCase):
         other = DictObject({self.symbol_1: self.value_int})
 
         self.assertNotEqual(hash(self.dict_object), hash(other))
+
+    def test_getitem(self):
+        self.assertIs(self.symbol_1, self.dict_object[self.value_int])
+        self.assertIs(self.symbol_2, self.dict_object[self.value_string])
+
+    def test_getitem_missing_key(self):
+        self.assertRaises(
+            KeyError,
+            self.dict_object.__getitem__,
+            4
+        )
+
+    def test_len(self):
+        actual = len(self.dict_object)
+
+        expected = 2
+        self.assertIs(expected, actual)
+
+    def test_len_empty(self):
+        dict_ = DictObject({})
+
+        actual = len(dict_)
+
+        expected = 0
+        self.assertIs(expected, actual)
+
+    def test_iter(self):
+        actual = tuple(self.dict_object)
+
+        expected = (self.value_int, self.value_string)
+        self.assertEqual(expected, actual)
+
+    def test_iter_empty(self):
+        dict_ = DictObject({})
+
+        actual = tuple(dict_)
+
+        expected = ()
+        self.assertEqual(expected, actual)
 
 
 class TestDictObjectNested(unittest.TestCase):
