@@ -46,7 +46,7 @@ class SymbolicObject(abc.ABC):
         TypeError
             If the arguments do not respect the required types.
         ValueError
-            If 0 or more than 2 arguments are passed, or one `symbol_from`
+            If more than 2 arguments are passed, or one `symbol_from`
             occurs multiple times.
 
         See Also
@@ -351,6 +351,8 @@ class Symbol(SymbolicObject):
 
 
 class SubstitutionPairsParsingUtility:
+    # IDEA: Is it necessary to have substitution pairs instead of dict?
+    #  only Symbols are allowed to be the keys and they are hashable
 
     @staticmethod
     def parse(
