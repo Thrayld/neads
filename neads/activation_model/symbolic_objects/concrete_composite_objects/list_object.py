@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterable, Tuple
+import collections.abc
 
 from neads.activation_model.symbolic_objects.symbolic_object import \
     SymbolicObject
@@ -8,7 +9,7 @@ from neads.activation_model.symbolic_objects.composite_object import \
     CompositeObject
 
 
-class ListObject(CompositeObject):
+class ListObject(collections.abc.Sequence, CompositeObject):
     """Subtype of CompositeObject for list of SymbolicObjects.
 
     The value of ListObject is a list whose entries are occupied by the
@@ -114,3 +115,10 @@ class ListObject(CompositeObject):
 
     def __hash__(self):
         return hash(self._subobjects)
+
+    def __getitem__(self, i: int):
+        return self._subobjects[i]
+
+    def __len__(self) -> int:
+        return len(self._subobjects)
+

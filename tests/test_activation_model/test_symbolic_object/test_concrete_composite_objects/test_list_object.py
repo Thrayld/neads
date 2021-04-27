@@ -181,6 +181,38 @@ class TestListObjectFlat(unittest.TestCase):
 
         self.assertNotEqual(hash(self.list_object), hash(other))
 
+    def test_getitem(self):
+        self.assertIs(self.symbol_1, self.list_object[0])
+        self.assertIs(self.symbol_1, self.list_object[1])
+        self.assertIs(self.symbol_2, self.list_object[2])
+        self.assertIs(self.value, self.list_object[3])
+
+    def test_getitem_slice(self):
+        self.assertSequenceEqual(
+            [self.symbol_1, self.symbol_1],
+            self.list_object[0:2]
+        )
+
+    def test_getitem_index_out_of_bounds(self):
+        self.assertRaises(
+            IndexError,
+            self.list_object.__getitem__,
+            4
+        )
+
+    def test_len(self):
+        actual = len(self.list_object)
+
+        expected = 4
+        self.assertIs(expected, actual)
+
+    def test_len_empty(self):
+        list_ = ListObject()
+
+        actual = len(list_)
+
+        expected = 0
+        self.assertIs(expected, actual)
 
 class TestListObjectNested(unittest.TestCase):
     def setUp(self) -> None:
