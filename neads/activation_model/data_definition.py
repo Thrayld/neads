@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Optional, Dict, Hashable
-import functools
 
 from .symbolic_objects import Value
 from .symbolic_objects import Symbol
