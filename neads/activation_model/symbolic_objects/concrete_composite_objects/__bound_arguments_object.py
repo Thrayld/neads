@@ -13,6 +13,8 @@ from neads.activation_model.symbolic_objects.composite_object import \
 if TYPE_CHECKING:
     import inspect
 
+# TODO: process or remove BAO
+
 
 class BoundArgumentObject(CompositeObject):
     """Subtype of CompositeObject for BoundArguments of type SymbolicObject.
