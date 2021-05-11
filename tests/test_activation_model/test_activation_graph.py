@@ -31,9 +31,6 @@ class TestActivationGraphFailureCases(unittest.TestCase):
         self.trigger_descendants = trigger_descendants
         self.trigger_graph = trigger_graph
 
-    def test_something(self):
-        self.assertEqual(True, False)
-
     @parameterized.expand([
         ('get_parents',),
         ('get_used_inputs',),
@@ -63,34 +60,34 @@ class TestActivationGraphFailureCases(unittest.TestCase):
         method = getattr(self.ag, name)
 
         self.assertRaises(
-            ValueError,
+            RuntimeError,
             method,
             self.act
         )
 
     def test_remove_non_present_graph_trigger(self):
         self.assertRaises(
-            ValueError,
+            RuntimeError,
             delattr,
             self.ag,
             'trigger_method'
         )
 
-    def test_override_present_activation_trigger_on_result(self, name):
+    def test_override_present_activation_trigger_on_result(self):
         self.act.trigger_on_result = self.trigger_result
 
         self.assertRaises(
-            ValueError,
+            RuntimeError,
             self.ag.add_activation_trigger_on_result,
             self.act,
             self.trigger_result
         )
 
-    def test_override_present_activation_trigger_on_descendants(self, name):
+    def test_override_present_activation_trigger_on_descendants(self):
         self.act.trigger_on_descendants = self.trigger_descendants
 
         self.assertRaises(
-            ValueError,
+            RuntimeError,
             self.ag.add_activation_trigger_on_descendants,
             self.act,
             self.trigger_descendants
@@ -100,9 +97,10 @@ class TestActivationGraphFailureCases(unittest.TestCase):
         self.ag.trigger_method = self.trigger_graph
 
         self.assertRaises(
-            ValueError,
+            RuntimeError,
             setattr,
             self.ag,
+            'trigger_method',
             self.trigger_graph
         )
 
@@ -126,7 +124,7 @@ class TestActivationGraphFailureCases(unittest.TestCase):
 
     def test_add_activation_with_foreign_activation_symbol_in_arg(self):
         self.assertRaises(
-            TypeError,
+            ValueError,
             self.ag.add_activation,
             ar_plugins.add,
             1,
@@ -135,7 +133,7 @@ class TestActivationGraphFailureCases(unittest.TestCase):
 
     def test_add_activation_with_foreign_input_symbol_in_arg(self):
         self.assertRaises(
-            TypeError,
+            ValueError,
             self.ag.add_activation,
             ar_plugins.add,
             1,
@@ -248,11 +246,11 @@ class TestActivationGraphExampleGraph(unittest.TestCase):
 
     def test_get_argument_sets(self):
         arg_sets = [
-            SymbolicArgumentSet(ar_plugins.const, self.ag.inputs[0]),
-            SymbolicArgumentSet(ar_plugins.pow, self.acts[0].symbol),
-            SymbolicArgumentSet(ar_plugins.add, self.acts[0].symbol,
+            SymbolicArgumentSet(ar_plugins.const.signature, self.ag.inputs[0]),
+            SymbolicArgumentSet(ar_plugins.pow.signature, self.acts[0].symbol),
+            SymbolicArgumentSet(ar_plugins.add.signature, self.acts[0].symbol,
                                 self.ag.inputs[1]),
-            SymbolicArgumentSet(ar_plugins.sub, self.acts[1].symbol,
+            SymbolicArgumentSet(ar_plugins.sub.signature, self.acts[1].symbol,
                                 self.acts[2].symbol)
         ]
 
@@ -340,7 +338,7 @@ class TestSealedActivationGraph(unittest.TestCase):
         )
 
     def test_inputs(self):
-        self.assertIs((), self.sag.inputs)
+        self.assertEqual((), self.sag.inputs)
 
     def test_add_existing_activation_due_default_value(self):
         act = self.sag.add_activation(ar_plugins.pow, 4)

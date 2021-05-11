@@ -51,13 +51,24 @@ class ActivationGraph(collections.abc.Iterable):
             is probably a better choice.
         """
 
-        raise NotImplementedError()
+        if inputs_count < 0:
+            raise ValueError(f'Inputs count must be at least 0: {inputs_count}')
+
+        self._input_symbols = tuple(Symbol() for _ in range(inputs_count))
+        self._trigger_method = None
+
+        # Data structure for activations' data and for look up
+        self._act_to_data: dict[
+            Activation, ActivationGraph._ActivationData] = {}
+        self._symbol_to_act: dict[Symbol, Activation] = {}
+        self._plugin_argument_set_to_act: dict[
+            tuple[Plugin, SymbolicArgumentSet], Activation] = {}
 
     @property
     def inputs(self) -> tuple[Symbol]:
         """Input symbols of the graph."""
 
-        raise NotImplementedError()
+        return self._input_symbols
 
     @property
     def trigger_method(self):
@@ -73,7 +84,7 @@ class ActivationGraph(collections.abc.Iterable):
         The one who calls the method must remove it from the graph at first.
         """
 
-        raise NotImplementedError()
+        return self._trigger_method
 
     @trigger_method.setter
     def trigger_method(
@@ -88,7 +99,7 @@ class ActivationGraph(collections.abc.Iterable):
             If the graph already has a trigger.
         """
 
-        raise NotImplementedError()
+        self._arrange_trigger_set(self, '_trigger_method', trigger_method)
 
     @trigger_method.deleter
     def trigger_method(self):
@@ -100,7 +111,7 @@ class ActivationGraph(collections.abc.Iterable):
             If the graph does not carry a trigger method.
         """
 
-        raise NotImplementedError()
+        self._arrange_trigger_remove(self, '_trigger_method')
 
     def add_activation(
         self,
@@ -153,6 +164,184 @@ class ActivationGraph(collections.abc.Iterable):
             input symbol.
         """
 
+        argument_set = self._get_clean_symbolic_argument_set(plugin, *args,
+                                                             **kwargs)
+        act = self._get_corresponding_activation(plugin, argument_set)
+        return act
+
+    def _get_clean_symbolic_argument_set(self, plugin, /, *args, **kwargs):
+        """Create and return SAS for the arguments, while checking conditions.
+
+        Parameters
+        ----------
+        plugin
+            Plugin which is supposed to process the actual arguments.
+        args
+            Positional arguments for the plugin.
+        kwargs
+            Keyword arguments for the plugin.
+
+        Returns
+        -------
+        SymbolicArgumentSet
+            Argument set for the Activation. The return value is guaranteed
+            to be clean is the sense that is built from objects satisfied the
+            conditions below.
+
+        Raises
+        ------
+        TypeError
+            If the plugin is not a Plugin.
+            If the arguments for plugin do not fit its signature.
+            If one of the arguments is not hashable.
+        ValueError
+            If there is an argument, which uses foreign Activation or foreign
+            input symbol.
+        """
+
+        if not isinstance(plugin, Plugin):
+            raise TypeError(f"Plugin's type is invalid: {type(plugin)}")
+
+        argument_set = SymbolicArgumentSet(plugin.signature, *args, **kwargs)
+        try:
+            hash(argument_set)
+        except TypeError as e:
+            raise TypeError('One of the arguments was not hashable.') from e
+        self._check_arguments_symbols_are_from_the_graph(argument_set)
+
+        return argument_set
+
+    def _check_arguments_symbols_are_from_the_graph(
+        self,
+        argument_set: SymbolicArgumentSet
+    ):
+        """Check that all Symbols used in the argument set are from the graph.
+
+        As 'Symbols from the graph' are considered Symbols of other activations
+        and input Symbols of the graph.
+
+        Parameters
+        ----------
+        argument_set
+            Argument whose Symbols are going to be examined.
+
+        Raises
+        ------
+        ValueError
+            If there is a foreign Symbol.
+        """
+
+        for sym in argument_set.get_symbols():
+            if sym not in self._symbol_to_act \
+                    and sym not in self._input_symbols:
+                raise ValueError('There is a foreign Symbol in the arguments')
+
+    def _get_corresponding_activation(self, plugin, argument_set) -> Activation:
+        """Return Activation described by arguments and create new, if needed.
+
+        The method checks, whether such Activation exists in the graph. If it
+        does, it is returned. If not, a new Activation is created and then
+        returned.
+
+        Parameters
+        ----------
+        plugin
+            Plugin of the Activation.
+        argument_set
+            Argument set of the Activation.
+
+        Returns
+        -------
+        Activation
+            The Activation that corresponds to the given arguments.
+        """
+
+        # Try find the activation
+        act_candidate = self._plugin_argument_set_to_act.get(
+            (plugin, argument_set)
+        )
+        if act_candidate is None:
+            # If there is not in the graph, create it
+            return self._add_new_activation(plugin, argument_set)
+        else:
+            return act_candidate
+
+    # TODO
+    def _add_new_activation(self, plugin: Plugin,
+                            argument_set: SymbolicArgumentSet) -> Activation:
+        """Add a new activation to the graph and return it.
+
+        Parameters
+        ----------
+        plugin
+            Plugin of the activation.
+        argument_set
+            Argument set of the activation.
+
+        Returns
+        -------
+            The new activation in the graph.
+        """
+
+        # Create activation objects
+        activation = Activation(self)
+        act_data = self._create_activation_data_object(plugin, argument_set)
+
+        # Integrate activation of graph data structures
+        self._act_to_data[activation] = act_data
+        self._symbol_to_act[act_data.symbol] = activation
+        self._plugin_argument_set_to_act[(plugin, argument_set)] = activation
+        # self._definition_to_act[act_data.definition] = activation
+
+        # Change state of other activations
+        for parent in act_data.parents:
+            self._act_to_data[parent].children.append(activation)
+
+        return activation
+
+    # TODO
+    def _create_activation_data_object(self, plugin, argument_set) \
+            -> _ActivationData:
+        """Create data object of activation described by the arguments.
+
+        Parameters
+        ----------
+        plugin
+            Plugin of the activation.
+        argument_set
+            Argument set of the activation.
+
+        Returns
+        -------
+            Data object (_ActivationData) corresponding to the given arguments.
+        """
+
+        # Create a Symbol
+        symbol = Symbol()
+
+        # Find parents and used inputs
+        parents = []
+        used_inputs = []
+        for sym in argument_set.get_symbols():
+            if None is not (parent := self._symbol_to_act.get(sym)):
+                parents.append(parent)
+            else:
+                used_inputs.append(sym)  # The only other option
+
+        # Compute level
+        level = max(par.level for par in parents) + 1 if len(parents) else 0
+
+        act_data = self._ActivationData(
+            plugin=plugin,
+            argument_set=argument_set,
+            # definition=definition,
+            symbol=symbol,
+            parents=parents,
+            level=level,
+            used_inputs=used_inputs
+        )
+        return act_data
+
     def add_activation_trigger_on_result(
         self,
         activation,
@@ -187,6 +376,9 @@ class ActivationGraph(collections.abc.Iterable):
             Activation already has a trigger-on-result.
         """
 
+        data = self._get_activation_data(activation)
+        self._arrange_trigger_set(data, 'trigger_on_result', trigger_method)
+
     def remove_activation_trigger_on_result(self, activation):
         """Remove trigger-on-result method from the given Activation.
 
@@ -202,7 +394,8 @@ class ActivationGraph(collections.abc.Iterable):
             a trigger-on-result method.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        self._arrange_trigger_remove(data, 'trigger_on_result')
 
     def add_activation_trigger_on_descendants(
         self,
@@ -241,6 +434,10 @@ class ActivationGraph(collections.abc.Iterable):
             Activation already has a trigger-on-descendants.
         """
 
+        data = self._get_activation_data(activation)
+        self._arrange_trigger_set(data, 'trigger_on_descendants',
+                                  trigger_method)
+
     def remove_activation_trigger_on_descendants(self, activation):
         """Remove trigger-on-descendants method from the given Activation.
 
@@ -255,6 +452,9 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph or does not carry
             a trigger-on-descendants method.
         """
+
+        data = self._get_activation_data(activation)
+        self._arrange_trigger_remove(data, 'trigger_on_descendants')
 
     def get_parents(self, activation) -> list[Activation]:
         """Return parents of the given Activation.
@@ -277,7 +477,8 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.parents
 
     def get_used_inputs(self, activation) -> list[Symbol]:
         """Return graph's inputs used in arguments of the given Activation.
@@ -297,7 +498,8 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.used_inputs
 
     def get_children(self, activation) -> list[Activation]:
         """Return children of the given Activation.
@@ -320,7 +522,8 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.children
 
     def get_symbol(self, activation) -> Symbol:
         """Return symbol of the given Activation.
@@ -340,7 +543,8 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.symbol
 
     def get_plugin(self, activation) -> Plugin:
         """Return plugin of the given Activation.
@@ -360,7 +564,8 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.plugin
 
     def get_level(self, activation) -> int:
         """Return level of the given Activation in the graph.
@@ -383,7 +588,8 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.level
 
     def get_argument_set(self, activation) -> SymbolicArgumentSet:
         """Return argument set of the given Activation.
@@ -403,7 +609,8 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.argument_set
 
     def get_trigger_on_result(self, activation) -> Union[Callable, None]:
         """Return trigger-on-result method of the given Activation.
@@ -424,7 +631,8 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.trigger_on_result
 
     def get_trigger_on_descendants(self, activation) -> Union[Callable, None]:
         """Return trigger-on-descendants method of the given Activation.
@@ -445,7 +653,8 @@ class ActivationGraph(collections.abc.Iterable):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.trigger_on_descendants
 
     def __iter__(self):
         """Iterate over the Activations.
@@ -458,7 +667,97 @@ class ActivationGraph(collections.abc.Iterable):
             An iterator over all Activations in the graph.
         """
 
-        raise NotImplementedError()
+        return iter(self._act_to_data)
+
+    def _get_activation_data(self, activation: Activation):
+        """Return activation data with check on activation presence in graph.
+
+        Parameters
+        ----------
+        activation
+            Activation which data is returned.
+
+        Returns
+        -------
+            Activation data corresponding to the given activation.
+
+        Raises
+        ------
+        ValueError
+            If the Activation does not belong to the graph.
+        """
+
+        try:
+            return self._act_to_data[activation]
+        except KeyError as ex:
+            raise ValueError(f'Activation does not belong to the graph: '
+                             f'{activation}') from ex
+
+    @staticmethod
+    def _arrange_trigger_set(obj, attribute_trigger_name, new_trigger):
+        """General method for setting trigger method while checking overrides.
+
+        Parameters
+        ----------
+        obj
+            Object which carries an attribute with trigger method.
+        attribute_trigger_name
+            Name of the attribute for trigger method.
+        new_trigger
+            New trigger method to be set.
+
+        Raises
+        ------
+        RuntimeError
+            If the trigger method already exists.
+        """
+
+        if getattr(obj, attribute_trigger_name) is not None:
+            raise RuntimeError("Trigger method cannot be overridden.")
+        else:
+            setattr(obj, attribute_trigger_name, new_trigger)
+
+    @staticmethod
+    def _arrange_trigger_remove(obj, attribute_trigger_name):
+        """General method for removing trigger method while checking existence.
+
+        Parameters
+        ----------
+        obj
+            Object which carries an attribute with trigger method.
+        attribute_trigger_name
+            Name of the attribute for trigger method.
+
+        Raises
+        ------
+        RuntimeError
+            If the object does not carry a trigger method.
+        """
+
+        if getattr(obj, attribute_trigger_name) is None:
+            raise RuntimeError('There is no trigger method to delete.')
+        else:
+            setattr(obj, attribute_trigger_name, None)
+
+    class _ActivationData:
+        def __init__(self, *,
+                     plugin: Plugin,
+                     argument_set: SymbolicArgumentSet,
+                     symbol: Symbol,
+                     parents: list[Activation],
+                     level: int,
+                     used_inputs: list[Symbol]):
+            self.plugin = plugin
+            self.argument_set = argument_set
+            self.symbol = symbol
+            self.parents = parents
+            self.level = level
+            self.used_inputs = used_inputs
+
+            # Newly created Activation does not have any children nor triggers
+            self.children: list[Activation] = []
+            self.trigger_on_result = None
+            self.trigger_on_descendants = None
 
 
 class SealedActivationGraph(ActivationGraph):
@@ -477,7 +776,8 @@ class SealedActivationGraph(ActivationGraph):
     def __init__(self):
         """Initialize a new SealedActivationGraph."""
 
-        raise NotImplementedError()
+        super().__init__(0)
+        self._definition_to_act: dict[DataDefinition, Activation] = {}
 
     # TODO: Add type hints that add activation produces SealedActivation
     def add_activation(
@@ -491,7 +791,30 @@ class SealedActivationGraph(ActivationGraph):
         # It is possible to just have the header here and the call reroutes
         # immediately to parent's add_activation
 
-        raise NotImplementedError()
+        return super().add_activation(plugin, *args, **kwargs)  # noqa
+
+    def _get_corresponding_activation(self, plugin, argument_set) \
+            -> SealedActivation:
+        """Return Activation described by arguments and create new, if needed.
+
+        The method checks, whether such Activation exists in the graph. If it
+        does, it is returned. If not, a new Activation is created and then
+        returned.
+
+        Parameters
+        ----------
+        plugin
+            Plugin of the Activation.
+        argument_set
+            Argument set of the Activation.
+
+        Returns
+        -------
+        Activation
+            The Activation that corresponds to the given arguments.
+        """
+
+        # TODO
 
     def get_definition(self, activation: SealedActivation) -> DataDefinition:
         """Return definition of the given Activation.
@@ -513,6 +836,28 @@ class SealedActivationGraph(ActivationGraph):
 
         raise NotImplementedError()
 
+    class _ActivationData(ActivationGraph._ActivationData):
+        def __init__(self, *,
+                     plugin: Plugin,
+                     argument_set: SymbolicArgumentSet,
+                     definition: DataDefinition,
+                     symbol: Symbol,
+                     parents: list[Activation],
+                     level: int,
+                     used_inputs: list[Symbol]):
+            self.plugin = plugin
+            self.argument_set = argument_set
+            self.definition = definition
+            self.symbol = symbol
+            self.parents = parents
+            self.level = level
+            self.used_inputs = used_inputs
+
+            # Newly created Activation does not have any children nor triggers
+            self.children: list[Activation] = []
+            self.trigger_on_result = None
+            self.trigger_on_descendants = None
+
 
 class Activation:
     """An individual Activation in an ActivationGraph.
@@ -533,7 +878,7 @@ class Activation:
         """
         # IDEA: Should this method be protected by a guard?
 
-        raise NotImplementedError()
+        self._owner = owner
 
     @property
     def parents(self):
@@ -547,7 +892,7 @@ class Activation:
             Parents of the Activation.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_parents(self)
 
     @property
     def used_inputs(self):
@@ -558,7 +903,7 @@ class Activation:
             Graph's inputs used in arguments of the Activation.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_used_inputs(self)
 
     @property
     def children(self):
@@ -572,7 +917,7 @@ class Activation:
             Children of the Activation.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_children(self)
 
     @property
     def symbol(self):
@@ -583,7 +928,7 @@ class Activation:
             Symbol of the Activation.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_symbol(self)
 
     @property
     def plugin(self):
@@ -594,7 +939,7 @@ class Activation:
             Plugin of the Activation.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_plugin(self)
 
     @property
     def level(self):
@@ -608,7 +953,7 @@ class Activation:
             Level of the Activation in the graph.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_level(self)
 
     @property
     def argument_set(self):
@@ -619,7 +964,7 @@ class Activation:
             Argument set of the Activation.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_argument_set(self)
 
     @property
     def trigger_on_result(self):
@@ -631,7 +976,7 @@ class Activation:
             Activation does not have one.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_trigger_on_result(self)
 
     @trigger_on_result.setter
     def trigger_on_result(
@@ -664,7 +1009,7 @@ class Activation:
             If the Activation already has a trigger-on-result.
         """
 
-        raise NotImplementedError()
+        self._owner.add_activation_trigger_on_result(self, trigger_method)
 
     @trigger_on_result.deleter
     def trigger_on_result(self):
@@ -676,7 +1021,7 @@ class Activation:
             If the Activation does not carry a trigger-on-result method.
         """
 
-        raise NotImplementedError()
+        self._owner.remove_activation_trigger_on_result(self)
 
     @property
     def trigger_on_descendants(self):
@@ -688,7 +1033,7 @@ class Activation:
             Activation does not have one.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_trigger_on_descendants(self)
 
     @trigger_on_descendants.setter
     def trigger_on_descendants(
@@ -724,7 +1069,7 @@ class Activation:
             If the Activation already has a trigger-on-descendants.
         """
 
-        raise NotImplementedError()
+        self._owner.add_activation_trigger_on_descendants(self, trigger_method)
 
     @trigger_on_descendants.deleter
     def trigger_on_descendants(self):
@@ -736,7 +1081,7 @@ class Activation:
             If the Activation does not carry a trigger-on-descendants method.
         """
 
-        raise NotImplementedError()
+        self._owner.remove_activation_trigger_on_descendants(self)
 
 
 class SealedActivation(Activation):
