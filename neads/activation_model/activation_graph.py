@@ -24,12 +24,22 @@ from neads.activation_model.data_definition import DataDefinition
 
 # IDEA: maybe add a shortcut to a set of all activations with trigger methods
 
+# TODO: rename 'add_trigger..' methods to 'set_trigger..'
+
+# TODO: in triggers get / set methods change the exception type from
+#  ValueError to RuntimeError
+
 class ActivationGraph(collections.abc.Iterable):
     """Capture dependencies among results of Plugins and graph's inputs.
 
     It is an acyclic data dependency graph which holds information how a result
     should be computed from some other results or from the graph's inputs.
     """
+
+    @staticmethod
+    def _get_activation_factory():
+        """Return factory method for creation of Activations."""
+        return Activation
 
     def __init__(self, inputs_count):
         """Initialize a new ActivationGraph.
@@ -61,8 +71,12 @@ class ActivationGraph(collections.abc.Iterable):
         self._act_to_data: dict[
             Activation, ActivationGraph._ActivationData] = {}
         self._symbol_to_act: dict[Symbol, Activation] = {}
-        self._plugin_argument_set_to_act: dict[
-            tuple[Plugin, SymbolicArgumentSet], Activation] = {}
+
+        # Special purpose look-up structure for checking whether described
+        # Activation exists in the graph or should be created
+        # The structure is not meant to be used outside add_activation method
+        # Moreover, it is meant to be possibly overridden in a subclass
+        self._lookup_structure = {}
 
     @property
     def inputs(self) -> tuple[Symbol]:
@@ -257,16 +271,62 @@ class ActivationGraph(collections.abc.Iterable):
         """
 
         # Try find the activation
-        act_candidate = self._plugin_argument_set_to_act.get(
-            (plugin, argument_set)
-        )
+
+        lookup_key = self._get_activations_lookup_key(plugin, argument_set)
+        act_candidate = self._lookup_activation(lookup_key)
         if act_candidate is None:
             # If there is not in the graph, create it
-            return self._add_new_activation(plugin, argument_set)
+            new_activation = self._add_new_activation(plugin, argument_set)
+            self._add_into_lookup_structure(lookup_key, new_activation)
+            return new_activation
         else:
             return act_candidate
 
-    # TODO
+    def _get_activations_lookup_key(self, plugin, argument_set):
+        """Create activation look-up key for check whether such such Act exists.
+
+        Parameters
+        ----------
+        plugin
+            Plugin of the Activation.
+        argument_set
+            Argument set of the Activation.
+
+        Returns
+        -------
+            The look-up key.
+        """
+
+        return plugin, argument_set
+
+    def _lookup_activation(self, lookup_key):
+        """Check whether Activation with given key exists in the graph.
+
+        Parameters
+        ----------
+        lookup_key
+            Look-up key for the Activation.
+
+        Returns
+        -------
+            The corresponding Activation or None, if it does not exists.
+        """
+
+        return self._lookup_structure.get(lookup_key)
+
+    def _add_into_lookup_structure(self, lookup_key, activation):
+        """Add the activation to look-up structure.
+
+        Parameters
+        ----------
+        lookup_key
+            Look-up key for the Activation.
+        activation
+            Activation to be added.
+        """
+
+        self._lookup_structure[lookup_key] = activation
+
     def _add_new_activation(self, plugin: Plugin,
                             argument_set: SymbolicArgumentSet) -> Activation:
         """Add a new activation to the graph and return it.
@@ -284,14 +344,12 @@ class ActivationGraph(collections.abc.Iterable):
         """
 
         # Create activation objects
-        activation = Activation(self)
+        activation = self._get_activation_factory()(self)
         act_data = self._create_activation_data_object(plugin, argument_set)
 
-        # Integrate activation of graph data structures
+        # Integrate activation into graph data structures
         self._act_to_data[activation] = act_data
         self._symbol_to_act[act_data.symbol] = activation
-        self._plugin_argument_set_to_act[(plugin, argument_set)] = activation
-        # self._definition_to_act[act_data.definition] = activation
 
         # Change state of other activations
         for parent in act_data.parents:
@@ -299,7 +357,6 @@ class ActivationGraph(collections.abc.Iterable):
 
         return activation
 
-    # TODO
     def _create_activation_data_object(self, plugin, argument_set) \
             -> _ActivationData:
         """Create data object of activation described by the arguments.
@@ -331,16 +388,43 @@ class ActivationGraph(collections.abc.Iterable):
         # Compute level
         level = max(par.level for par in parents) + 1 if len(parents) else 0
 
-        act_data = self._ActivationData(
+        act_data = self._initialize_activation_data(
             plugin=plugin,
             argument_set=argument_set,
-            # definition=definition,
             symbol=symbol,
             parents=parents,
             level=level,
             used_inputs=used_inputs
         )
         return act_data
+
+    def _initialize_activation_data(
+        self,
+        plugin: Plugin,
+        argument_set: SymbolicArgumentSet,
+        symbol: Symbol,
+        parents: list[Activation],
+        level: int,
+        used_inputs: list[Symbol]
+    ):
+        """Initialize ActivationData with given arguments.
+
+        Existence of this method leaves a space for subclasses to adjust
+        creation of their ActivationData.
+
+        Returns
+        -------
+            ActivationData with given arguments.
+        """
+
+        return self._ActivationData(
+            plugin=plugin,
+            argument_set=argument_set,
+            symbol=symbol,
+            parents=parents,
+            level=level,
+            used_inputs=used_inputs
+        )
 
     def add_activation_trigger_on_result(
         self,
@@ -773,13 +857,16 @@ class SealedActivationGraph(ActivationGraph):
     DataDefinition, which uniquely identify their results.
     """
 
+    @staticmethod
+    def _get_activation_factory():
+        """Return factory method for creation of Activations."""
+        return SealedActivation
+
     def __init__(self):
         """Initialize a new SealedActivationGraph."""
 
         super().__init__(0)
-        self._definition_to_act: dict[DataDefinition, Activation] = {}
 
-    # TODO: Add type hints that add activation produces SealedActivation
     def add_activation(
         self,
         plugin: Plugin,
@@ -791,15 +878,14 @@ class SealedActivationGraph(ActivationGraph):
         # It is possible to just have the header here and the call reroutes
         # immediately to parent's add_activation
 
+        # TODO: add some docstring
+
         return super().add_activation(plugin, *args, **kwargs)  # noqa
 
-    def _get_corresponding_activation(self, plugin, argument_set) \
-            -> SealedActivation:
-        """Return Activation described by arguments and create new, if needed.
+    def _get_activations_lookup_key(self, plugin, argument_set):
+        """Create activation look-up key for check whether such such Act exists.
 
-        The method checks, whether such Activation exists in the graph. If it
-        does, it is returned. If not, a new Activation is created and then
-        returned.
+        In this case, the look-up key is corresponding data definition object.
 
         Parameters
         ----------
@@ -810,11 +896,50 @@ class SealedActivationGraph(ActivationGraph):
 
         Returns
         -------
-        Activation
-            The Activation that corresponds to the given arguments.
+            The look-up key.
         """
 
-        # TODO
+        parents_symbol_to_def = {
+            sym: self._act_to_data[act].definition  # noqa
+            for sym in argument_set.get_symbols()
+            if (act := self._symbol_to_act.get(sym)) is not None
+        }
+        definition = DataDefinition.get_instance(plugin.id, argument_set,
+                                                 parents_symbol_to_def)
+        return definition
+
+    def _initialize_activation_data(
+            self,
+            plugin: Plugin,
+            argument_set: SymbolicArgumentSet,
+            symbol: Symbol,
+            parents: list[Activation],
+            level: int,
+            used_inputs: list[Symbol]
+    ):
+        """Initialize ActivationData with given arguments.
+
+        Existence of this method leaves a space for subclasses to adjust
+        creation of their ActivationData.
+
+        Returns
+        -------
+            ActivationData with given arguments.
+        """
+
+        # IDEA: work with definition may be more efficient, if it was passed
+        #  through calling chain and was not created again
+        definition = self._get_activations_lookup_key(plugin, argument_set)
+
+        return self._ActivationData(
+            plugin=plugin,
+            argument_set=argument_set,
+            definition=definition,
+            symbol=symbol,
+            parents=parents,
+            level=level,
+            used_inputs=used_inputs
+        )
 
     def get_definition(self, activation: SealedActivation) -> DataDefinition:
         """Return definition of the given Activation.
@@ -834,29 +959,15 @@ class SealedActivationGraph(ActivationGraph):
             If the Activation does not belong to the graph.
         """
 
-        raise NotImplementedError()
+        data = self._get_activation_data(activation)
+        return data.definition  # noqa
 
     class _ActivationData(ActivationGraph._ActivationData):
         def __init__(self, *,
-                     plugin: Plugin,
-                     argument_set: SymbolicArgumentSet,
                      definition: DataDefinition,
-                     symbol: Symbol,
-                     parents: list[Activation],
-                     level: int,
-                     used_inputs: list[Symbol]):
-            self.plugin = plugin
-            self.argument_set = argument_set
+                     **kwargs):
+            super().__init__(**kwargs)
             self.definition = definition
-            self.symbol = symbol
-            self.parents = parents
-            self.level = level
-            self.used_inputs = used_inputs
-
-            # Newly created Activation does not have any children nor triggers
-            self.children: list[Activation] = []
-            self.trigger_on_result = None
-            self.trigger_on_descendants = None
 
 
 class Activation:
@@ -1104,7 +1215,8 @@ class SealedActivation(Activation):
         """
         # IDEA: Should this method be protected by a guard?
 
-        raise NotImplementedError()
+        super().__init__(owner)
+        self._owner = owner
 
     @property
     def definition(self):
@@ -1117,4 +1229,4 @@ class SealedActivation(Activation):
             Definition of the SealedActivation.
         """
 
-        raise NotImplementedError()
+        return self._owner.get_definition(self)

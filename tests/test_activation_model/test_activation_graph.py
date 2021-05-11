@@ -326,9 +326,14 @@ class TestSealedActivationGraph(unittest.TestCase):
         self.act = self.sag.add_activation(ar_plugins.add, 1, 2)
         self.foreign_act = self.other_sag.add_activation(ar_plugins.add, 1, 2)
 
-    def test_get_definition(self):
+    def test_get_definition_same_definitions(self):
         self.assertIsNot(self.act, self.foreign_act)
         self.assertIs(self.act.definition, self.foreign_act.definition)
+
+    def test_get_definition_different_definitions(self):
+        different_act = self.other_sag.add_activation(ar_plugins.sub, 1, 2)
+
+        self.assertNotEqual(self.act.definition, different_act.definition)
 
     def test_get_definition_with_foreign_activation(self):
         self.assertRaises(
