@@ -19,6 +19,11 @@ from neads.activation_model.data_definition import DataDefinition
 #  instead of -> ListObject(act_1.symbol, act_2.symbol)
 #  we may write -> [act_1, act_2]
 
+# IDEA: change NetworkX-like approach (all data in Graph) to OOP approach
+#  (node data in nodes), see report from 11.5. for discussion
+
+# IDEA: maybe add a shortcut to a set of all activations with trigger methods
+
 class ActivationGraph(collections.abc.Iterable):
     """Capture dependencies among results of Plugins and graph's inputs.
 
@@ -33,6 +38,11 @@ class ActivationGraph(collections.abc.Iterable):
         ----------
         inputs_count
             Number of inputs of the graph.
+
+        Raises
+        ------
+        ValueError
+            If the inputs_count is less than 0.
 
         See Also
         --------
@@ -57,6 +67,9 @@ class ActivationGraph(collections.abc.Iterable):
         trigger method is present in the graph. That is, after all the
         trigger methods of all Activations have been called.
 
+        The method must not add trigger methods to Activations except to
+        those which creates.
+
         The one who calls the method must remove it from the graph at first.
         """
 
@@ -67,7 +80,13 @@ class ActivationGraph(collections.abc.Iterable):
         self,
         trigger_method: Callable[[ActivationGraph], list[Activation]]
     ):
-        """Set graph's trigger method."""
+        """Set graph's trigger method.
+
+        Raises
+        ------
+        ValueError
+            If the graph already has a trigger.
+        """
 
         raise NotImplementedError()
 
@@ -127,7 +146,11 @@ class ActivationGraph(collections.abc.Iterable):
         ------
         TypeError
             If the plugin is not a Plugin.
-            If the parameters for plugin do not fit its signature.
+            If the arguments for plugin do not fit its signature.
+            If one of the arguments is not hashable.
+        ValueError
+            If there is an argument, which uses foreign Activation or foreign
+            input symbol.
         """
 
     def add_activation_trigger_on_result(
@@ -143,6 +166,9 @@ class ActivationGraph(collections.abc.Iterable):
         Its usual purpose is to add new Activations to the graph whose count
         depends on the computed data.
 
+        The method must not add trigger methods to Activations except to
+        those which creates.
+
         The one who calls the method must remove it from the graph at first.
 
         Parameters
@@ -157,7 +183,8 @@ class ActivationGraph(collections.abc.Iterable):
         Raises
         ------
         ValueError
-            If the Activation does not belong to the graph.
+            If the Activation does not belong to the graph or if the
+            Activation already has a trigger-on-result.
         """
 
     def remove_activation_trigger_on_result(self, activation):
@@ -193,6 +220,9 @@ class ActivationGraph(collections.abc.Iterable):
         common Activation, which was not possible to create right away
         due to presence of descendants' trigger methods.
 
+        The method must not add trigger methods to Activations except to
+        those which creates.
+
         The one who calls the method must remove it from the graph at first.
 
         Parameters
@@ -207,7 +237,8 @@ class ActivationGraph(collections.abc.Iterable):
         Raises
         ------
         ValueError
-            If the Activation does not belong to the graph.
+            If the Activation does not belong to the graph or if the
+            Activation already has a trigger-on-descendants.
         """
 
     def remove_activation_trigger_on_descendants(self, activation):
@@ -448,6 +479,20 @@ class SealedActivationGraph(ActivationGraph):
 
         raise NotImplementedError()
 
+    # TODO: Add type hints that add activation produces SealedActivation
+    def add_activation(
+        self,
+        plugin: Plugin,
+        /,
+        *args: object,
+        **kwargs: object
+    ) -> SealedActivation:
+        # It very much depends on construction of the method in parent class
+        # It is possible to just have the header here and the call reroutes
+        # immediately to parent's add_activation
+
+        raise NotImplementedError()
+
     def get_definition(self, activation: SealedActivation) -> DataDefinition:
         """Return definition of the given Activation.
 
@@ -601,6 +646,9 @@ class Activation:
         Its usual purpose is to add new Activations to the owning graph whose
         count depends on the computed data.
 
+        The method must not add trigger methods to Activations except to
+        those which creates.
+
         The one who calls the method must remove it at first.
 
         Parameters
@@ -609,13 +657,24 @@ class Activation:
             Trigger-on-result method for the Activation. The method takes the
             Activation and its result as arguments. Returns a list of newly
             created Activations.
+
+        Raises
+        ------
+        ValueError
+            If the Activation already has a trigger-on-result.
         """
 
         raise NotImplementedError()
 
     @trigger_on_result.deleter
     def trigger_on_result(self):
-        """Remove trigger-on-result method from the Activation."""
+        """Remove trigger-on-result method from the Activation.
+
+        Raises
+        ------
+        ValueError
+            If the Activation does not carry a trigger-on-result method.
+        """
 
         raise NotImplementedError()
 
@@ -647,6 +706,9 @@ class Activation:
         common Activation, which was not possible to create right away
         due to presence of descendants' trigger methods.
 
+        The method must not add trigger methods to Activations except to
+        those which creates.
+
         The one who calls the method must remove it from the graph at first.
 
         Parameters
@@ -655,13 +717,24 @@ class Activation:
             Trigger-on-descendants method for the Activation. The method takes
             the Activation as a single argument. Returns a list of newly
             created Activations.
+
+        Raises
+        ------
+        ValueError
+            If the Activation already has a trigger-on-descendants.
         """
 
         raise NotImplementedError()
 
     @trigger_on_descendants.deleter
     def trigger_on_descendants(self):
-        """Remove trigger-on-descendants method from the Activation."""
+        """Remove trigger-on-descendants method from the Activation.
+
+        Raises
+        ------
+        ValueError
+            If the Activation does not carry a trigger-on-descendants method.
+        """
 
         raise NotImplementedError()
 

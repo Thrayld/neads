@@ -18,6 +18,19 @@ class TestActivationGraphFailureCases(unittest.TestCase):
         self.act = self.ag.add_activation(ar_plugins.add, 1, 2)
         self.foreign_act = self.other_ag.add_activation(ar_plugins.add, 1, 2)
 
+        def trigger_result(act, result):  # noqa
+            return []
+
+        def trigger_descendants(act):  # noqa
+            return []
+
+        def trigger_graph(graph):  # noqa
+            return []
+
+        self.trigger_result = trigger_result
+        self.trigger_descendants = trigger_descendants
+        self.trigger_graph = trigger_graph
+
     def test_something(self):
         self.assertEqual(True, False)
 
@@ -43,8 +56,8 @@ class TestActivationGraphFailureCases(unittest.TestCase):
         )
 
     @parameterized.expand([
-        ('get_trigger_on_result',),
-        ('get_trigger_on_descendants',),
+        ('remove_activation_trigger_on_result',),
+        ('remove_activation_trigger_on_descendants',),
     ])
     def test_remove_non_present_activation_trigger(self, name):
         method = getattr(self.ag, name)
@@ -61,6 +74,36 @@ class TestActivationGraphFailureCases(unittest.TestCase):
             delattr,
             self.ag,
             'trigger_method'
+        )
+
+    def test_override_present_activation_trigger_on_result(self, name):
+        self.act.trigger_on_result = self.trigger_result
+
+        self.assertRaises(
+            ValueError,
+            self.ag.add_activation_trigger_on_result,
+            self.act,
+            self.trigger_result
+        )
+
+    def test_override_present_activation_trigger_on_descendants(self, name):
+        self.act.trigger_on_descendants = self.trigger_descendants
+
+        self.assertRaises(
+            ValueError,
+            self.ag.add_activation_trigger_on_descendants,
+            self.act,
+            self.trigger_descendants
+        )
+
+    def test_override_present_graph_trigger(self):
+        self.ag.trigger_method = self.trigger_graph
+
+        self.assertRaises(
+            ValueError,
+            setattr,
+            self.ag,
+            self.trigger_graph
         )
 
     def test_add_activation_with_not_plugin(self):
