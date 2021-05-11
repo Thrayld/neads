@@ -24,10 +24,6 @@ from neads.activation_model.data_definition import DataDefinition
 
 # IDEA: maybe add a shortcut to a set of all activations with trigger methods
 
-# TODO: rename 'add_trigger..' methods to 'set_trigger..'
-
-# TODO: in triggers get / set methods change the exception type from
-#  ValueError to RuntimeError
 
 class ActivationGraph(collections.abc.Iterable):
     """Capture dependencies among results of Plugins and graph's inputs.
@@ -109,7 +105,7 @@ class ActivationGraph(collections.abc.Iterable):
 
         Raises
         ------
-        ValueError
+        RuntimeError
             If the graph already has a trigger.
         """
 
@@ -121,7 +117,7 @@ class ActivationGraph(collections.abc.Iterable):
 
         Raises
         ------
-        ValueError
+        RuntimeError
             If the graph does not carry a trigger method.
         """
 
@@ -426,12 +422,12 @@ class ActivationGraph(collections.abc.Iterable):
             used_inputs=used_inputs
         )
 
-    def add_activation_trigger_on_result(
+    def set_activation_trigger_on_result(
         self,
         activation,
         trigger_method: Callable[[Activation, Any], list[Activation]]
     ):
-        """Add trigger-on-result method for the given Activation.
+        """Set trigger-on-result method for the given Activation.
 
         The trigger-on-result method is meant to be called with the result data
         of the Activation.
@@ -456,8 +452,9 @@ class ActivationGraph(collections.abc.Iterable):
         Raises
         ------
         ValueError
-            If the Activation does not belong to the graph or if the
-            Activation already has a trigger-on-result.
+            If the Activation does not belong to the graph.
+        RuntimeError
+            If the Activation already has the trigger-on-result.
         """
 
         data = self._get_activation_data(activation)
@@ -474,26 +471,27 @@ class ActivationGraph(collections.abc.Iterable):
         Raises
         ------
         ValueError
-            If the Activation does not belong to the graph or does not carry
-            a trigger-on-result method.
+            If the Activation does not belong to the graph.
+        RuntimeError
+            If the Activation does not carry the trigger-on-result method.
         """
 
         data = self._get_activation_data(activation)
         self._arrange_trigger_remove(data, 'trigger_on_result')
 
-    def add_activation_trigger_on_descendants(
+    def set_activation_trigger_on_descendants(
         self,
         activation,
         trigger_method: Callable[[Activation], list[Activation]]
     ):
-        """Add trigger-on-descendants method for the given Activation.
+        """Set trigger-on-descendants method for the given Activation.
 
         The trigger-on-descendants method is meant to be called when no
         descendant of the Activation carries a trigger method (of either kind).
         That is, after all trigger methods of descendants of the Activation
         have been already called.
 
-        Its usual purpose is to add gather results of its descendants in a
+        Its usual purpose is to gather results of its descendants in a
         common Activation, which was not possible to create right away
         due to presence of descendants' trigger methods.
 
@@ -514,8 +512,9 @@ class ActivationGraph(collections.abc.Iterable):
         Raises
         ------
         ValueError
-            If the Activation does not belong to the graph or if the
-            Activation already has a trigger-on-descendants.
+            If the Activation does not belong to the graph
+        RuntimeError
+            If the Activation already has the trigger-on-descendants.
         """
 
         data = self._get_activation_data(activation)
@@ -533,8 +532,9 @@ class ActivationGraph(collections.abc.Iterable):
         Raises
         ------
         ValueError
-            If the Activation does not belong to the graph or does not carry
-            a trigger-on-descendants method.
+            If the Activation does not belong to the graph.
+        RuntimeError
+            If the Activation does not carry the trigger-on-descendants method.
         """
 
         data = self._get_activation_data(activation)
@@ -874,12 +874,19 @@ class SealedActivationGraph(ActivationGraph):
         *args: object,
         **kwargs: object
     ) -> SealedActivation:
-        # It very much depends on construction of the method in parent class
-        # It is possible to just have the header here and the call reroutes
-        # immediately to parent's add_activation
+        """Add described activation to the graph.
 
-        # TODO: add some docstring
+        See docstring of parent's ActivationGraph.add_activation method for
+        more information.
 
+        Returns
+        -------
+            SealedActivation which posses DataDefinition, as opposed to bare
+            Activation.
+        """
+
+        # The "override" exists only to hint the proper return type
+        # Thus, pollution of wrong type inference will not be spread
         return super().add_activation(plugin, *args, **kwargs)  # noqa
 
     def _get_activations_lookup_key(self, plugin, argument_set):
@@ -1116,11 +1123,11 @@ class Activation:
 
         Raises
         ------
-        ValueError
-            If the Activation already has a trigger-on-result.
+        RuntimeError
+            If the Activation already has the trigger-on-result.
         """
 
-        self._owner.add_activation_trigger_on_result(self, trigger_method)
+        self._owner.set_activation_trigger_on_result(self, trigger_method)
 
     @trigger_on_result.deleter
     def trigger_on_result(self):
@@ -1128,8 +1135,8 @@ class Activation:
 
         Raises
         ------
-        ValueError
-            If the Activation does not carry a trigger-on-result method.
+        RuntimeError
+            If the Activation does not carry the trigger-on-result method.
         """
 
         self._owner.remove_activation_trigger_on_result(self)
@@ -1158,7 +1165,7 @@ class Activation:
         That is, after all trigger methods of descendants of the Activation
         have been already called.
 
-        Its usual purpose is to add gather results of its descendants in a
+        Its usual purpose is to gather results of its descendants in a
         common Activation, which was not possible to create right away
         due to presence of descendants' trigger methods.
 
@@ -1176,11 +1183,11 @@ class Activation:
 
         Raises
         ------
-        ValueError
-            If the Activation already has a trigger-on-descendants.
+        RuntimeError
+            If the Activation already has the trigger-on-descendants.
         """
 
-        self._owner.add_activation_trigger_on_descendants(self, trigger_method)
+        self._owner.set_activation_trigger_on_descendants(self, trigger_method)
 
     @trigger_on_descendants.deleter
     def trigger_on_descendants(self):
@@ -1188,8 +1195,8 @@ class Activation:
 
         Raises
         ------
-        ValueError
-            If the Activation does not carry a trigger-on-descendants method.
+        RuntimeError
+            If the Activation does not carry the trigger-on-descendants method.
         """
 
         self._owner.remove_activation_trigger_on_descendants(self)

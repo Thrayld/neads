@@ -78,7 +78,7 @@ class TestActivationGraphFailureCases(unittest.TestCase):
 
         self.assertRaises(
             RuntimeError,
-            self.ag.add_activation_trigger_on_result,
+            self.ag.set_activation_trigger_on_result,
             self.act,
             self.trigger_result
         )
@@ -88,7 +88,7 @@ class TestActivationGraphFailureCases(unittest.TestCase):
 
         self.assertRaises(
             RuntimeError,
-            self.ag.add_activation_trigger_on_descendants,
+            self.ag.set_activation_trigger_on_descendants,
             self.act,
             self.trigger_descendants
         )
