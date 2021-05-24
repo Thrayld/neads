@@ -4,12 +4,21 @@ from ..evaluation_manager import EvaluationManager
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph, SealedActivation
+    from neads.database import Database
 
 
 class SingleThreadEvaluationManager(EvaluationManager):
-    """Kind of EvaluationManager that runs in a single thread."""
+    """The kind of EvaluationManager that runs in a single thread."""
 
-    def __init__(self):
+    def __init__(self, database: Database):
+        """Initialize a SingleThreadEvaluationManager instance.
+
+        Parameters
+        ----------
+        database
+            Database for Activations' data.
+        """
+
         raise NotImplementedError()
 
     def evaluate(self, activation_graph: SealedActivationGraph) \
