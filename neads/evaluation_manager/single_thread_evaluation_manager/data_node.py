@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable
 from enum import Enum, auto
 
 if TYPE_CHECKING:
@@ -170,3 +172,63 @@ class DataNode:
         DataNodeStateException
             If the DataNode is in different state than DISK.
         """
+
+    def register_unknown_to_no_data(self, handler: Callable[[DataNode], None]):
+        """Register handler for change of state from UNKNOWN to NO_DATA.
+
+        Parameters
+        ----------
+        handler
+            The handler to be called after change of state from UNKNOWN to
+            NO_DATA with a single argument, which is the DataNode.
+        """
+
+        raise NotImplementedError()
+
+    def register_unknown_to_memory(self, handler: Callable[[DataNode], None]):
+        """Register handler for change of state from UNKNOWN to MEMORY.
+
+        Parameters
+        ----------
+        handler
+            The handler to be called after change of state from UNKNOWN to
+            MEMORY with a single argument, which is the DataNode.
+        """
+
+        raise NotImplementedError()
+
+    def register_no_data_to_memory(self, handler: Callable[[DataNode], None]):
+        """Register handler for change of state from NO_DATA to MEMORY.
+
+        Parameters
+        ----------
+        handler
+            The handler to be called after change of state from NO_DATA to
+            MEMORY with a single argument, which is the DataNode.
+        """
+
+        raise NotImplementedError()
+
+    def register_memory_to_disk(self, handler: Callable[[DataNode], None]):
+        """Register handler for change of state from MEMORY to DISK.
+
+        Parameters
+        ----------
+        handler
+            The handler to be called after change of state from MEMORY to
+            DISK with a single argument, which is the DataNode.
+        """
+
+        raise NotImplementedError()
+
+    def register_disk_to_memory(self, handler: Callable[[DataNode], None]):
+        """Register handler for change of state from DISK to MEMORY.
+
+        Parameters
+        ----------
+        handler
+            The handler to be called after change of state from DISK to
+            MEMORY with a single argument, which is the DataNode.
+        """
+
+        raise NotImplementedError()
