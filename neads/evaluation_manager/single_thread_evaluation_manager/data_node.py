@@ -15,6 +15,13 @@ class State(Enum):
     DISK = auto()
 
 
+class DataNodeStateException(Exception):
+    """For attempts to call DataNode's state-changing method in a wrong state.
+
+    See docstring of DataNodes public methods for more information.
+    """
+
+
 class DataNode:
     """Node in EvaluationState for a single Activation in ActivationGraph.
 
@@ -114,6 +121,11 @@ class DataNode:
         Returns
         -------
             True, it the attempt to load was successful. False otherwise.
+
+        Raises
+        ------
+        DataNodeStateException
+            If the DataNode is in different state than UNKNOWN.
         """
 
     def evaluate(self):
@@ -125,10 +137,10 @@ class DataNode:
 
         Raises
         ------
-        TODO exception
+        DataNodeStateException
+            If the DataNode is in different state than NO_DATA.
+        RuntimeException
             A parent node was not in MEMORY state.
-        TODO
-            general exception for calling the method while being in wrong state
         """
 
     def store(self):
@@ -141,6 +153,10 @@ class DataNode:
          usual case?
          Is there any?
          Will we really release as much memory as promised (after run of GC)
+        Raises
+        ------
+        DataNodeStateException
+            If the DataNode is in different state than MEMORY.
         """
 
     def load(self):
@@ -148,4 +164,9 @@ class DataNode:
 
         Allowed only in DISK state and the resulting state is MEMORY. Data
         are loaded from tmp file to memory.
+
+        Raises
+        ------
+        DataNodeStateException
+            If the DataNode is in different state than DISK.
         """
