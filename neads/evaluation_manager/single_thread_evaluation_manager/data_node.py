@@ -3,6 +3,7 @@ from enum import Enum, auto
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivation
+    from neads.database import Database
 
 
 class State(Enum):
@@ -42,7 +43,7 @@ class DataNode:
     #  (EvaluationState in our case) to attach its own handler that will react
     #  on change of state
 
-    def __init__(self, activation: SealedActivation):
+    def __init__(self, activation: SealedActivation, database: Database):
         """Initialize a DataNode instance.
 
         Parameters
@@ -50,6 +51,10 @@ class DataNode:
         activation
             The Activation whose data and state the DataNode instance
             represents.
+        database
+            Database for Activation's data. The DataNode will try to load its
+            data from the database or save it there after evaluation
+            (in case the data was not found).
         """
 
         raise NotImplementedError()
