@@ -267,7 +267,6 @@ class ActivationGraph(collections.abc.Iterable):
         """
 
         # Try find the activation
-
         lookup_key = self._get_activations_lookup_key(plugin, argument_set)
         act_candidate = self._lookup_activation(lookup_key)
         if act_candidate is None:
@@ -276,6 +275,7 @@ class ActivationGraph(collections.abc.Iterable):
             self._add_into_lookup_structure(lookup_key, new_activation)
             return new_activation
         else:
+            # If there already is, return it
             return act_candidate
 
     def _get_activations_lookup_key(self, plugin, argument_set):
