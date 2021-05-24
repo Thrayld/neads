@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Iterable
 from enum import Enum, auto
 
 if TYPE_CHECKING:
@@ -52,7 +52,10 @@ class DataNode:
     #  (EvaluationState in our case) to attach its own handler that will react
     #  on change of state
 
-    def __init__(self, activation: SealedActivation, database: Database):
+    def __init__(self,
+                 activation: SealedActivation,
+                 parents: Iterable[DataNode],
+                 database: Database):
         """Initialize a DataNode instance.
 
         Parameters
@@ -60,6 +63,8 @@ class DataNode:
         activation
             The Activation whose data and state the DataNode instance
             represents.
+        parents
+            Parent DataNodes of the created instance.
         database
             Database for Activation's data. The DataNode will try to load its
             data from the database or save it there after evaluation
