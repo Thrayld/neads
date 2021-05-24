@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING, Iterable, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from neads.activation_model import SealedActivationGraph, SealedActivation
+    from neads.activation_model import SealedActivationGraph
+    from neads.database import Database
 
 
 class EvaluationState:
@@ -17,7 +18,9 @@ class EvaluationState:
     the user of EvaluationState.
     """
 
-    def __init__(self, activation_graph: SealedActivationGraph,
+    def __init__(self,
+                 activation_graph: SealedActivationGraph,
+                 database: Database,
                  memory_limit: int):
         """Initialize an EvaluationState instance.
 
@@ -26,6 +29,10 @@ class EvaluationState:
         activation_graph
             The graph to be evaluated. The EvaluationState instance then
             describes state of evaluation of the graph.
+        database
+            Database for Activations' data. DataNodes will try to load their
+            data from there and save the data there after evaluation (unless
+            the data were found right away).
         memory_limit
             Soft limit on the amount of memory in bytes which is allowed to be
             consumed by the current process during evaluation.
