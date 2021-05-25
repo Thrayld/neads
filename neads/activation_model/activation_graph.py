@@ -62,6 +62,7 @@ class ActivationGraph(collections.abc.Iterable):
 
         self._input_symbols = tuple(Symbol() for _ in range(inputs_count))
         self._trigger_method = None
+        self._top_level: list[Activation] = []
 
         # Data structure for activations' data and for look up
         self._act_to_data: dict[
@@ -346,6 +347,8 @@ class ActivationGraph(collections.abc.Iterable):
         # Integrate activation into graph data structures
         self._act_to_data[activation] = act_data
         self._symbol_to_act[act_data.symbol] = activation
+        if act_data.level == 0:
+            self._top_level.append(activation)
 
         # Change state of other activations
         for parent in act_data.parents:
@@ -539,6 +542,18 @@ class ActivationGraph(collections.abc.Iterable):
 
         data = self._get_activation_data(activation)
         self._arrange_trigger_remove(data, 'trigger_on_descendants')
+
+    def get_top_level(self) -> tuple[Activation]:
+        """Return list of all Activations on level 0.
+
+        The top Activations are exactly all the Activations without parents.
+
+        Returns
+        -------
+            The list of all Activations on level 0.
+        """
+
+        return tuple(self._top_level)
 
     def get_parents(self, activation) -> list[Activation]:
         """Return parents of the given Activation.
@@ -888,6 +903,21 @@ class SealedActivationGraph(ActivationGraph):
         # The "override" exists only to hint the proper return type
         # Thus, pollution of wrong type inference will not be spread
         return super().add_activation(plugin, *args, **kwargs)  # noqa
+
+    def get_top_level(self) -> tuple[SealedActivation]:
+        """Return list of all SealedActivations on level 0.
+
+        The top SealedActivations are exactly all the SealedActivations
+        without parents.
+
+        Returns
+        -------
+            The list of all SealedActivations on level 0.
+        """
+
+        # The "override" exists only to hint the proper return type
+        # Thus, pollution of wrong type inference will not be spread
+        return super().get_top_level()  # noqa
 
     def _get_activations_lookup_key(self, plugin, argument_set):
         """Create activation look-up key for check whether such such Act exists.

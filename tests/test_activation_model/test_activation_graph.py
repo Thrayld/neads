@@ -175,6 +175,13 @@ class TestActivationGraphExampleGraph(unittest.TestCase):
     def setUp(self) -> None:
         self.ag, self.acts = self.create_graph()
 
+    def test_get_top_level(self):
+        expected = [self.acts[0]]
+
+        actual = self.ag.get_top_level()
+
+        self.assertCountEqual(expected, actual)
+
     @parameterized.expand([
         (0, []),
         (1, [0]),
@@ -314,6 +321,24 @@ class TestActivationGraphOtherMethods(unittest.TestCase):
         new_act = self.ag.add_activation(ar_plugins.add, b=2, a=1)
 
         self.assertIs(self.act, new_act)
+
+    def test_get_top_level_empty_graph(self):
+        expected = []
+
+        actual = ActivationGraph(1).get_top_level()
+
+        self.assertCountEqual(expected, actual)
+
+    def test_get_top_level_several_acts(self):
+        ag = ActivationGraph(1)
+        act_1 = ag.add_activation(ar_plugins.const, 0)
+        act_2 = ag.add_activation(ar_plugins.const, ag.inputs[0])
+        act_3 = ag.add_activation(ar_plugins.pow, 10)
+        expected = [act_1, act_2, act_3]
+
+        actual = ag.get_top_level()
+
+        self.assertCountEqual(expected, actual)
 
 
 class TestSealedActivationGraph(unittest.TestCase):
