@@ -4,7 +4,6 @@ import pathlib
 import os
 import pickle as pkl
 
-
 from neads.activation_model.data_definition import DataDefinition
 from neads.activation_model.symbolic_argument_set import SymbolicArgumentSet
 from neads.activation_model.symbolic_objects import *
