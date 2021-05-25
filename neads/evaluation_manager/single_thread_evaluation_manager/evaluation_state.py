@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph
     from neads.database import Database
+    from neads.evaluation_manager.single_thread_evaluation_manager.data_node \
+        import DataNode
 
 
 class EvaluationState:
@@ -119,5 +121,21 @@ class EvaluationState:
         The nodes are shown only when it is certain that they are (and will
         be) childless. That is, after all the trigger methods were called and
         no new Activations can appear in the graph.
+        """
+        raise NotImplementedError()
+
+    @property
+    def has_trigger(self):
+        """Whether the corresponding graph has a trigger method."""
+        raise NotImplementedError()
+
+    def get_top_level(self) -> tuple[DataNode]:
+        """Return list of all DataNodes on level 0.
+
+        The top DataNodes are exactly all the DataNodes without parents.
+
+        Returns
+        -------
+            The list of all DataNodes on level 0.
         """
         raise NotImplementedError()
