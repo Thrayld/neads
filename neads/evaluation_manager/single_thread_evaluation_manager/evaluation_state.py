@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import collections.abc
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph
@@ -7,7 +8,7 @@ if TYPE_CHECKING:
         import DataNode
 
 
-class EvaluationState:
+class EvaluationState(collections.abc.Iterable):
     """Hold the state of evaluation and enable its modification.
 
     State of evaluation consists of states of individual Activations of an
@@ -138,4 +139,17 @@ class EvaluationState:
         -------
             The list of all DataNodes on level 0.
         """
+        raise NotImplementedError()
+
+    def __iter__(self):
+        """Iterate over the DataNodes.
+
+        Note that performing actions that changes the state may result in
+        undefined behavior.
+
+        Returns
+        -------
+            An iterator over all DataNodes in the EvaluationState.
+        """
+
         raise NotImplementedError()
