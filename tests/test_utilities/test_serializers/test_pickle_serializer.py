@@ -1,4 +1,5 @@
-from tests.test_utilities.test_serializer import BaseTestClassWrapper
+from tests.test_utilities.test_serializers.test_serializer \
+    import BaseTestClassWrapper
 from neads.utilities.serializers.pickle_serializer import PickleSerializer
 
 
