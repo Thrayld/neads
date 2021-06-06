@@ -22,15 +22,14 @@ class PickleSerializer(Serializer):
             Name of the file where the data will be saved.
         """
 
-        raise NotImplementedError()
-        # with open(filename, 'wb') as f:
-        #     pkl.dump(data, f)
+        with open(filename, 'wb') as f:
+            pkl.dump(data, f)
 
     def load(self, filename: PathLike) -> Any:
         """Load and return data from a file with the given name.
 
         Uses a pickle.load method. Raises an exception when the data
-        cannot be unpickled. However, as the documentation of pickle
+        cannot be un-pickled. However, as the documentation of pickle
         lacks a list of possible exception, thus they cannot be listed here.
 
         Parameters
@@ -44,6 +43,5 @@ class PickleSerializer(Serializer):
             Loaded data, ie. content of the file.
         """
 
-        raise NotImplementedError()
-        # with open(filename, 'rb') as f:
-        #     return pkl.load(f)
+        with open(filename, 'rb') as f:
+            return pkl.load(f)
