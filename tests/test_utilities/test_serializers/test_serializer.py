@@ -2,8 +2,8 @@ import unittest
 import abc
 import os
 
-from neads.utilities.serializers.serializer import Serializer
-from neads.utilities.serializers.pickle_serializer import PickleSerializer
+from neads.utils.serializers.serializer import Serializer
+from neads.utils.serializers.pickle_serializer import PickleSerializer
 
 
 class BaseTestClassWrapper:
@@ -57,6 +57,8 @@ class BaseTestClassWrapper:
             self.assertEqual(self.data, actual_1)
             self.assertEqual(self.data, actual_2)
             self.assertEqual(self.data, actual_3)
+
+        # TODO: Add tests for other 'PathLike' objects as filenames
 
 
 if __name__ == '__main__':
