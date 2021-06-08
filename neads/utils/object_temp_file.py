@@ -1,9 +1,10 @@
+import os
 import tempfile
 import weakref
 
 
-from serializers.serializer import Serializer
-from serializers.pickle_serializer import PickleSerializer
+from neads.utils.serializers.serializer import Serializer
+from neads.utils.serializers.pickle_serializer import PickleSerializer
 
 
 def _get_tmp_path():
@@ -19,8 +20,13 @@ def _get_tmp_path():
         Path for temporary file.
     """
 
-    # descriptor_int, path = tempfile.mkstemp()
+    # descriptor_num, path = tempfile.mkstemp()
     raise NotImplementedError()
+
+
+def _remove_if_exists(path):
+    if os.path.exists(path):
+        os.remove(path)
 
 
 class ObjectTempFile:
@@ -43,7 +49,7 @@ class ObjectTempFile:
     implementations).
     """
 
-    # PATH_GENERATOR = _get_tmp_path()
+    PATH_GENERATOR = _get_tmp_path
 
     def __init__(self, *, path=None,
                  serializer: Serializer = PickleSerializer()):
@@ -66,7 +72,10 @@ class ObjectTempFile:
             By default, PickleSerializer is used.
         """
 
-        raise NotImplementedError()
+        self._path = path if path is not None else type(self).PATH_GENERATOR()
+        self._serializer = serializer
+        self._finalizer = weakref.finalize(self, _remove_if_exists, self._path)
+        self._is_object_present = False
 
     def load(self):
         """Load the object from the the file.
@@ -84,7 +93,13 @@ class ObjectTempFile:
             Attempt to access disposed object.
         """
 
-        raise NotImplementedError()
+        if not self.is_disposed:
+            if self._is_object_present:
+                return self._serializer.load(self._path)
+            else:
+                raise RuntimeError(f'Cannot load from file without object.')
+        else:
+            raise RuntimeError(f'The file at {self._path} were disposed.')
 
     def save(self, obj):
         """Save the object to the the file.
@@ -100,7 +115,11 @@ class ObjectTempFile:
             Attempt to access disposed object.
         """
 
-        raise NotImplementedError()
+        if not self.is_disposed:
+            self._serializer.save(obj, self._path)
+            self._is_object_present = True
+        else:
+            raise RuntimeError(f'The file at {self._path} were disposed.')
 
     def dispose(self):
         """Dispose the TempFile object.
@@ -108,4 +127,10 @@ class ObjectTempFile:
         The the disk space will be freed.
         """
 
-        raise NotImplementedError()
+        self._finalizer()
+
+    @property
+    def is_disposed(self):
+        """Whether the object was already disposed."""
+
+        return not self._finalizer.alive
