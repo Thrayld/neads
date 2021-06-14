@@ -12,16 +12,22 @@ def _get_tmp_path():
 
     The method is actually quite slow, but also very safe (e.g. thread safe).
 
-    The algorithm calls tempfile.mkstemp(), CLOSES the file and then return
-    its name. Thus, the file is created and closed.
+    The algorithm guarantees creation of a unique name by calling
+    tempfile.mkstemp(), CLOSING the file and returning its name. Thus,
+    the file is created and closed, but also the caller can be sure that no
+    race condition when occupying the path.
+
+    Nota that the file with the path is created and is supposed to be
+    removed by the caller!
 
     Returns
     -------
-        Path for temporary file.
+        Unique path for temporary file with 'neads_' prefix.
     """
 
-    # descriptor_num, path = tempfile.mkstemp()
-    raise NotImplementedError()
+    descriptor_num, path = tempfile.mkstemp(prefix='neads_')
+    os.close(descriptor_num)
+    return path
 
 
 def _remove_if_exists(path):
