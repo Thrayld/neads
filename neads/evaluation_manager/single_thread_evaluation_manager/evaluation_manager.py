@@ -1,16 +1,16 @@
 from typing import TYPE_CHECKING, Iterable, Any
 
-from ..evaluation_manager import EvaluationManager
+from ..i_evaluation_manager import IEvaluationManager
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph, SealedActivation
-    from neads.database import Database
+    from neads.database import IDatabase
 
 
-class SingleThreadEvaluationManager(EvaluationManager):
+class SingleThreadEvaluationManager(IEvaluationManager):
     """The kind of EvaluationManager that runs in a single thread."""
 
-    def __init__(self, database: Database):
+    def __init__(self, database: IDatabase):
         """Initialize a SingleThreadEvaluationManager instance.
 
         Parameters

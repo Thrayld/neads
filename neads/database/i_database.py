@@ -2,8 +2,8 @@ class DataNotFound(Exception):
     pass
 
 
-class Database:
-    # TODO: should be implement enter, exit pattern?
+class IDatabase:
+    # TODO: should be implement enter, exit pattern? .. yes
 
     def open(self):
         raise NotImplementedError()

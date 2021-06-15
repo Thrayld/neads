@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from ..activation_model import SealedActivationGraph, SealedActivation
 
 
-class EvaluationManager(abc.ABC):
+class IEvaluationManager(abc.ABC):
     """General abstract class for EvaluationManagers.
 
     EvaluationManager is responsible for evaluating given

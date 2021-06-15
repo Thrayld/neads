@@ -1,1 +1,1 @@
-from database import Database, DataNotFound
+from i_database import IDatabase, DataNotFound

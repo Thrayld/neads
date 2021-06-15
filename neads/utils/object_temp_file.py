@@ -3,7 +3,7 @@ import tempfile
 import weakref
 
 
-from neads.utils.serializers.serializer import Serializer
+from neads.utils.serializers.i_iserializer import ISerializer
 from neads.utils.serializers.pickle_serializer import PickleSerializer
 
 
@@ -58,7 +58,7 @@ class ObjectTempFile:
     PATH_GENERATOR = _get_tmp_path
 
     def __init__(self, *, path=None,
-                 serializer: Serializer = PickleSerializer()):
+                 serializer: ISerializer = PickleSerializer()):
         """Create new TempFile instance.
 
         Parameters

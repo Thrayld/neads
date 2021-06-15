@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator
 import collections.abc
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph
-    from neads.database import Database
+    from neads.database import IDatabase
     from neads.evaluation_manager.single_thread_evaluation_manager.data_node \
         import DataNode
 
@@ -23,7 +23,7 @@ class EvaluationState(collections.abc.Iterable):
 
     def __init__(self,
                  activation_graph: SealedActivationGraph,
-                 database: Database,
+                 database: IDatabase,
                  memory_limit: int):
         """Initialize an EvaluationState instance.
 
@@ -141,7 +141,7 @@ class EvaluationState(collections.abc.Iterable):
         """
         raise NotImplementedError()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[DataNode]:
         """Iterate over the DataNodes.
 
         Note that performing actions that changes the state may result in

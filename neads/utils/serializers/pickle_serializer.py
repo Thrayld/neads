@@ -1,10 +1,10 @@
 from typing import Any
 import pickle as pkl
 
-from .serializer import Serializer, PathLike
+from .i_iserializer import ISerializer, PathLike
 
 
-class PickleSerializer(Serializer):
+class PickleSerializer(ISerializer):
     """Serializer which uses pickle for saving / loading data."""
 
     def save(self, data: Any, filename: PathLike):

@@ -5,7 +5,7 @@ import abc
 PathLike = Union[str, bytes, os.PathLike]
 
 
-class Serializer(abc.ABC):
+class ISerializer(abc.ABC):
     """Interface for a serializer class."""
 
     @abc.abstractmethod

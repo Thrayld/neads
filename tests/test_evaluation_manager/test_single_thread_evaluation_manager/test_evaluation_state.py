@@ -6,7 +6,7 @@ from neads.evaluation_manager.single_thread_evaluation_manager\
     .evaluation_state import EvaluationState
 from neads.evaluation_manager.single_thread_evaluation_manager.data_node \
     import State, DataNodeStateException
-from neads.database import Database, DataNotFound
+from neads.database import IDatabase, DataNotFound
 from neads.activation_model import *
 
 import tests._arithmetic_plugins as ar_plugins
@@ -153,7 +153,7 @@ class EvaluationStateTester:
     pass
 
 
-class MockDatabase(Database):
+class MockDatabase(IDatabase):
     def __init__(self, database_content: Optional[dict[DataDefinition, Any]]):
         if database_content is None:
             database_content = {}

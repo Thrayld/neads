@@ -2,7 +2,7 @@ import unittest
 import abc
 import os
 
-from neads.utils.serializers.serializer import Serializer
+from neads.utils.serializers.i_iserializer import ISerializer
 from neads.utils.serializers.pickle_serializer import PickleSerializer
 
 
@@ -19,14 +19,14 @@ class BaseTestClassWrapper:
         """Common test-class for basic Serializer testing."""
 
         @abc.abstractmethod
-        def get_serializer(self) -> Serializer:
+        def get_serializer(self) -> ISerializer:
             pass
 
         def setUp(self):
             self.filename = 'file_with_data'
             self.data = [1, '10', {}]
 
-            self.serializer: Serializer = self.get_serializer()
+            self.serializer: ISerializer = self.get_serializer()
 
         def tearDown(self) -> None:
             os.remove(self.filename)

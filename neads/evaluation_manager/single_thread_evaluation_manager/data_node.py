@@ -5,7 +5,7 @@ from enum import Enum, auto
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivation
-    from neads.database import Database
+    from neads.database import IDatabase
 
 
 class State(Enum):
@@ -55,7 +55,7 @@ class DataNode:
     def __init__(self,
                  activation: SealedActivation,
                  parents: Iterable[DataNode],
-                 database: Database):
+                 database: IDatabase):
         """Initialize a DataNode instance.
 
         Parameters
@@ -76,6 +76,19 @@ class DataNode:
     @property
     def state(self):
         """State of the DataNode."""
+        raise NotImplementedError()
+
+    @property
+    def level(self):
+        """Return level of the DataNode in the graph.
+
+        The level is determined as the maximum of levels of parents + 1.
+        The DataNode without parents have level 0.
+
+        Returns
+        -------
+            Level of the DateNode.
+        """
         raise NotImplementedError()
 
     @property
