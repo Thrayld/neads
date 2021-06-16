@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, Any
+from typing import TYPE_CHECKING, Any
 
 from ..i_evaluation_manager import IEvaluationManager
 
@@ -22,7 +22,7 @@ class SingleThreadEvaluationManager(IEvaluationManager):
         raise NotImplementedError()
 
     def evaluate(self, activation_graph: SealedActivationGraph) \
-            -> Iterable[tuple[SealedActivation, Any]]:
+            -> dict[SealedActivation, Any]:
         """Evaluate the given graph.
 
         Evaluation means that all the trigger methods in the graph will be
@@ -38,9 +38,8 @@ class SingleThreadEvaluationManager(IEvaluationManager):
 
         Returns
         -------
-            Iterable collection which contain a tuple for each childless
-            Activation in the evaluated graph. Each tuple is a pair of the
-            Activation and its data (of any type).
+            Dictionary which maps childless Activations of the graph to their
+            results.
         """
 
         raise NotImplementedError()

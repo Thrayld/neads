@@ -1,13 +1,13 @@
 import abc
 
-from typing import TYPE_CHECKING, Iterable, Any
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..activation_model import SealedActivationGraph, SealedActivation
 
 
 class IEvaluationManager(abc.ABC):
-    """General abstract class for EvaluationManagers.
+    """General interface for EvaluationManagers.
 
     EvaluationManager is responsible for evaluating given
     SealedActivationGraph. The evaluation usually involves evaluation of
@@ -22,7 +22,7 @@ class IEvaluationManager(abc.ABC):
 
     @abc.abstractmethod
     def evaluate(self, activation_graph: SealedActivationGraph) \
-            -> Iterable[tuple[SealedActivation, Any]]:
+            -> dict[SealedActivation, Any]:
         """Evaluate the given graph.
 
         Evaluation means that all the trigger methods in the graph will be
@@ -38,7 +38,6 @@ class IEvaluationManager(abc.ABC):
 
         Returns
         -------
-            Iterable collection which contain a tuple for each childless
-            Activation in the evaluated graph. Each tuple is a pair of the
-            Activation and its data (of any type).
+            Dictionary which maps childless Activations of the graph to their
+            results.
         """
