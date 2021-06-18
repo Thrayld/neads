@@ -7,6 +7,12 @@ class IDatabase:
 
     # TODO: also add finalizer (via weakref)
 
+    def __enter__(self):
+        raise NotImplementedError()
+
+    def __exit__(self):
+        raise NotImplementedError()
+
     def open(self):
         raise NotImplementedError()
 
