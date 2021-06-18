@@ -11,12 +11,6 @@ class MockDatabase(IDatabase):
             database_content = {}
         self._content = database_content
 
-    def __enter__(self):
-        pass
-
-    def __exit__(self):
-        pass
-
     def open(self):
         pass
 
