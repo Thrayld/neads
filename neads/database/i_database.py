@@ -5,6 +5,8 @@ class DataNotFound(Exception):
 class IDatabase:
     # TODO: should be implement enter, exit pattern? .. yes
 
+    # TODO: also add finalizer (via weakref)
+
     def open(self):
         raise NotImplementedError()
 
