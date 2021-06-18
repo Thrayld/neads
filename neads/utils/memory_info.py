@@ -53,24 +53,24 @@ def get_available_memory():
     return psutil.virtual_memory().available
 
 
-def get_object_size(obj):
-    """Return number of bytes used by the given object.
+def get_object_size(*objs):
+    """Return number of bytes used by the given objects.
 
-    The consumption is computed recursively. The size of repeatedly visited
-    referents is counted only once.
+    The consumption is computed recursively (on subobjects, i.e. referents).
+    The size of repeatedly visited referents is counted only once.
 
     Note that some of the subobjects may not be referenced exclusively by
-    the given object. Thus, deletion of the given object may not result
-    in deletion of all its subobjects.
+    the given objects. Thus, deletion of the objects may not result
+    in deletion of all their subobjects.
 
     Parameters
     ----------
-    obj
-        Object, whose memory consumption is returned.
+    objs
+        Objects whose memory consumption is returned.
 
     Returns
     -------
-        Number of bytes used by the given object.
+        Number of bytes used by the given objects.
     """
 
-    return pympler.asizeof.asizeof(obj)
+    return pympler.asizeof.asizeof(objs)
