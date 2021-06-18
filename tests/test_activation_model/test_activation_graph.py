@@ -5,7 +5,7 @@ from neads.activation_model.activation_graph import ActivationGraph, \
     SealedActivationGraph, Activation
 from neads.activation_model.symbolic_argument_set import SymbolicArgumentSet
 
-import tests._arithmetic_plugins as ar_plugins
+import tests.my_test_utilities.arithmetic_plugins as ar_plugins
 
 
 class TestActivationGraphFailureCases(unittest.TestCase):
