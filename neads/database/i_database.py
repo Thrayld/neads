@@ -6,17 +6,14 @@ class DataNotFound(Exception):
 
 
 class IDatabase(abc.ABC):
-    # TODO: should be implement enter, exit pattern? .. yes
-
     # TODO: also add finalizer (via weakref)
 
-    @abc.abstractmethod
     def __enter__(self):
-        raise NotImplementedError()
+        self.open()
+        return self
 
-    @abc.abstractmethod
-    def __exit__(self):
-        raise NotImplementedError()
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.close()
 
     @abc.abstractmethod
     def open(self):
