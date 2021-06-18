@@ -6,7 +6,8 @@ from neads.activation_model import DataDefinition
 
 class MockDatabase(IDatabase):
 
-    def __init__(self, database_content: Optional[dict[DataDefinition, Any]]):
+    def __init__(self,
+                 database_content: Optional[dict[DataDefinition, Any]] = None):
         if database_content is None:
             database_content = {}
         self._content = database_content
