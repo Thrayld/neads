@@ -5,25 +5,55 @@
 # provide more specific information than process usage). Thus, the interface
 # would make no difference.
 
-from pympler.asizeof import asizeof
+import pympler.asizeof
+import psutil
 
 
-def get_process_usage():
-    """Return number of bytes used by the running process.
+def get_process_virtual_memory():
+    """Return total amount of virtual memory used by the process.
 
-    The number is obtained directly from OS. Note that its changes
-    depends heavily on the running Python implementation and its memory
-    management policy.
+    The value is obtained as VMS of the running process via `psutil`.
 
     Returns
     -------
-        Number of bytes used by the running process.
+        Total amount of virtual memory used by the process. The number is in
+        bytes.
     """
 
-    pass
+    process = psutil.Process()
+    return process.memory_info().vms
 
 
-def get_object_usage(obj):
+def get_process_ram_memory():
+    """Return size of non-swapped physical memory used by the process.
+
+    The value is obtained as RSS of the running process via `psutil`.
+
+    Returns
+    -------
+        Size in bytes of non-swapped physical memory used by the process.
+    """
+
+    process = psutil.Process()
+    return process.memory_info().rss
+
+
+def get_available_memory():
+    """Return the available physical memory.
+
+    The value is obtained as available virtual memory of the running process
+    via `psutil`. It is the memory that can be given instantly to processes
+    without the system going into swap.
+
+    Returns
+    -------
+        Size in bytes of the available physical memory.
+    """
+
+    return psutil.virtual_memory().available
+
+
+def get_object_size(obj):
     """Return number of bytes used by the given object.
 
     The consumption is computed recursively. The size of repeatedly visited
@@ -43,4 +73,4 @@ def get_object_usage(obj):
         Number of bytes used by the given object.
     """
 
-    pass
+    return pympler.asizeof.asizeof(obj)
