@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from neads.database import IDatabase
 
 
-class State(Enum):
+class DataNodeState(Enum):
     """State of the DataNode."""
 
     UNKNOWN = auto()
@@ -29,7 +29,7 @@ class DataNode:
 
     DataNode represents data of a single Activation. It is in one of the
     following states: UNKNOWN, NO_DATA, MEMORY, DISK. These states are
-    represented by the values of enum State.
+    represented by the values of enum DataNodeState.
 
     In UNKNOWN state, we do not know yet, whether we already have the data or
     not. We need to check it first (to database, if there is any) via method
@@ -57,6 +57,8 @@ class DataNode:
                  parents: Iterable[DataNode],
                  database: IDatabase):
         """Initialize a DataNode instance.
+
+        The initial state is UNKNOWN.
 
         Parameters
         ----------
@@ -89,6 +91,7 @@ class DataNode:
         -------
             Level of the DateNode.
         """
+
         raise NotImplementedError()
 
     @property
@@ -98,6 +101,7 @@ class DataNode:
         The relations child-parent corresponds to the underlying
         ActivationGraph.
         """
+
         raise NotImplementedError()
 
     @property
@@ -107,6 +111,7 @@ class DataNode:
         The relations child-parent corresponds to the underlying
         ActivationGraph.
         """
+
         raise NotImplementedError()
 
     @property
@@ -126,8 +131,9 @@ class DataNode:
         The size is not known in UNKNOWN and NO_DATA state and None is returned.
         Also note that in DISK state the size is known, but the data of such
         size are not in memory but only on disk (more precisely, it depends
-        on the behavior of GC).
+        on the behavior of GC and the Database).
         """
+
         raise NotImplementedError()
 
     def try_load(self) -> bool:
@@ -148,6 +154,8 @@ class DataNode:
             If the DataNode is in different state than UNKNOWN.
         """
 
+        raise NotImplementedError()
+
     def evaluate(self):
         """Evaluate the data.
 
@@ -162,6 +170,8 @@ class DataNode:
         RuntimeException
             A parent node was not in MEMORY state.
         """
+
+        raise NotImplementedError()
 
     def store(self):
         """Store data on disk.
@@ -179,6 +189,8 @@ class DataNode:
             If the DataNode is in different state than MEMORY.
         """
 
+        raise NotImplementedError()
+
     def load(self):
         """Load data to memory.
 
@@ -190,6 +202,8 @@ class DataNode:
         DataNodeStateException
             If the DataNode is in different state than DISK.
         """
+
+        raise NotImplementedError()
 
     def register_unknown_to_no_data(self, handler: Callable[[DataNode], None]):
         """Register handler for change of state from UNKNOWN to NO_DATA.
