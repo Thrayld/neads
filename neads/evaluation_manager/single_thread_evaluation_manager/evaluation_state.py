@@ -21,6 +21,8 @@ class EvaluationState(collections.abc.Iterable):
     the user of EvaluationState.
     """
 
+    # TODO: delete memory limit, limits are business of EA, ES should just
+    #  inform about the state
     def __init__(self,
                  activation_graph: SealedActivationGraph,
                  database: IDatabase,
@@ -130,6 +132,8 @@ class EvaluationState(collections.abc.Iterable):
         """Whether the corresponding graph has a trigger method."""
         raise NotImplementedError()
 
+    # IDEA: consider turning into property to follow the style of lists of
+    #  nodes in a certain state
     def get_top_level(self) -> tuple[DataNode]:
         """Return list of all DataNodes on level 0.
 
