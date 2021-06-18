@@ -48,10 +48,6 @@ class DataNode:
     For more detail on the methods, see their docstring.
     """
 
-    # TODO: provide public handlers (is that the word?) that allow anybody
-    #  (EvaluationState in our case) to attach its own handler that will react
-    #  on change of state
-
     def __init__(self,
                  activation: SealedActivation,
                  parents: Iterable[DataNode],
@@ -205,61 +201,66 @@ class DataNode:
 
         raise NotImplementedError()
 
-    def register_unknown_to_no_data(self, handler: Callable[[DataNode], None]):
-        """Register handler for change of state from UNKNOWN to NO_DATA.
+    def register_callback_unknown_to_no_data(
+            self, callback: Callable[[DataNode], None]):
+        """Register callback for change of state from UNKNOWN to NO_DATA.
 
         Parameters
         ----------
-        handler
-            The handler to be called after change of state from UNKNOWN to
+        callback
+            The callback to be called after change of state from UNKNOWN to
             NO_DATA with a single argument, which is the DataNode.
         """
 
         raise NotImplementedError()
 
-    def register_unknown_to_memory(self, handler: Callable[[DataNode], None]):
-        """Register handler for change of state from UNKNOWN to MEMORY.
+    def register_callback_unknown_to_memory(
+            self, callback: Callable[[DataNode], None]):
+        """Register callback for change of state from UNKNOWN to MEMORY.
 
         Parameters
         ----------
-        handler
-            The handler to be called after change of state from UNKNOWN to
+        callback
+            The callback to be called after change of state from UNKNOWN to
             MEMORY with a single argument, which is the DataNode.
         """
 
         raise NotImplementedError()
 
-    def register_no_data_to_memory(self, handler: Callable[[DataNode], None]):
-        """Register handler for change of state from NO_DATA to MEMORY.
+    def register_callback_no_data_to_memory(
+            self, callback: Callable[[DataNode], None]):
+        """Register callback for change of state from NO_DATA to MEMORY.
 
         Parameters
         ----------
-        handler
-            The handler to be called after change of state from NO_DATA to
+        callback
+            The callback to be called after change of state from NO_DATA to
             MEMORY with a single argument, which is the DataNode.
         """
 
         raise NotImplementedError()
 
-    def register_memory_to_disk(self, handler: Callable[[DataNode], None]):
-        """Register handler for change of state from MEMORY to DISK.
+    def register_callback_memory_to_disk(
+            self, callback: Callable[[DataNode], None]):
+        """Register callback for change of state from MEMORY to DISK.
 
         Parameters
         ----------
-        handler
-            The handler to be called after change of state from MEMORY to
+        callback
+            The callback to be called after change of state from MEMORY to
             DISK with a single argument, which is the DataNode.
         """
 
         raise NotImplementedError()
 
-    def register_disk_to_memory(self, handler: Callable[[DataNode], None]):
-        """Register handler for change of state from DISK to MEMORY.
+    def register_callback_disk_to_memory(
+            self, callback: Callable[[DataNode], None]):
+        """Register callback for change of state from DISK to MEMORY.
 
         Parameters
         ----------
-        handler
-            The handler to be called after change of state from DISK to
+        callback
+            The callback to be called after change of state from DISK to
             MEMORY with a single argument, which is the DataNode.
         """
 
