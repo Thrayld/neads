@@ -21,12 +21,9 @@ class EvaluationState(collections.abc.Iterable):
     the user of EvaluationState.
     """
 
-    # TODO: delete memory limit, limits are business of EA, ES should just
-    #  inform about the state
     def __init__(self,
                  activation_graph: SealedActivationGraph,
-                 database: IDatabase,
-                 memory_limit: int):
+                 database: IDatabase):
         """Initialize an EvaluationState instance.
 
         Parameters
@@ -38,45 +35,36 @@ class EvaluationState(collections.abc.Iterable):
             Database for Activations' data. DataNodes will try to load their
             data from there and save the data there after evaluation (unless
             the data were found right away).
-        memory_limit
-            Soft limit on the amount of memory in bytes which is allowed to be
-            consumed by the current process during evaluation.
-
-            This parameter serves as an additional piece of information to
-            the EvaluationState API and serves as recommendation for the user
-            of EvaluationState to adapt the evaluation accordingly.
         """
 
         raise NotImplementedError()
 
     @property
-    def free_memory(self):
+    def used_virtual_memory(self):
+        """The amount of used virtual memory by the process
+
+        Includes swap memory etc.
+        """
+
+        raise NotImplementedError()
+
+    @property
+    def used_physical_memory(self):
+        """The amount of RAM memory currently used by the process.
+
+        Very much depends on the system swapping policy.
+        """
+
+        raise NotImplementedError()
+
+    @property
+    def available_memory(self):
         """The amount of free memory in bytes left to allocate.
 
-        free_memory = memory_limit - total_used_memory
+        More precisely, it is the memory that can be given instantly to
+        processes without the system going into swap.
         """
-        raise NotImplementedError()
 
-    @property
-    def used_memory(self):
-        """The amount of memory in bytes used by data of Activations.
-
-        The rest (i.e. total_used_memory - used_memory) cannot be removed
-        from memory via EvaluationState.
-        """
-        raise NotImplementedError()
-
-    @property
-    def total_used_memory(self):
-        """Total amount of memory in bytes used by data of the process."""
-        raise NotImplementedError()
-
-    @property
-    def memory_limit(self):
-        """Soft limit on the amount of memory to be consumed by the process.
-
-        In bytes.
-        """
         raise NotImplementedError()
 
     @property
@@ -112,6 +100,7 @@ class EvaluationState(collections.abc.Iterable):
         appropriate moment as well. But the user of EvaluationState need not
         to care about them.
         """
+
         raise NotImplementedError()
 
     @property
@@ -125,6 +114,7 @@ class EvaluationState(collections.abc.Iterable):
         be) childless. That is, after all the trigger methods were called and
         no new Activations can appear in the graph.
         """
+
         raise NotImplementedError()
 
     @property
@@ -143,6 +133,7 @@ class EvaluationState(collections.abc.Iterable):
         -------
             The list of all DataNodes on level 0.
         """
+
         raise NotImplementedError()
 
     def __iter__(self) -> Iterator[DataNode]:
