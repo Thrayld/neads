@@ -7,8 +7,9 @@ from neads.utils.serializers.i_iserializer import ISerializer
 from neads.utils.serializers.pickle_serializer import PickleSerializer
 
 
-# TODO: Add ObjectTempFileCreator class with instance attribute 'path_generator'
-#  to prevent the risk of state sharing, i.e. PATH_GENERATOR in ObjectTempFile
+# TODO: Add IObjectTempFileProvider class which will create IObjectTempFile
+#  - easier mocking (which is very much desirable)
+#  - avoiding share state `PATH_GENERATOR`
 
 def _get_temp_path():
     """Generates a path for temporary file using tempfile library.
