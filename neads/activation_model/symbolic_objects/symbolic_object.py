@@ -413,8 +413,12 @@ class SubstitutionPairsParsingUtility:
         elif len(args) == 1:
             arg = args[0]
             if isinstance(arg, dict):
+                if arg == {}:  # Trivial case with empty dict
+                    return ()
                 substitution_pairs = arg.items()
             else:
+                if len(arg) == 0:  # Trivial case with empty iterable
+                    return ()
                 substitution_pairs = arg
         else:
             raise ValueError(f'Invalid number of arguments passed: {len(args)}')
