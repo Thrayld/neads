@@ -121,9 +121,9 @@ class TestDataNodeInGraph(unittest.TestCase):
     def _get_activation_graph():
         ag = SealedActivationGraph()
         act_1 = ag.add_activation(ar_plugins.const, 0)
-        act_2 = ag.add_activation(ar_plugins.add, act_1, 20)
-        act_3 = ag.add_activation(ar_plugins.add, act_1, 10)
-        act_4 = ag.add_activation(ar_plugins.sub, act_2, act_3)
+        act_2 = ag.add_activation(ar_plugins.add, act_1.symbol, 20)
+        act_3 = ag.add_activation(ar_plugins.add, act_1.symbol, 10)
+        act_4 = ag.add_activation(ar_plugins.sub, act_2.symbol, act_3.symbol)
 
         act_1.trigger_on_descendants = mock.Mock()
         act_4.trigger_on_result = mock.Mock()
@@ -243,6 +243,7 @@ class TestDataNodeInGraph(unittest.TestCase):
             RuntimeError,
             child.evaluate
         )
+
 
 if __name__ == '__main__':
     unittest.main()
