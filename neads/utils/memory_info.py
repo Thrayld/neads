@@ -59,6 +59,9 @@ def get_object_size(*objs):
     The consumption is computed recursively (on subobjects, i.e. referents).
     The size of repeatedly visited referents is counted only once.
 
+    Single object is considered alone, not as being a member of a list in
+    which the objects are ordinarily passed to the method.
+
     Note that some of the subobjects may not be referenced exclusively by
     the given objects. Thus, deletion of the objects may not result
     in deletion of all their subobjects.
@@ -73,4 +76,7 @@ def get_object_size(*objs):
         Number of bytes used by the given objects.
     """
 
-    return pympler.asizeof.asizeof(objs)
+    if len(objs) == 1:
+        return pympler.asizeof.asizeof(objs[0])
+    else:
+        return pympler.asizeof.asizeof(objs)
