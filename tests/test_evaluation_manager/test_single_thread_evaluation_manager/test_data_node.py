@@ -20,9 +20,13 @@ class TestDataNodeSingleNode(unittest.TestCase):
         self.act = ag.add_activation(ar_plugins.const, self.value)
 
         self.db = MockDatabase()
+        self.db.open()
         self.dn = DataNode(self.act, [], self.db)
 
         self.callback_mock = mock.Mock()
+
+    def tearDown(self) -> None:
+        self.db.close()
 
     def test_try_load_with_not_unknown(self):
         assert not self.dn.try_load()
@@ -143,9 +147,13 @@ class TestDataNodeInGraph(unittest.TestCase):
     def setUp(self) -> None:
         self.ag, self.acts = self._get_activation_graph()
         self.db = MockDatabase()
+        self.db.open()
         self.act_to_dn, self.dn_to_act \
             = self._get_data_node_graph(self.ag, self.db)
         self.dns = [self.act_to_dn[act] for act in self.acts]
+
+    def tearDown(self) -> None:
+        self.db.close()
 
     @parameterized.expand([
         (0, []),
