@@ -16,7 +16,7 @@ class TestDataNodeSingleNode(unittest.TestCase):
 
     def setUp(self) -> None:
         ag = SealedActivationGraph()
-        self.value = 10
+        self.value = 5
         self.act = ag.add_activation(ar_plugins.const, self.value)
 
         self.db = MockDatabase()
@@ -124,7 +124,7 @@ class TestDataNodeInGraph(unittest.TestCase):
     @staticmethod
     def _get_activation_graph():
         ag = SealedActivationGraph()
-        act_1 = ag.add_activation(ar_plugins.const, 0)
+        act_1 = ag.add_activation(ar_plugins.const, 5)
         act_2 = ag.add_activation(ar_plugins.add, act_1.symbol, 20)
         act_3 = ag.add_activation(ar_plugins.add, act_1.symbol, 10)
         act_4 = ag.add_activation(ar_plugins.sub, act_2.symbol, act_3.symbol)
