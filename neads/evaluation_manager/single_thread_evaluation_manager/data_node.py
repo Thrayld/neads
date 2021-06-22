@@ -37,7 +37,7 @@ class DataNode:
     following states: UNKNOWN, NO_DATA, MEMORY, DISK. These states are
     represented by the values of enum DataNodeState.
 
-    In UNKNOWN state, we do not know yet, whether we already have the data or
+    In UNKNOWN state, we do not know yet whether we already have the data or
     not. We need to check it first (to database, if there is any) via method
     try_load().
 
