@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable, Iterable, Any, Optional
 from enum import Enum, auto
+from collections import defaultdict
 import copy as copy_module
 
 from neads.utils.object_temp_file import ObjectTempFile
@@ -93,6 +94,11 @@ class DataNode:
         self._callbacks_no_data_to_memory = []
         self._callbacks_memory_to_disk = []
         self._callbacks_disk_to_memory = []
+
+        self._callbacks: \
+            dict[tuple[DataNodeState, DataNodeState],
+                 list[Callable[[DataNode], None]]] \
+            = defaultdict(list)
 
         for parent in self._parents:
             parent._children.append(self)
@@ -402,3 +408,36 @@ class DataNode:
                 f'The DataNode is in state {self.state} while '
                 f'{expected_state} is expected'
             )
+
+    def _register_callback(self, state_from, state_to, callback):
+        """Register a callback for transition between the given states.
+
+        Parameters
+        ----------
+        state_from
+            State from which the transition must lead for calling the callback.
+        state_to
+            State to which which the transition must lead for calling the
+            callback.
+        callback
+            The new callback method to be registered.
+        """
+
+        self._callbacks[(state_from, state_to)].append(callback)
+
+    def _change_state(self, state_to):
+        """Change state from current to the given.
+
+        It changes the value of self._state and do associated work (e.g.
+        calling appropriate callbacks).
+
+        Parameters
+        ----------
+        state_to
+            The new state of the DataNode.
+        """
+
+        state_from = self._state
+        self._state = state_to
+        callback_list = self._callbacks[(state_from, state_to)]
+        self._call_callbacks(callback_list)
