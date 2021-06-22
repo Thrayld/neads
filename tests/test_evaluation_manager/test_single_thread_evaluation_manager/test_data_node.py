@@ -7,6 +7,7 @@ from parameterized import parameterized
 from neads.evaluation_manager.single_thread_evaluation_manager.data_node \
     import DataNode, DataNodeStateException, DataNodeState
 from neads.activation_model import *
+from neads.plugin import Plugin, PluginID
 
 import tests.my_test_utilities.arithmetic_plugins as ar_plugins
 from tests.my_test_utilities.mock_database import MockDatabase
@@ -117,6 +118,80 @@ class TestDataNodeSingleNode(unittest.TestCase):
 
         expected_size = pympler.asizeof.asizeof(self.value)
         self.assertEqual(expected_size, self.dn.data_size)
+
+
+make_list = Plugin(PluginID('make_list', 0), lambda x: [x])
+
+
+class TestDataNodeAccessData(unittest.TestCase):
+
+    def setUp(self) -> None:
+        ag = SealedActivationGraph()
+        self.value = 1
+        self.act_1 = ag.add_activation(make_list, self.value)
+        self.act_2 = ag.add_activation(make_list, self.act_1.symbol)
+
+        self.db = MockDatabase()
+        self.db.open()
+        self.dn_1 = DataNode(self.act_1, [], self.db)
+        self.dn_2 = DataNode(self.act_2, [self.dn_1], self.db)
+
+    def test_get_data_before_having_them(self):
+        self.assertEqual(None, self.dn_1.get_data())
+
+    def test_get_data_in_disk_state(self):
+        self.dn_1.try_load()
+        self.dn_1.evaluate()
+        self.dn_1.store()
+
+        self.assertEqual(None, self.dn_1.get_data())
+
+    def test_get_data_with_copy(self):
+        self.dn_1.try_load()
+        self.dn_1.evaluate()
+
+        actual = self.dn_1.get_data()
+
+        self.assertEqual([1], actual)
+
+    def test_get_data_without_copy(self):
+        self.dn_1.try_load()
+        self.dn_1.evaluate()
+
+        actual = self.dn_1.get_data(copy=False)
+
+        self.assertEqual([1], actual)
+
+    def test_get_data_with_copy_and_modification(self):
+        self.dn_1.try_load()
+        self.dn_1.evaluate()
+
+        data_1 = self.dn_1.get_data()
+        data_1.append(10)
+
+        self.dn_2.try_load()
+        self.dn_2.evaluate()
+
+        actual = self.dn_2.get_data()
+
+        self.assertEqual([[1]], actual)
+
+    def test_get_data_without_copy_and_modification(self):
+        # Testing what is supposed to be an undefined behavior
+        #  i.e. changing the actual data of the DN
+        self.dn_1.try_load()
+        self.dn_1.evaluate()
+
+        data_1 = self.dn_1.get_data(copy=False)
+        data_1.append(10)  # The actual data are changed to [1, 10]
+
+        self.dn_2.try_load()
+        self.dn_2.evaluate()
+
+        actual = self.dn_2.get_data()
+
+        expected = [[1, 10]]  # [1, 10] + []
+        self.assertEqual(expected, actual)
 
 
 class TestDataNodeInGraph(unittest.TestCase):
