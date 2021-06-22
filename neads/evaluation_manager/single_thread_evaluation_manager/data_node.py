@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable, Iterable, Any, Optional
 from enum import Enum, auto
+import copy as copy_module
 
 from neads.utils.object_temp_file import ObjectTempFile
 import neads.utils.memory_info as memory_info
@@ -179,7 +180,11 @@ class DataNode:
             undefined behavior.
         """
 
-        raise NotImplementedError()
+        # If the state is not MEMORY, value is self._data is None
+        if copy:
+            return copy_module.deepcopy(self._data)
+        else:
+            return self._data
 
     def try_load(self) -> bool:
         """Try load the data from database.
