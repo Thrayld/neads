@@ -159,6 +159,28 @@ class DataNode:
 
         return self._data_size
 
+    def get_data(self, *, copy=True):
+        """The data of the node.
+
+        Parameters
+        ----------
+        copy
+            Whether only a copy of the data is returned.
+
+        Returns
+        -------
+            The node's data or their deepcopy, if the node is in MEMORY state.
+            Otherwise None.
+
+        Notes
+        -----
+            Changing the actual data is hugely discouraged, as some future
+            results may depend on these data. The change then leads to
+            undefined behavior.
+        """
+
+        raise NotImplementedError()
+
     def try_load(self) -> bool:
         """Try load the data from database.
 
