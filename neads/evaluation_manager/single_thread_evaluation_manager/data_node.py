@@ -89,12 +89,6 @@ class DataNode:
         self._database: IDatabase = database
         self._temp_file: Optional[ObjectTempFile] = None
 
-        self._callbacks_unknown_to_no_data = []
-        self._callbacks_unknown_to_memory = []
-        self._callbacks_no_data_to_memory = []
-        self._callbacks_memory_to_disk = []
-        self._callbacks_disk_to_memory = []
-
         self._callbacks: \
             dict[tuple[DataNodeState, DataNodeState],
                  list[Callable[[DataNode], None]]] \
@@ -216,12 +210,10 @@ class DataNode:
         self._check_appropriate_state(DataNodeState.UNKNOWN)
         try:
             self._data = self._database.load(self._activation.definition)
-            self._state = DataNodeState.MEMORY
-            self._call_callbacks(self._callbacks_unknown_to_memory)
+            self._change_state(DataNodeState.MEMORY)
             return True
         except DataNotFound:
-            self._state = DataNodeState.NO_DATA
-            self._call_callbacks(self._callbacks_unknown_to_no_data)
+            self._change_state(DataNodeState.NO_DATA)
             return False
 
     def evaluate(self):
@@ -264,8 +256,7 @@ class DataNode:
 
         # Finishing the state-transition
         self._data_size = memory_info.get_object_size(self._data)
-        self._state = DataNodeState.MEMORY
-        self._call_callbacks(self._callbacks_no_data_to_memory)
+        self._change_state(DataNodeState.MEMORY)
 
     def store(self):
         """Store data on disk.
@@ -289,8 +280,7 @@ class DataNode:
         self._temp_file.save(self._data)
         self._data = None  # Releasing reference, so GC can collect
 
-        self._state = DataNodeState.DISK
-        self._call_callbacks(self._callbacks_memory_to_disk)
+        self._change_state(DataNodeState.DISK)
 
     def load(self):
         """Load data to memory.
@@ -308,8 +298,7 @@ class DataNode:
         self._temp_file.save(self._data)
         self._data = self._temp_file.load()
 
-        self._state = DataNodeState.MEMORY
-        self._call_callbacks(self._callbacks_disk_to_memory)
+        self._change_state(DataNodeState.MEMORY)
 
     def register_callback_unknown_to_no_data(
             self, callback: Callable[[DataNode], None]):
@@ -322,7 +311,11 @@ class DataNode:
             NO_DATA with a single argument, which is the DataNode.
         """
 
-        self._callbacks_unknown_to_no_data.append(callback)
+        self._register_callback(
+            DataNodeState.UNKNOWN,
+            DataNodeState.NO_DATA,
+            callback
+        )
 
     def register_callback_unknown_to_memory(
             self, callback: Callable[[DataNode], None]):
@@ -335,7 +328,11 @@ class DataNode:
             MEMORY with a single argument, which is the DataNode.
         """
 
-        self._callbacks_unknown_to_memory.append(callback)
+        self._register_callback(
+            DataNodeState.UNKNOWN,
+            DataNodeState.MEMORY,
+            callback
+        )
 
     def register_callback_no_data_to_memory(
             self, callback: Callable[[DataNode], None]):
@@ -348,7 +345,11 @@ class DataNode:
             MEMORY with a single argument, which is the DataNode.
         """
 
-        self._callbacks_no_data_to_memory.append(callback)
+        self._register_callback(
+            DataNodeState.NO_DATA,
+            DataNodeState.MEMORY,
+            callback
+        )
 
     def register_callback_memory_to_disk(
             self, callback: Callable[[DataNode], None]):
@@ -361,7 +362,11 @@ class DataNode:
             DISK with a single argument, which is the DataNode.
         """
 
-        self._callbacks_memory_to_disk.append(callback)
+        self._register_callback(
+            DataNodeState.MEMORY,
+            DataNodeState.DISK,
+            callback
+        )
 
     def register_callback_disk_to_memory(
             self, callback: Callable[[DataNode], None]):
@@ -374,7 +379,11 @@ class DataNode:
             MEMORY with a single argument, which is the DataNode.
         """
 
-        self._callbacks_disk_to_memory.append(callback)
+        self._register_callback(
+            DataNodeState.DISK,
+            DataNodeState.MEMORY,
+            callback
+        )
 
     def _call_callbacks(
             self, callback_list: Iterable[Callable[[DataNode], None]]):
