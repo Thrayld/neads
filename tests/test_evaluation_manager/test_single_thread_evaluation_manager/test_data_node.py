@@ -212,7 +212,7 @@ class TestDataNodeInGraph(unittest.TestCase):
     def _get_data_node_graph(ag, db):
         act_to_dn = {}
         dn_to_act = {}
-        for act in sorted(ag, key=lambda act: act.level):
+        for act in sorted(ag, key=lambda a: a.level):
             parents = [act_to_dn[p] for p in act.parents]
             new_dn = DataNode(act, parents, db)
             act_to_dn[act] = new_dn
