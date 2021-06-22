@@ -494,7 +494,7 @@ class ActivationGraph(collections.abc.Iterable):
         That is, after all trigger methods of descendants of the Activation
         have been already called.
 
-        Its usual purpose is to gather results of its descendants in a
+        Its usual purpose is to gather results of its descendants to a
         common Activation, which was not possible to create right away
         due to presence of descendants' trigger methods.
 
@@ -759,7 +759,7 @@ class ActivationGraph(collections.abc.Iterable):
         """Iterate over the Activations.
 
         Note that adding activation to the graph while iterating over the
-        activations may result in undefined behavior.
+        activations may result in an undefined behavior.
 
         Returns
         -------
