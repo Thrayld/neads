@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Deque
+import collections
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivation, SealedActivationGraph
@@ -29,7 +30,8 @@ class ActivationEligibilityDetector:
             The Activation whose trigger-on-descendant method will be tracked.
         """
 
-        raise NotImplementedError()
+        self._activation = activation
+        self._blockers = self._get_descendants_with_trigger()
 
     @property
     def is_eligible(self):
@@ -42,12 +44,15 @@ class ActivationEligibilityDetector:
             have assigned any trigger-on-result method.
         """
 
-        raise NotImplementedError()
+        if self._activation.trigger_on_descendants is not None:
+            return not len(self._blockers)
+        else:
+            return None
 
     @property
     def activation(self):
         """The Activation whose trigger is watched."""
-        raise NotImplementedError()
+        return self._activation
 
     def update(self, invoked_activation: SealedActivation,
                new_activations: Iterable[SealedActivation]):
@@ -56,7 +61,7 @@ class ActivationEligibilityDetector:
         Invocation of an other trigger method may affect eligibility of the
         tracked method. The Activation whose trigger for called is likely to
         lose its trigger (only trigger-on-descendants can be reset). On the
-        other hand, some of the new Activations may be given theirs trigger.
+        other hand, some of the new Activations may have their trigger assigned.
 
         Parameters
         ----------
@@ -66,7 +71,35 @@ class ActivationEligibilityDetector:
             New Activations created by the invoked trigger method.
         """
 
-        raise NotImplementedError()
+        # IDEA: I wish more effective implementation using the knowledge of
+        #  the Activation with invoked trigger and the new Activations
+        self._blockers = self._get_descendants_with_trigger()
+
+    def _get_descendants_with_trigger(self):
+        # Initialize data structures for graph search
+        acts_to_process: Deque[SealedActivation] = collections.deque()
+        # We start searching from Activation's children to avoid addition of
+        # the Activation to `desc_with_trigger` list
+        acts_to_process.extend(self._activation.children)
+        visited = set()
+        desc_with_trigger = []
+
+        def does_have_trigger(activation):
+            return activation.trigger_on_result \
+                   or activation.trigger_on_descendants
+
+        # BFS
+        while len(acts_to_process):
+            processed_act = acts_to_process.popleft()
+
+            if does_have_trigger(processed_act):
+                desc_with_trigger.append(processed_act)
+
+            for child in processed_act.children:
+                if child not in visited:
+                    acts_to_process.append(child)
+
+        return desc_with_trigger
 
 
 class EligibilityDetector:
