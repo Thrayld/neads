@@ -129,14 +129,17 @@ class EligibilityDetector:
             method) will be tracked (i.e. checked for eligibility).
         """
 
-        # self._graph = graph
-        raise NotImplementedError()
+        self._graph = graph
+        self._activations_detectors = {
+            act: ActivationEligibilityDetector(act)
+            for act in self._graph
+            if act.trigger_on_descendants
+        }
 
     @property
     def graph(self):
         """The graph whose Activations' triggers are watched."""
-        # return self.graph
-        return NotImplementedError()
+        return self._graph
 
     @property
     def eligible_activations(self):
@@ -148,7 +151,9 @@ class EligibilityDetector:
             eligible for invocation.
         """
 
-        raise NotImplementedError()
+        return [act
+                for act, detector in self._activations_detectors.items()
+                if detector.is_eligible]
 
     def update(self, invoked_activation: SealedActivation,
                new_activations: Iterable[SealedActivation]):
@@ -167,4 +172,19 @@ class EligibilityDetector:
             New Activations created by the invoked trigger method.
         """
 
-        raise NotImplementedError()
+        # Trigger methods cannot modify trigger methods of existing Activations
+        # Thus, the Activation tracking can quit only after its invocation,
+        # if it is not re-set
+        if not invoked_activation.trigger_on_descendants:
+            self._activations_detectors.pop(invoked_activation, None)
+
+        # Some of the new Activation may have assigned a trigger-on-descendants
+        # Thus, if new Activation have this trigger, we start its tracking
+        for new_act in new_activations:
+            if new_act.trigger_on_descendants:
+                self._activations_detectors[new_act] = \
+                    ActivationEligibilityDetector(new_act)
+
+        # Now update the whole pack
+        for detector in self._activations_detectors.values():
+            detector.update(invoked_activation, new_activations)
