@@ -142,9 +142,8 @@ class EvaluationState(collections.abc.Iterable):
         """Whether the corresponding graph has a trigger method."""
         raise NotImplementedError()
 
-    # IDEA: consider turning into property to follow the style of lists of
-    #  nodes in a certain state
-    def get_top_level(self) -> tuple[DataNode]:
+    @property
+    def top_level(self) -> tuple[DataNode]:
         """Return list of all DataNodes on level 0.
 
         The top DataNodes are exactly all the DataNodes without parents.
