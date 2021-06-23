@@ -89,8 +89,8 @@ class ActivationGraph(collections.abc.Iterable):
         trigger method is present in the graph. That is, after all the
         trigger methods of all Activations have been called.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates. It can reset the graph's trigger method.
 
         The one who calls the method must remove it from the graph at first.
         """
@@ -438,8 +438,9 @@ class ActivationGraph(collections.abc.Iterable):
         Its usual purpose is to add new Activations to the graph whose count
         depends on the computed data.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates. Also it must not modify the graph's trigger (if
+        there is any).
 
         The one who calls the method must remove it from the graph at first.
 
@@ -498,8 +499,10 @@ class ActivationGraph(collections.abc.Iterable):
         common Activation, which was not possible to create right away
         due to presence of descendants' trigger methods.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates and self trigger-on-descendants (the method can
+        be reset). Also it must not modify the graph's trigger (if there is
+        any).
 
         The one who calls the method must remove it from the graph at first.
 
@@ -1139,8 +1142,9 @@ class Activation:
         Its usual purpose is to add new Activations to the owning graph whose
         count depends on the computed data.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates. Also it must not modify the graph's trigger (if
+        there is any).
 
         The one who calls the method must remove it at first.
 
@@ -1199,8 +1203,10 @@ class Activation:
         common Activation, which was not possible to create right away
         due to presence of descendants' trigger methods.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates and self trigger-on-descendants (the method can
+        be reset). Also it must not modify the graph's trigger (if there is
+        any).
 
         The one who calls the method must remove it from the graph at first.
 
