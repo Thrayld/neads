@@ -13,7 +13,7 @@ class ActivationEligibilityDetector:
     The trigger-on-descendant of an Activation is eligible for invocation is
     no descendant of the Activation has a trigger (of any kind).
 
-    The detector is supposed to be used when the graph to which the
+    The detector is supposed to be created and used when the graph to which the
     Activation belongs is ready for evaluation. That is, the only way the
     graph is modified is via invocation of a trigger method.
 
@@ -31,6 +31,7 @@ class ActivationEligibilityDetector:
         """
 
         self._activation = activation
+        # IDEA: only a direct blockers should suffice
         self._blockers = self._get_descendants_with_trigger()
 
     @property
@@ -73,6 +74,8 @@ class ActivationEligibilityDetector:
 
         # IDEA: I wish more effective implementation using the knowledge of
         #  the Activation with invoked trigger and the new Activations
+        #  e.g. searching from these new vertices using parents (utilizing
+        #  the fact that usual AG will we kind of a tree)
         self._blockers = self._get_descendants_with_trigger()
 
     def _get_descendants_with_trigger(self):
