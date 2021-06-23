@@ -102,17 +102,23 @@ class EvaluationState(collections.abc.Iterable):
         raise NotImplementedError()
 
     @property
-    def trigger_nodes(self):
-        """Data nodes with trigger, which are necessary to get to MEMORY state.
+    def objective_nodes(self):
+        """Data nodes that are necessary to get to the MEMORY state.
 
-        Trigger methods need to called sometime. They expand the graph and
-        therefore the evaluation depends on them. To call the trigger method
-        of a node, the node must be set to MEMORY state. The method is then
-        called automatically by the EvaluationState.
+        The objective nodes are exactly those nodes with a trigger-on-result.
+        That is, the trigger methods need to called sometime as they expand
+        the graph and the process of evaluation depends on them.
 
-        The other trigger methods are called by EvaluationState in
-        appropriate moment as well. But the user of EvaluationState need not
-        to care about them.
+        To call the trigger-on-result method of a node, the node must be set
+        to MEMORY state. The other types of triggers can be called step by
+        step, if no trigger-on-result methods are present.
+
+        The trigger methods are called automatically by the EvaluationState,
+        so the user of EvaluationState only needs to get the objective nodes
+        to the MEMORY state.
+
+        Note that (obviously) the value of objective nodes may change after
+        each invocation of a trigger.
         """
 
         raise NotImplementedError()
@@ -132,7 +138,7 @@ class EvaluationState(collections.abc.Iterable):
         raise NotImplementedError()
 
     @property
-    def has_trigger(self):
+    def has_graph_trigger(self):
         """Whether the corresponding graph has a trigger method."""
         raise NotImplementedError()
 
