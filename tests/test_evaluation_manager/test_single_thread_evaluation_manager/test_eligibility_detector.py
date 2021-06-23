@@ -231,5 +231,169 @@ class TestActivationEligibilityDetector(unittest.TestCase):
         self.assertEqual(expected, actual)
 
 
+class TestEligibilityDetector(unittest.TestCase):
+    def test_eligible_activations_simple(self):
+        ag = SealedActivationGraph()
+        act_1 = ag.add_activation(ar_plugins.const, 10)
+        act_1.trigger_on_descendants = mock.Mock()
+
+        act_2 = ag.add_activation(ar_plugins.add, act_1.symbol, 15)
+        act_2.trigger_on_result = mock.Mock()
+
+        act_3 = ag.add_activation(ar_plugins.const, 100)
+        act_3.trigger_on_descendants = mock.Mock()
+
+        ed = EligibilityDetector(ag)
+
+        actual = ed.eligible_activations
+
+        expected = [act_3]
+        self.assertCountEqual(expected, actual)
+
+    def test_graph_property(self):
+        ag = SealedActivationGraph()
+        ed = EligibilityDetector(ag)
+
+        actual = ed.graph
+
+        expected = ag
+        self.assertEqual(expected, actual)
+
+    def test_update_without_creating_node_with_trigger(self):
+        ag = SealedActivationGraph()
+        act_1 = ag.add_activation(ar_plugins.const, 10)
+        act_1.trigger_on_descendants = mock.Mock()
+
+        act_2 = ag.add_activation(ar_plugins.add, act_1.symbol, 15)
+
+        def act_2_trigger(data):
+            act_3 = ag.add_activation(ar_plugins.sub, act_2.symbol, 30)
+            return [act_3]
+
+        act_2.trigger_on_result = act_2_trigger
+
+        act_4 = ag.add_activation(ar_plugins.const, 100)
+        act_4.trigger_on_descendants = mock.Mock()
+
+        ed = EligibilityDetector(ag)
+
+        # Calling act_2's trigger, new act_3 has no trigger, thus act_1 is
+        # eligible
+        # Act_4 is still outside the action and remains eligible
+        tm = act_2.trigger_on_result
+        del act_2.trigger_on_result
+        new_acts = tm(25)
+
+        # Update
+        ed.update(act_2, new_acts)
+
+        actual = ed.eligible_activations
+
+        expected = [act_1, act_4]
+        self.assertCountEqual(expected, actual)
+
+    def test_update_with_creating_node_with_trigger(self):
+        ag = SealedActivationGraph()
+        act_1 = ag.add_activation(ar_plugins.const, 10)
+        act_1.trigger_on_descendants = mock.Mock()
+
+        act_2 = ag.add_activation(ar_plugins.add, act_1.symbol, 15)
+
+        def act_2_trigger(data):
+            act_3 = ag.add_activation(ar_plugins.sub, act_2.symbol, 30)
+            act_3.trigger_on_descendants = mock.Mock()
+            return [act_3]
+
+        act_2.trigger_on_result = act_2_trigger
+
+        act_4 = ag.add_activation(ar_plugins.const, 100)
+        act_4.trigger_on_descendants = mock.Mock()
+
+        ed = EligibilityDetector(ag)
+
+        # Calling act_2's trigger, new act_3 has a trigger, thus act_1 is
+        # ineligible
+        # Act_4 is still outside the action and remains eligible
+        tm = act_2.trigger_on_result
+        del act_2.trigger_on_result
+        new_acts = tm(25)  # Single Activation act_3
+
+        # Update
+        ed.update(act_2, new_acts)
+
+        actual = ed.eligible_activations
+
+        expected = [act_4] + new_acts
+        self.assertCountEqual(expected, actual)
+
+    def test_update_after_trigger_on_descendants_invocation_and_reset(self):
+        ag = SealedActivationGraph()
+        act_1 = ag.add_activation(ar_plugins.const, 10)
+        act_1.trigger_on_descendants = mock.Mock()
+
+        act_2 = ag.add_activation(ar_plugins.add, act_1.symbol, 15)
+
+        def act_2_trigger():
+            act_3 = ag.add_activation(ar_plugins.sub, act_2.symbol, 30)
+            act_2.trigger_on_descendants = mock.Mock()
+            return [act_3]
+
+        act_2.trigger_on_descendants = act_2_trigger
+
+        act_4 = ag.add_activation(ar_plugins.const, 100)
+        act_4.trigger_on_descendants = mock.Mock()
+
+        ed = EligibilityDetector(ag)
+
+        # Calling act_2's trigger, new act_3 has no trigger, however, act_2's
+        # trigger is re-set, thus act_1 is ineligible
+        # Act_4 is still outside the action and remains eligible
+        tm = act_2.trigger_on_descendants
+        del act_2.trigger_on_descendants
+        new_acts = tm()  # Single Activation act_3
+
+        # Update
+        ed.update(act_2, new_acts)
+
+        actual = ed.eligible_activations
+
+        expected = [act_2, act_4]
+        self.assertCountEqual(expected, actual)
+
+    def test_update_remove_eligibility_of_previously_eligible_node(self):
+        ag = SealedActivationGraph()
+        act_1 = ag.add_activation(ar_plugins.const, 10)
+        act_1.trigger_on_descendants = mock.Mock()
+
+        act_2 = ag.add_activation(ar_plugins.add, act_1.symbol, 15)
+
+        def act_2_trigger():
+            act_3 = ag.add_activation(ar_plugins.sub, act_4.symbol, 30)
+            act_3.trigger_on_result = mock.Mock()
+            return [act_3]
+
+        act_2.trigger_on_descendants = act_2_trigger
+
+        act_4 = ag.add_activation(ar_plugins.const, 100)
+        act_4.trigger_on_descendants = mock.Mock()
+
+        ed = EligibilityDetector(ag)
+
+        # Calling act_2's trigger, new act_3 with a trigger is descendant of
+        # act_4, thus act_4 is ineligible
+        # Only act_1 is then eligible
+        tm = act_2.trigger_on_descendants
+        del act_2.trigger_on_descendants
+        new_acts = tm()  # Single Activation act_3
+
+        # Update
+        ed.update(act_2, new_acts)
+
+        actual = ed.eligible_activations
+
+        expected = [act_1]
+        self.assertCountEqual(expected, actual)
+
+
 if __name__ == '__main__':
     unittest.main()
