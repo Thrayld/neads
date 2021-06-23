@@ -23,16 +23,18 @@ class EvaluationState(collections.abc.Iterable):
     provide these methods).
 
     One of the greatest responsibilities performed by the EvaluationState
-    itself (not via DataNodes) is invocation of Activations' and graph's
-    trigger methods. The trigger methods are called as soon as possible.
-    That is, the trigger-on-result is called when the DataNode acquires
-    its data. The trigger-on-descendants is called as soon as there is no
-    descendant of the DataNode which carries a trigger (i.e. after invocation
-    of last descendant's trigger, if it does not introduce new Activation
-    with a trigger). Note that if more trigger-on-descendant methods
-    are suitable for invocation, one of them is chosen first and its
-    invocation (which creates new Activations) may block invocation of the
-    other triggers for the moment. Similarly with the graph's trigger.
+    itself (not via DataNodes; at least from the user's point of view) is
+    invocation of Activations' and graph's trigger methods.
+
+    The trigger methods are called as soon as possible. That is,
+    the trigger-on-result is called when the DataNode acquires its data. The
+    trigger-on-descendants is called as soon as there is no descendant of the
+    DataNode which carries a trigger (i.e. after invocation of last
+    descendant's trigger, if it does not introduce new Activation with a
+    trigger). Note that if more trigger-on-descendant methods are suitable
+    for invocation, one of them is chosen first and its invocation (which
+    creates new Activations) may block invocation of the other triggers for
+    the moment. Similarly with the graph's trigger.
     """
 
     def __init__(self,
