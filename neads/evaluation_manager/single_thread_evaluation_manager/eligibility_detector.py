@@ -106,7 +106,18 @@ class ActivationEligibilityDetector:
 
 
 class EligibilityDetector:
-    """Detect trigger-on-descendant methods eligible for invocation."""
+    """Detect trigger-on-descendant methods eligible for invocation.
+
+    The trigger-on-descendant of an Activation is eligible for invocation is
+    no descendant of the Activation has a trigger (of any kind).
+
+    The detector is supposed to be created and used when the graph to which the
+    Activation belongs is ready for evaluation. That is, the only way the
+    graph is modified is via invocation of a trigger method.
+
+    Then, the detector must be informed about such changes via `update`
+    method.
+    """
 
     def __init__(self, graph: SealedActivationGraph):
         """Initialize the instance with the tracked graph.
@@ -118,7 +129,14 @@ class EligibilityDetector:
             method) will be tracked (i.e. checked for eligibility).
         """
 
+        # self._graph = graph
         raise NotImplementedError()
+
+    @property
+    def graph(self):
+        """The graph whose Activations' triggers are watched."""
+        # return self.graph
+        return NotImplementedError()
 
     @property
     def eligible_activations(self):
