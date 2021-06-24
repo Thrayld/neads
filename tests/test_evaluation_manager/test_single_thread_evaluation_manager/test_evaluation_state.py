@@ -243,7 +243,153 @@ class TestEvaluationStateWithTriggersSimple(unittest.TestCase):
 
 
 class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
-    pass
+    def setUp(self) -> None:
+        self.ag = SealedActivationGraph()
+        self.db = MockDatabase()
+
+    @staticmethod
+    def get_expected_state_template():
+        expected_state = ESExpected(
+            memory_nodes=[],
+            disk_nodes=[],
+            unknown_nodes=[],
+            no_data_nodes=[],
+            objectives=[],
+            results=[],
+            top_level=[],
+            has_graph_trigger=False,
+            it=[]
+        )
+        return expected_state
+
+    def test_trigger_cascade_result_descendants_graph(self):
+        # Create graph
+        graph_trigger = mock.Mock()
+        act_1_trigger = mock.Mock()
+        act_2_trigger = mock.Mock()
+
+        act_1 = self.ag.add_activation(ar_plugins.const, 10)
+        act_2 = self.ag.add_activation(ar_plugins.add, act_1.symbol, 15)
+
+        self.ag.trigger_method = graph_trigger
+        act_1.trigger_on_descendants = act_1_trigger
+        act_2.trigger_on_result = act_2_trigger
+
+        # Create ES and DNs
+        es = EvaluationState(self.ag, self.db)
+        dn_1 = next(iter(es.top_level))
+        dn_2 = dn_1.children[0]
+
+        # Check ES after init
+        expected = self.get_expected_state_template()
+        expected.unknown_nodes = [dn_1, dn_2]
+        expected.objectives = [dn_2]
+        expected.top_level = [dn_1]
+        expected.has_graph_trigger = True
+        expected.it = [dn_1, dn_2]
+        assertEvaluationShapeIs(expected, es)
+
+        # Launch the cascade
+        self.db.save(25, act_2.definition)
+        dn_2.evaluate()
+
+        # Check ES
+        expected = self.get_expected_state_template()
+        expected.unknown_nodes = [dn_1]
+        expected.memory_nodes = [dn_2]
+        expected.results = [dn_2]
+        expected.top_level = [dn_1]
+        expected.it = [dn_1, dn_2]
+        assertEvaluationShapeIs(expected, es)
+
+        # Check triggers
+        graph_trigger.assert_called_once_with()
+        self.assertIsNone(self.ag.trigger_method)
+
+        act_1_trigger.assert_called_once_with()
+        self.assertIsNone(act_1.trigger_on_descendants)
+
+        act_2_trigger.assert_called_once_with(25)
+        self.assertIsNone(act_2.trigger_on_result)
+
+    def test_immediate_trigger_cascade_descendants_graph(self):
+        # Create graph
+        graph_trigger = mock.Mock()
+        descendants_trigger = mock.Mock()
+
+        act_1 = self.ag.add_activation(ar_plugins.const, 10)
+
+        self.ag.trigger_method = graph_trigger
+        act_1.trigger_on_descendants = descendants_trigger
+
+        # Create ES and DNs
+        es = EvaluationState(self.ag, self.db)
+        dn_1 = next(iter(es.top_level))
+
+        # Check ES after init which was supposed to launch the cascade
+        expected = self.get_expected_state_template()
+        expected.unknown_nodes = [dn_1]
+        expected.results = [dn_1]
+        expected.top_level = [dn_1]
+        expected.it = [dn_1]
+        assertEvaluationShapeIs(expected, es)
+
+        # Check triggers
+        graph_trigger.assert_called_once_with()
+        self.assertIsNone(self.ag.trigger_method)
+
+        descendants_trigger.assert_called_once_with()
+        self.assertIsNone(act_1.trigger_on_descendants)
+
+    def test_result_creates_node_with_descendants_immediately_called(self):
+        # Create graph
+
+        act_1 = self.ag.add_activation(ar_plugins.const, 10)
+        act_2 = None
+        act_2_trigger = mock.Mock()
+        act_1_trigger_call_watch = mock.Mock()  # Use for easy of act_1_trigger
+
+        def act_1_trigger(_):
+            nonlocal act_2
+            act_1_trigger_call_watch()
+            act_2 = self.ag.add_activation(ar_plugins.add, act_1.symbol, 15)
+            act_2.trigger_on_descendants = act_2_trigger
+            return [act_2]
+
+        act_1.trigger_on_result = act_1_trigger
+
+        # Create ES and DNs
+        es = EvaluationState(self.ag, self.db)
+        dn_1 = next(iter(es.top_level))
+
+        # Check ES after creation
+        expected = self.get_expected_state_template()
+        expected.unknown_nodes = [dn_1]
+        expected.objectives = [dn_1]
+        expected.top_level = [dn_1]
+        expected.it = [dn_1]
+        assertEvaluationShapeIs(expected, es)
+
+        # Launch the cascade
+        dn_1.try_load()
+        dn_1.evaluate()
+
+        # Check ES
+        dn_2 = dn_1.children[0]
+        expected = self.get_expected_state_template()
+        expected.unknown_nodes = [dn_2]
+        expected.memory_nodes = [dn_1]
+        expected.results = [dn_2]
+        expected.top_level = [dn_1]
+        expected.it = [dn_1, dn_2]
+        assertEvaluationShapeIs(expected, es)
+
+        # Check triggers
+        act_1_trigger_call_watch.assert_called_once_with()
+        self.assertIsNone(act_1.trigger_on_result)
+
+        act_2_trigger.assert_called_once_with()
+        self.assertIsNone(act_2.trigger_on_descendants)  # noqa
 
 
 if __name__ == '__main__':
