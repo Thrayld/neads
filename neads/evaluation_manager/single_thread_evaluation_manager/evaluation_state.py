@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Iterator
 import collections.abc
 
+import neads.utils.memory_info as memory_info
+
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph
     from neads.database import IDatabase
@@ -104,7 +106,7 @@ class EvaluationState(collections.abc.Iterable):
         raise NotImplementedError()
 
     @property
-    def objective_nodes(self):
+    def objectives(self):
         """Data nodes that are necessary to get to the MEMORY state.
 
         The objective nodes are exactly those nodes with a trigger-on-result.
@@ -126,7 +128,7 @@ class EvaluationState(collections.abc.Iterable):
         raise NotImplementedError()
 
     @property
-    def result_nodes(self):
+    def results(self):
         """Data nodes whose data are the result of computation.
 
         The childless nodes, whose data are the result of computation. Thus,
@@ -158,7 +160,7 @@ class EvaluationState(collections.abc.Iterable):
         raise NotImplementedError()
 
     def __iter__(self) -> Iterator[DataNode]:
-        """Iterate over the DataNodes.
+        """Iterate over all DataNodes of the underlying graph.
 
         Note that performing actions that changes the state may result in
         undefined behavior.
