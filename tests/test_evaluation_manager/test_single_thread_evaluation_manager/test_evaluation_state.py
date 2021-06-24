@@ -158,7 +158,88 @@ class TestEvaluationStateSimpleStateChangesNoTriggers(unittest.TestCase):
 
 
 class TestEvaluationStateWithTriggersSimple(unittest.TestCase):
-    pass
+    """Tests cases with single node an a trigger called as soon as possible."""
+
+    @staticmethod
+    def get_expected_state_template(data_node):
+        expected_state = ESExpected(
+            memory_nodes=[],
+            disk_nodes=[],
+            unknown_nodes=[],
+            no_data_nodes=[],
+            objectives=[],
+            results=[],
+            top_level=[data_node],
+            has_graph_trigger=False,
+            it=[data_node]
+        )
+        return expected_state
+
+    def setUp(self) -> None:
+        self.ag = SealedActivationGraph()
+        self.act = self.ag.add_activation(ar_plugins.const, 10)
+
+        self.db = MockDatabase()
+        # Cannot create ES right-away, first the triggers need be assigned
+
+    def test_node_with_trigger_on_result(self):
+        act_trigger = mock.Mock()
+        self.act.trigger_on_result = act_trigger
+        es = EvaluationState(self.ag, self.db)
+        dn = next(iter(es))
+
+        # Check state after initialization
+        expected = self.get_expected_state_template(dn)
+        expected.unknown_nodes = [dn]
+        expected.objectives = [dn]
+        assertEvaluationShapeIs(expected, es)
+
+        # Do the changes
+        dn.try_load()
+        dn.evaluate()
+
+        # Check the changes, including invocation of the dn's trigger
+        expected = self.get_expected_state_template(dn)
+        expected.memory_nodes = [dn]
+        expected.results = [dn]
+        assertEvaluationShapeIs(expected, es)
+
+        act_trigger.assert_called_with(10)  # Trigger was called
+        self.assertIsNone(self.act.trigger_on_result)  # It is removed now
+
+    def test_node_with_trigger_on_descendants(self):
+        act_trigger = mock.Mock()
+        self.act.trigger_on_descendants = act_trigger
+        es = EvaluationState(self.ag, self.db)
+        dn = next(iter(es))
+
+        # The trigger's are supposed to be called ASAP, thus, right after
+        # ES's creation
+        # No action is needed, we can immediately check the results
+        expected = self.get_expected_state_template(dn)
+        expected.unknown_nodes = [dn]
+        expected.results = [dn]
+        assertEvaluationShapeIs(expected, es)
+
+        act_trigger.assert_called_once()  # Trigger was called
+        self.assertIsNone(self.act.trigger_on_descendants)  # It is removed now
+
+    def test_node_with_graph_trigger(self):
+        graph_trigger = mock.Mock()
+        self.ag.trigger_method = graph_trigger
+        es = EvaluationState(self.ag, self.db)
+        dn = next(iter(es))
+
+        # The trigger's are supposed to be called ASAP, thus, right after
+        # ES's creation
+        # No action is needed, we can immediately check the results
+        expected = self.get_expected_state_template(dn)
+        expected.unknown_nodes = [dn]
+        expected.results = [dn]
+        assertEvaluationShapeIs(expected, es)
+
+        graph_trigger.assert_called_once()  # Trigger was called
+        self.assertIsNone(self.ag.trigger_method)  # It is removed now
 
 
 class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
