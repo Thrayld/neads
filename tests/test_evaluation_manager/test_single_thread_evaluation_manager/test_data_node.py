@@ -146,6 +146,14 @@ class TestDataNodeAccessData(unittest.TestCase):
 
         self.assertEqual(None, self.dn_1.get_data())
 
+    def test_get_data_after_reload(self):
+        self.dn_1.try_load()
+        self.dn_1.evaluate()
+        self.dn_1.store()
+        self.dn_1.load()
+
+        self.assertEqual([1], self.dn_1.get_data())
+
     def test_get_data_with_copy(self):
         self.dn_1.try_load()
         self.dn_1.evaluate()

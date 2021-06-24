@@ -295,7 +295,6 @@ class DataNode:
         """
 
         self._check_appropriate_state(DataNodeState.DISK)
-        self._temp_file.save(self._data)
         self._data = self._temp_file.load()
 
         self._change_state(DataNodeState.MEMORY)
