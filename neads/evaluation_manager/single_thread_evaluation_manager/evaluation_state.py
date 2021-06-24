@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Iterator, Iterable
 import collections.abc
 
 import neads.utils.memory_info as memory_info
@@ -58,7 +58,7 @@ class EvaluationState(collections.abc.Iterable):
         raise NotImplementedError()
 
     @property
-    def used_virtual_memory(self):
+    def used_virtual_memory(self) -> int:
         """The amount of used virtual memory by the process
 
         Includes swap memory etc.
@@ -67,7 +67,7 @@ class EvaluationState(collections.abc.Iterable):
         raise NotImplementedError()
 
     @property
-    def used_physical_memory(self):
+    def used_physical_memory(self) -> int:
         """The amount of RAM memory currently used by the process.
 
         Very much depends on the system swapping policy.
@@ -76,7 +76,7 @@ class EvaluationState(collections.abc.Iterable):
         raise NotImplementedError()
 
     @property
-    def available_memory(self):
+    def available_memory(self) -> int:
         """The amount of free memory in bytes left to allocate.
 
         More precisely, it is the memory that can be given instantly to
@@ -86,27 +86,27 @@ class EvaluationState(collections.abc.Iterable):
         raise NotImplementedError()
 
     @property
-    def memory_nodes(self):
+    def memory_nodes(self) -> Iterable[DataNode]:
         """Data nodes in the state MEMORY."""
         raise NotImplementedError()
 
     @property
-    def disk_nodes(self):
+    def disk_nodes(self) -> Iterable[DataNode]:
         """Data nodes in the state DISK."""
         raise NotImplementedError()
 
     @property
-    def no_data_nodes(self):
+    def no_data_nodes(self) -> Iterable[DataNode]:
         """Data nodes in the state MEMORY."""
         raise NotImplementedError()
 
     @property
-    def unknown_nodes(self):
+    def unknown_nodes(self) -> Iterable[DataNode]:
         """Data nodes in the state UNKNOWN."""
         raise NotImplementedError()
 
     @property
-    def objectives(self):
+    def objectives(self) -> Iterable[DataNode]:
         """Data nodes that are necessary to get to the MEMORY state.
 
         The objective nodes are exactly those nodes with a trigger-on-result.
@@ -136,7 +136,8 @@ class EvaluationState(collections.abc.Iterable):
 
         The nodes are shown only when it is certain that they are (and will
         be) childless. That is, after all the trigger methods were called and
-        no new Activations can appear in the graph.
+        no new Activations can appear in the graph. Before that, empty iterable
+        is returned.
         """
 
         raise NotImplementedError()
