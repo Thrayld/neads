@@ -1143,8 +1143,10 @@ class Activation:
         count depends on the computed data.
 
         The method must not modify trigger methods of Activations except to
-        those which creates. Also it must not modify the graph's trigger (if
-        there is any).
+        those which creates. There is one exception, i.e. trigger-on-result
+        method of an Activation may assign trigger-on-descendant to the
+        Activation itself. However, it must not modify the graph's trigger (if
+        there is any) as well.
 
         The one who calls the method must remove it at first.
 
