@@ -267,6 +267,7 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
         graph_trigger = mock.Mock()
         act_1_trigger = mock.Mock()
         act_2_trigger = mock.Mock()
+        act_2_trigger.return_value = []
 
         act_1 = self.ag.add_activation(ar_plugins.const, 10)
         act_2 = self.ag.add_activation(ar_plugins.add, act_1.symbol, 15)
@@ -343,7 +344,6 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
 
     def test_result_creates_node_with_descendants_immediately_called(self):
         # Create graph
-
         act_1 = self.ag.add_activation(ar_plugins.const, 10)
         act_2 = None
         act_2_trigger = mock.Mock()
@@ -390,6 +390,51 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
 
         act_2_trigger.assert_called_once_with()
         self.assertIsNone(act_2.trigger_on_descendants)  # noqa
+
+    def test_result_sets_descendants_trigger_on_itself(self):
+        # Create graph
+        act_1 = self.ag.add_activation(ar_plugins.const, 10)
+        act_1_trigger_call_watch = mock.Mock()  # Use for easy of act_1_trigger
+        act_1_trigger_on_descendants = mock.Mock()
+
+        def act_1_trigger_on_result(_):
+            act_1_trigger_call_watch()
+            act_1.trigger_on_descendants = act_1_trigger_on_descendants
+            return []
+
+        act_1.trigger_on_result = act_1_trigger_on_result
+
+        # Create ES and DNs
+        es = EvaluationState(self.ag, self.db)
+        dn_1 = next(iter(es.top_level))
+
+        # Check ES after creation
+        expected = self.get_expected_state_template()
+        expected.unknown_nodes = [dn_1]
+        expected.objectives = [dn_1]
+        expected.top_level = [dn_1]
+        expected.it = [dn_1]
+        assertEvaluationShapeIs(expected, es)
+
+        # Launch the cascade
+        dn_1.try_load()
+        dn_1.evaluate()
+
+        # Check ES
+        expected = self.get_expected_state_template()
+        expected.memory_nodes = [dn_1]
+        expected.results = [dn_1]
+        expected.top_level = [dn_1]
+        expected.it = [dn_1]
+        assertEvaluationShapeIs(expected, es)
+
+        # Check triggers
+        act_1_trigger_call_watch.assert_called_once_with()
+        self.assertIsNone(act_1.trigger_on_result)
+
+        act_1_trigger_on_descendants.assert_called_once_with()
+        self.assertIsNone(act_1.trigger_on_descendants)
+
 
 
 if __name__ == '__main__':
