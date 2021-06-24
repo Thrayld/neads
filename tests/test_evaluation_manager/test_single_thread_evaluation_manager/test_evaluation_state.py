@@ -99,7 +99,7 @@ class TestEvaluationStateSimpleStateChangesNoTriggers(unittest.TestCase):
         self.es = EvaluationState(ag, self.db)
 
         assert len(self.es.top_level) == 1
-        self.dn = next(iter(self.es.top_level))
+        self.dn = next(iter(self.es))
 
         self.expected_state = ESExpected(
             memory_nodes=[],
@@ -198,13 +198,13 @@ class TestEvaluationStateWithTriggersSimple(unittest.TestCase):
         dn.try_load()
         dn.evaluate()
 
-        # Check the changes, including invocation of the dn's trigger
+        # Check the changes on ES
         expected = self.get_expected_state_template(dn)
         expected.memory_nodes = [dn]
         expected.results = [dn]
         assertEvaluationShapeIs(expected, es)
 
-        act_trigger.assert_called_with(10)  # Trigger was called
+        act_trigger.assert_called_once_with(10)  # Trigger was called
         self.assertIsNone(self.act.trigger_on_result)  # It is removed now
 
     def test_node_with_trigger_on_descendants(self):
@@ -221,7 +221,7 @@ class TestEvaluationStateWithTriggersSimple(unittest.TestCase):
         expected.results = [dn]
         assertEvaluationShapeIs(expected, es)
 
-        act_trigger.assert_called_once()  # Trigger was called
+        act_trigger.assert_called_once_with()  # Trigger was called
         self.assertIsNone(self.act.trigger_on_descendants)  # It is removed now
 
     def test_node_with_graph_trigger(self):
@@ -238,7 +238,7 @@ class TestEvaluationStateWithTriggersSimple(unittest.TestCase):
         expected.results = [dn]
         assertEvaluationShapeIs(expected, es)
 
-        graph_trigger.assert_called_once()  # Trigger was called
+        graph_trigger.assert_called_once_with()  # Trigger was called
         self.assertIsNone(self.ag.trigger_method)  # It is removed now
 
 
