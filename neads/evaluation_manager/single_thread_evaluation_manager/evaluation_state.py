@@ -7,7 +7,7 @@ import collections.abc
 import neads.utils.memory_info as memory_info
 from neads.evaluation_manager.single_thread_evaluation_manager.data_node \
     import DataNode, DataNodeState
-from neads.evaluation_manager.single_thread_evaluation_manager\
+from neads.evaluation_manager.single_thread_evaluation_manager \
     .eligibility_detector import EligibilityDetector
 
 if TYPE_CHECKING:
@@ -175,6 +175,7 @@ class EvaluationState(collections.abc.Iterable):
             self._move_node_after_state_change(data_node,
                                                DataNodeState.UNKNOWN,
                                                DataNodeState.NO_DATA)
+
         return callback
 
     def _get_callback_unknown_to_memory(self):
@@ -187,6 +188,7 @@ class EvaluationState(collections.abc.Iterable):
             self._move_node_after_state_change(data_node,
                                                DataNodeState.UNKNOWN,
                                                DataNodeState.MEMORY)
+
         return callback
 
     def _get_callback_no_data_to_memory(self):
@@ -199,6 +201,7 @@ class EvaluationState(collections.abc.Iterable):
             self._move_node_after_state_change(data_node,
                                                DataNodeState.NO_DATA,
                                                DataNodeState.MEMORY)
+
         return callback
 
     def _get_callback_memory_to_disk(self):
@@ -206,6 +209,7 @@ class EvaluationState(collections.abc.Iterable):
             self._move_node_after_state_change(data_node,
                                                DataNodeState.MEMORY,
                                                DataNodeState.DISK)
+
         return callback
 
     def _get_callback_disk_to_memory(self):
@@ -215,6 +219,7 @@ class EvaluationState(collections.abc.Iterable):
             self._move_node_after_state_change(data_node,
                                                DataNodeState.DISK,
                                                DataNodeState.MEMORY)
+
         return callback
 
     def _move_node_after_state_change(self, data_node, state_from, state_to):
