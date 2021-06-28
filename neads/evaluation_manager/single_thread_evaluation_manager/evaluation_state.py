@@ -81,7 +81,7 @@ class EvaluationState(collections.abc.Iterable):
         # Creating data nodes and incorporating them
         self._incorporate_activations(list(self._activation_graph))
 
-        # Checking some triggers already eligible to be called
+        # Checking if some triggers are already eligible to be called
         self._invoke_eligible_triggers_on_descendants()
 
     def _incorporate_activations(self, activations):
@@ -245,12 +245,13 @@ class EvaluationState(collections.abc.Iterable):
         EvaluationState by the triggers result (i.e. the new graph's
         Activations). It also updates the `trigger_detector`.
 
+        Note that the caller is responsible for legality of the trigger
+        invocation (the necessary conditions depend on the trigger kind).
+
         Parameters
         ----------
         data_node
-            The DataNode whose trigger will be processed. Note that the
-            caller is responsible for legality of the trigger invocation
-            (the necessary conditions depend on the trigger kind).
+            The DataNode whose trigger will be processed.
         trigger_kind
             The kind of trigger to be processed. String 'result' for
             trigger-on-result or 'descendants' for trigger-on-descendants.
@@ -282,6 +283,7 @@ class EvaluationState(collections.abc.Iterable):
         new_activations = trigger(*trigger_args)
 
         # Finish
+        # The node with trigger-on-result is already removed from objectives
         self._incorporate_activations(new_activations)
         self._trigger_detector.update(processed_activation, new_activations)
 
