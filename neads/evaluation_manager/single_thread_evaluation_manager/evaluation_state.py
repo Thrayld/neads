@@ -238,54 +238,69 @@ class EvaluationState(collections.abc.Iterable):
         self._nodes_by_state[state_from].remove(data_node)
         self._nodes_by_state[state_to].add(data_node)
 
-    def _process_node_trigger(self, data_node, trigger_kind):
-        """Process the given trigger kind of the given DataNode.
-
-        The method calls the appropriate trigger and updates the
-        EvaluationState by the triggers result (i.e. the new graph's
-        Activations). It also updates the `trigger_detector`.
-
-        Note that the caller is responsible for legality of the trigger
-        invocation (the necessary conditions depend on the trigger kind).
+    def _process_trigger_on_result(self, data_node):
+        """Process the trigger-on-result of the given node.
 
         Parameters
         ----------
         data_node
-            The DataNode whose trigger will be processed.
-        trigger_kind
-            The kind of trigger to be processed. String 'result' for
-            trigger-on-result or 'descendants' for trigger-on-descendants.
-
-        Raises
-        ------
-        ValueError
-            If the value is neither 'result' nor 'descendants'.
+            The node whose trigger-on-result method will be invoked and
+            its result processed.
         """
 
-        # Preparatory code for different trigger kinds
-        if trigger_kind == 'r':
-            trigger_name = 'trigger_on_result'
-            trigger_args = [data_node.get_data()]
-            self._objectives.remove(data_node)  # No longer an objective
-        elif trigger_kind == 'd':
-            trigger_name = 'trigger_on_descendants'
-            trigger_args = []
-        else:
-            raise ValueError(f"The value of trigger_kind: {trigger_kind}, "
-                             f"is neither 'result' nor 'descendants'.")
+        processed_activation = self._node_to_act[data_node]
+        self._process_general_trigger(processed_activation,
+                                      'trigger_on_result',
+                                      data_node.get_data())
+        self._objectives.remove(data_node)
+
+    def _process_trigger_on_descendants(self, data_node):
+        """Process the trigger-on-descendants of the given node.
+
+        Parameters
+        ----------
+        data_node
+            The node whose trigger-on-descendants method will be invoked and
+            its result processed.
+        """
+
+        processed_activation = self._node_to_act[data_node]
+        self._process_general_trigger(processed_activation,
+                                      'trigger_on_descendants')
+
+    def _process_graph_trigger(self):
+        """Process the graph's trigger."""
+        self._process_general_trigger(self._activation_graph, 'trigger_method')
+
+    def _process_general_trigger(self, obj, trigger_name: str, *trigger_args):
+        """General method for trigger processing.
+
+        It appropriately calls the described trigger method (i.e. removes it
+        from the object first) and processes the its result (incorporates
+        activations and updates the trigger detector).
+
+        Parameters
+        ----------
+        obj
+            Object whose trigger method is processed.
+        trigger_name
+            Name of the obj's trigger method to process.
+        trigger_args
+            Arguments for the trigger method. Nothing for graph's trigger and
+            trigger-on-descendants. The result of the corresponding plugin
+            for the trigger-on-result method.
+        """
 
         # Initialization
-        processed_activation = self._node_to_act[data_node]
-        trigger = getattr(processed_activation, trigger_name)
-        delattr(processed_activation, trigger_name)
+        trigger = getattr(obj, trigger_name)
+        delattr(obj, trigger_name)
 
         # Invocation
         new_activations = trigger(*trigger_args)
 
         # Finish
-        # The node with trigger-on-result is already removed from objectives
         self._incorporate_activations(new_activations)
-        self._trigger_detector.update(processed_activation, new_activations)
+        self._trigger_detector.update(obj, new_activations)
 
     def _invoke_eligible_triggers_on_descendants(self):
         """Successively invoke all eligible triggers-on-descendants and graph's.
