@@ -63,7 +63,7 @@ class EvaluationState(collections.abc.Iterable):
         self._database = database
 
         # If the ES is in complete state, i.e. the graph contains some triggers
-        self.is_complete = False
+        self._is_complete = False
 
         # Some fields
         self._top_level = []
@@ -220,7 +220,8 @@ class EvaluationState(collections.abc.Iterable):
         invoke_trigger
             Whether invoke the trigger-on-result of the given node, if exists.
             It sets off (potentially) a cascade of trigger invocations
-            (trigger-on-descendants, graph's).
+            (trigger-on-descendants, graph's). The check is meaningless and
+            does not occur, if the ES is complete.
         """
 
         def callback(data_node: DataNode):
@@ -228,10 +229,11 @@ class EvaluationState(collections.abc.Iterable):
             self._nodes_by_state[state_from].remove(data_node)
             self._nodes_by_state[state_to].add(data_node)
 
-            # If requested, set off the trigger invocation
-            if invoke_trigger and data_node.has_trigger_on_result:
-                self._process_trigger_on_result(data_node)
-                self._invoke_eligible_non_result_triggers()
+            if not self._is_complete:
+                # If requested, set off the trigger invocation
+                if invoke_trigger and data_node.has_trigger_on_result:
+                    self._process_trigger_on_result(data_node)
+                    self._invoke_eligible_non_result_triggers()
 
         return callback
 
