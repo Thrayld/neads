@@ -171,72 +171,66 @@ class EvaluationState(collections.abc.Iterable):
         )
 
     def _get_callback_unknown_to_no_data(self):
-        def callback(data_node: DataNode):
-            self._move_node_after_state_change(data_node,
-                                               DataNodeState.UNKNOWN,
-                                               DataNodeState.NO_DATA)
-
-        return callback
+        return self._get_general_callback(
+            DataNodeState.UNKNOWN,
+            DataNodeState.NO_DATA
+        )
 
     def _get_callback_unknown_to_memory(self):
-        # Watch for triggers
-
-        def callback(data_node: DataNode):
-            if data_node.has_trigger_on_result:
-                ...  # call it
-                self._invoke_eligible_triggers_on_descendants()
-            self._move_node_after_state_change(data_node,
-                                               DataNodeState.UNKNOWN,
-                                               DataNodeState.MEMORY)
-
-        return callback
+        return self._get_general_callback(
+            DataNodeState.UNKNOWN,
+            DataNodeState.MEMORY,
+            invoke_trigger=True
+        )
 
     def _get_callback_no_data_to_memory(self):
-        # Watch for triggers
-
-        def callback(data_node: DataNode):
-            if data_node.has_trigger_on_result:
-                ...  # call it
-                self._invoke_eligible_triggers_on_descendants()
-            self._move_node_after_state_change(data_node,
-                                               DataNodeState.NO_DATA,
-                                               DataNodeState.MEMORY)
-
-        return callback
+        return self._get_general_callback(
+            DataNodeState.NO_DATA,
+            DataNodeState.MEMORY,
+            invoke_trigger=True
+        )
 
     def _get_callback_memory_to_disk(self):
-        def callback(data_node: DataNode):
-            self._move_node_after_state_change(data_node,
-                                               DataNodeState.MEMORY,
-                                               DataNodeState.DISK)
-
-        return callback
+        return self._get_general_callback(
+            DataNodeState.MEMORY,
+            DataNodeState.DISK
+        )
 
     def _get_callback_disk_to_memory(self):
         # For DISK to MEMORY transition, the node had been in MEMORY before
         # Thus, its potential trigger-on-result was already invoked
-        def callback(data_node: DataNode):
-            self._move_node_after_state_change(data_node,
-                                               DataNodeState.DISK,
-                                               DataNodeState.MEMORY)
+        return self._get_general_callback(
+            DataNodeState.DISK,
+            DataNodeState.MEMORY
+        )
 
-        return callback
-
-    def _move_node_after_state_change(self, data_node, state_from, state_to):
-        """Move the given node between structures for nodes in particular state.
+    def _get_general_callback(self, state_from, state_to, *,
+                              invoke_trigger: bool = False):
+        """Create general callback for DataNode's transition between states.
 
         Parameters
         ----------
-        data_node
-            Node which state was changed.
         state_from
             State from which the node transits.
         state_to
             State to which the node transits.
+        invoke_trigger
+            Whether invoke the trigger-on-result of the given node, if exists.
+            It sets off (potentially) a cascade of trigger invocations
+            (trigger-on-descendants, graph's).
         """
 
-        self._nodes_by_state[state_from].remove(data_node)
-        self._nodes_by_state[state_to].add(data_node)
+        def callback(data_node: DataNode):
+            # Move node inside the ES's data structures
+            self._nodes_by_state[state_from].remove(data_node)
+            self._nodes_by_state[state_to].add(data_node)
+
+            # If requested, set off the trigger invocation
+            if invoke_trigger and data_node.has_trigger_on_result:
+                self._process_trigger_on_result(data_node)
+                self._invoke_eligible_non_result_triggers()
+
+        return callback
 
     def _process_trigger_on_result(self, data_node):
         """Process the trigger-on-result of the given node.
