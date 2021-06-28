@@ -455,8 +455,6 @@ class EvaluationState(collections.abc.Iterable):
             The iterable of all DataNodes on level 0.
         """
 
-        # TODO: do not forget update them after trigger invocation, although
-        #  it is a bit unlikely
         return self._top_level
 
     def __iter__(self) -> Iterator[DataNode]:
