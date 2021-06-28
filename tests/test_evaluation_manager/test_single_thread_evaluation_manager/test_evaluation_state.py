@@ -26,7 +26,7 @@ class TestEvaluationStateMemoryMethods(unittest.TestCase):
 
         self.memory_info_mock.get_process_virtual_memory.return_value = self.vms
         self.memory_info_mock.get_process_ram_memory.return_value = self.rss
-        self.memory_info_mock.get_available_memory = self.av_mem
+        self.memory_info_mock.get_available_memory.return_value = self.av_mem
 
         ag = SealedActivationGraph()
         ag.add_activation(ar_plugins.const, 10)
@@ -292,7 +292,7 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
 
         # Launch the cascade
         self.db.save(25, act_2.definition)
-        dn_2.evaluate()
+        dn_2.try_load()
 
         # Check ES
         expected = self.get_expected_state_template()
