@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Deque, Sequence
+from typing import TYPE_CHECKING, Iterable, Deque, Sequence, Union
 import collections
 
+from neads.activation_model import SealedActivation
+
 if TYPE_CHECKING:
-    from neads.activation_model import SealedActivation, SealedActivationGraph
+    from neads.activation_model import SealedActivationGraph
 
 
 class ActivationEligibilityDetector:
@@ -55,19 +57,15 @@ class ActivationEligibilityDetector:
         """The Activation whose trigger is watched."""
         return self._activation
 
-    def update(self, invoked_activation: SealedActivation,
+    def update(self,
+               invoked_object: Union[SealedActivation, SealedActivationGraph],
                new_activations: Iterable[SealedActivation]):
         """Update the detector after invocation of other trigger method.
 
-        Invocation of an other trigger method may affect eligibility of the
-        tracked method. The Activation whose trigger for called is likely to
-        lose its trigger (only trigger-on-descendants can be reset). On the
-        other hand, some of the new Activations may have their trigger assigned.
-
         Parameters
         ----------
-        invoked_activation
-            The Activation whose trigger was invoked.
+        invoked_object
+            The object whose trigger method was invoked.
         new_activations
             New Activations created by the invoked trigger method.
         """
@@ -169,19 +167,21 @@ class EligibilityDetector:
 
         return tuple(self._activations_detectors.keys())
 
-    def update(self, invoked_activation: SealedActivation,
+    def update(self,
+               invoked_object: Union[SealedActivation, SealedActivationGraph],
                new_activations: Iterable[SealedActivation]):
         """Update the detector after invocation a trigger method.
 
         Invocation of a trigger method may affect eligibility of the tracked
-        methods. The Activation whose trigger for called is likely to
-        lose its trigger (only trigger-on-descendants can be reset). On the
-        other hand, some of the new Activations may be given theirs trigger.
+        methods. If the object whose trigger was invoked, is Activation, it
+        is likely to lose its trigger (specially if the trigger-on-result
+        was called; only trigger-on-descendants can be reset). On the other
+        hand, some of the new Activations may be given theirs trigger.
 
         Parameters
         ----------
-        invoked_activation
-            The Activation whose trigger was invoked.
+        invoked_object
+            The object whose trigger method was invoked.
         new_activations
             New Activations created by the invoked trigger method.
         """
@@ -189,8 +189,9 @@ class EligibilityDetector:
         # Trigger methods cannot modify trigger methods of existing Activations
         # Thus, the Activation tracking can quit only after its invocation,
         # unless the trigger-on-descendants is (re-)set.
-        if not invoked_activation.trigger_on_descendants:
-            self._activations_detectors.pop(invoked_activation, None)
+        if isinstance(invoked_object, SealedActivation) \
+                and not invoked_object.trigger_on_descendants:
+            self._activations_detectors.pop(invoked_object, None)
 
         # Some of the new Activation may have assigned a trigger-on-descendants
         # Thus, if new Activation have this trigger, we start its tracking
@@ -201,4 +202,4 @@ class EligibilityDetector:
 
         # Now update the whole pack
         for detector in self._activations_detectors.values():
-            detector.update(invoked_activation, new_activations)
+            detector.update(invoked_object, new_activations)

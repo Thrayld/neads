@@ -409,6 +409,39 @@ class TestEligibilityDetector(unittest.TestCase):
         self.assertCountEqual(expected_eligible, actual_eligible)
         self.assertCountEqual(expected_tracked, actual_tracked)
 
+    def test_update_with_graphs_trigger(self):
+        ag = SealedActivationGraph()
+
+        act_1 = ag.add_activation(ar_plugins.const, 10)
+        act_1.trigger_on_descendants = mock.Mock()
+
+        def ag_trigger():
+            act_2 = ag.add_activation(ar_plugins.sub, act_1.symbol, 30)
+            act_2.trigger_on_descendants = mock.Mock()
+            return [act_2]
+
+        ag.trigger_method = ag_trigger
+
+        ed = EligibilityDetector(ag)
+
+        # Calling ag's trigger, new act_2 with a trigger is descendant of
+        # act_1, thus act_1 is ineligible
+        # Only act_2 is then eligible
+        tm = ag.trigger_method
+        del ag.trigger_method
+        new_acts = tm()  # Single Activation act_3
+
+        # Update
+        ed.update(ag, new_acts)
+
+        actual_eligible = ed.eligible_activations
+        actual_tracked = ed.tracked_activations
+
+        expected_eligible = new_acts
+        expected_tracked = expected_eligible + [act_1]
+        self.assertCountEqual(expected_eligible, actual_eligible)
+        self.assertCountEqual(expected_tracked, actual_tracked)
+
 
 if __name__ == '__main__':
     unittest.main()
