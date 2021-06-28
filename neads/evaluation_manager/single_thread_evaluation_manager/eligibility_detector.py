@@ -174,7 +174,7 @@ class EligibilityDetector:
 
         # Trigger methods cannot modify trigger methods of existing Activations
         # Thus, the Activation tracking can quit only after its invocation,
-        # if it is not re-set
+        # unless the trigger-on-descendants is (re-)set.
         if not invoked_activation.trigger_on_descendants:
             self._activations_detectors.pop(invoked_activation, None)
 
