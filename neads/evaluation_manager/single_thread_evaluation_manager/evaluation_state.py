@@ -55,8 +55,8 @@ class EvaluationState(collections.abc.Iterable):
         database
             Database for Activations' data. DataNodes will try to load their
             data from there and save the data there after evaluation (unless
-            the data were found right away).
-            # TODO: opened or closed?
+            the data were found right away). The database is supposed to be
+            open.
         """
 
         self._activation_graph = activation_graph
