@@ -72,22 +72,24 @@ class ESExpected:
 
 
 tc = unittest.TestCase()  # Enable access to assert methods to test method below
+error_message = 'Difference in {}'
 
 
 def assertEvaluationShapeIs(expected_values: ESExpected,  # noqa
                             actual_es: EvaluationState):
     for attribute, attr_value in expected_values.__dict__.items():
+        message = error_message.format(attribute)
         if attr_value != 'no_test':
             if attribute in ['objectives', 'results', 'top_level'] \
                     or attribute.endswith('_nodes'):
                 actual = getattr(actual_es, attribute)
-                tc.assertCountEqual(attr_value, actual)
+                tc.assertCountEqual(attr_value, actual, message)
             elif attribute == 'has_graph_trigger':
                 actual = getattr(actual_es, attribute)
-                tc.assertEqual(attr_value, actual)
+                tc.assertEqual(attr_value, actual, message)
             elif attribute == 'it':
                 actual = list(actual_es)
-                tc.assertCountEqual(attr_value, actual)
+                tc.assertCountEqual(attr_value, actual, message)
 
 
 class TestEvaluationStateSimpleStateChangesNoTriggers(unittest.TestCase):
