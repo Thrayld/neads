@@ -59,41 +59,52 @@ class EvaluationState(collections.abc.Iterable):
             # TODO: opened or closed?
         """
 
-        # TODO: do not forget some initial triggers
-
         self._activation_graph = activation_graph
         self._database = database
 
-        # Creating nodes and important mappings
-        self._act_to_node: dict[SealedActivation, DataNode] = \
-            self._get_data_nodes()
-        self._node_to_act: dict[DataNode, SealedActivation] = \
-            {node: act for act, node in self._act_to_node.items()}
-        nodes = self._act_to_node.values()
-
-        # Creating helper for checking eligible trigger-on-descendants
-        self._trigger_detector = EligibilityDetector(self._activation_graph)
-
-        # Initializing some fields
-        self._top_level = [node for node in nodes if node.level == 0]
-        self._objectives = [node for node in nodes
-                            if node.has_trigger_on_result]
+        # Some fields
+        self._top_level = []
+        self._objectives = []
         self._results = []
 
-        # Categorizing nodes by state
+        # Nodes by state
         self._nodes_by_state: dict[DataNodeState, set[DataNode]] = \
             collections.defaultdict(set)
-        self._nodes_by_state[DataNodeState.UNKNOWN] = \
-            set(nodes)
+
+        # Important mappings
+        self._act_to_node: dict[SealedActivation, DataNode] = {}
+        self._node_to_act: dict[DataNode, SealedActivation] = {}
+
+        # Helper for tracking eligible activations with trigger-on-descendants
+        self._trigger_detector = EligibilityDetector(self._activation_graph)
+
+        # Creating data nodes and incorporating them
+        self._incorporate_activations(list(self._activation_graph))
+
+        # Checking some triggers already eligible to be called
+        self._invoke_eligible_triggers_on_descendants()
 
     def _incorporate_activations(self, activations):
         """Incorporate the given Activations to State's data structures.
 
-        It involves creating DataNodes from the Activations and so on.
+        The Activations are considered to be new to the graph, thus,
+        the corresponding nodes are created.
+
+        The method does not update the `trigger_detector`
         """
 
-    def _get_data_nodes(self):
-        """Create DataNodes for given graph and assign them the callbacks.
+        nodes = self._get_new_data_nodes(activations)
+
+        # Extending some fields
+        self._top_level.extend(node for node in nodes if node.level == 0)
+        self._objectives.extend(node for node in nodes
+                                if node.has_trigger_on_result)
+
+        # All new nodes are UNKNOWN
+        self._nodes_by_state[DataNodeState.UNKNOWN].update(nodes)
+
+    def _get_new_data_nodes(self, activations) -> list[DataNode]:
+        """Create DataNodes for the given activations with assigned callbacks.
 
         Returns
         -------
@@ -101,29 +112,35 @@ class EvaluationState(collections.abc.Iterable):
             callbacks.
         """
 
-        act_to_node = self._create_data_nodes()
-        for node in act_to_node.values():
+        created_nodes = self._create_data_nodes_and_extend_mappings(activations)
+        for node in created_nodes:
             self._register_callbacks(node)
-        return act_to_node
+        return created_nodes
 
-    def _create_data_nodes(self):
-        """Create DataNodes for Activations of the given graph.
+    def _create_data_nodes_and_extend_mappings(self, activations) \
+            -> list[DataNode]:
+        """Create DataNodes for the given Activations and extent ES's mappings.
+
+        The method extends the ES's `act_to_node` and `node_to_act` mappings.
 
         Returns
         -------
-            Mapping of Activations to created DataNodes.
+            Created DataNodes for the given Activations.
         """
 
-        ordered_activations = sorted(self._activation_graph,
+        ordered_activations = sorted(activations,
                                      key=lambda act: act.level)
-        act_to_node: dict[SealedActivation, DataNode] = {}
+        created_nodes = []
 
         for activation in ordered_activations:
-            parent_nodes = [act_to_node[act] for act in activation.parents]
+            parent_nodes = [self._act_to_node[act]
+                            for act in activation.parents]
             created_node = DataNode(activation, parent_nodes, self._database)
-            act_to_node[activation] = created_node
+            self._act_to_node[activation] = created_node
+            self._node_to_act[created_node] = activation
+            created_nodes.append(created_node)
 
-        return act_to_node
+        return created_nodes
 
     def _register_callbacks(self, data_node):
         """Register callbacks to the given DataNode.
@@ -166,7 +183,7 @@ class EvaluationState(collections.abc.Iterable):
         def callback(data_node: DataNode):
             if data_node.has_trigger_on_result:
                 ...  # call it
-                self._invoke_eligible_triggers()
+                self._invoke_eligible_triggers_on_descendants()
             self._move_node_after_state_change(data_node,
                                                DataNodeState.UNKNOWN,
                                                DataNodeState.MEMORY)
@@ -178,7 +195,7 @@ class EvaluationState(collections.abc.Iterable):
         def callback(data_node: DataNode):
             if data_node.has_trigger_on_result:
                 ...  # call it
-                self._invoke_eligible_triggers()
+                self._invoke_eligible_triggers_on_descendants()
             self._move_node_after_state_change(data_node,
                                                DataNodeState.NO_DATA,
                                                DataNodeState.MEMORY)
@@ -220,7 +237,8 @@ class EvaluationState(collections.abc.Iterable):
         """Process trigger-on-result of the given DataNode.
 
         The method calls the trigger and updates the EvaluationState by the
-        triggers result (i.e. the new graph's Activations).
+        triggers result (i.e. the new graph's Activations). It also updates
+        the `trigger_detector`.
 
         Parameters
         ----------
@@ -229,22 +247,31 @@ class EvaluationState(collections.abc.Iterable):
             processed.
         """
 
-        corresponding_activation = self._node_to_act[data_node]
-        trigger = corresponding_activation.trigger_on_result
-        del corresponding_activation.trigger_on_result
+        # Preparation
+        processed_activation = self._node_to_act[data_node]
+        trigger = processed_activation.trigger_on_result
+        del processed_activation.trigger_on_result
 
+        # Calling the trigger
         new_activations = trigger(data_node.get_data())
 
+        # Finish
+        self._objectives.remove(data_node)
+        self._incorporate_activations(new_activations)
+        self._trigger_detector.update(processed_activation, new_activations)
+        # self._invoke_eligible_triggers_on_descendants()
 
-
-
-    def _invoke_eligible_triggers(self):
+    def _invoke_eligible_triggers_on_descendants(self):
         """Successively invoke all eligible triggers-on-descendants and graph's.
 
         The trigger-on-result methods are handler separately.
         """
 
-        pass
+        while self._trigger_detector.eligible_activations:
+            eligible_activation = ...
+
+        # Are there any activations TM?
+        # No --> Graph trigger
 
     @property
     def used_virtual_memory(self) -> int:
