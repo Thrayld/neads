@@ -189,9 +189,21 @@ class EligibilityDetector:
         # Trigger methods cannot modify trigger methods of existing Activations
         # Thus, the Activation tracking can quit only after its invocation,
         # unless the trigger-on-descendants is (re-)set.
-        if isinstance(invoked_object, SealedActivation) \
-                and not invoked_object.trigger_on_descendants:
-            self._activations_detectors.pop(invoked_object, None)
+
+        # If the invoked trigger belongs to Activation
+        if isinstance(invoked_object, SealedActivation):
+            # The Activation has trigger-on-descendants but it is not tracked
+            # It can happen, when trigger-on-result assigns
+            # trigger-on-descendants
+            if invoked_object.trigger_on_descendants \
+                    and invoked_object not in self._activations_detectors:
+                self._start_tracking(invoked_object)
+            # The Activation does not have trigger-on-descendants but it is
+            # tracked
+            # That is the usual case after trigger-on-descendants invocation
+            elif not invoked_object.trigger_on_descendants \
+                    and invoked_object in self._activations_detectors:
+                self._end_tracking(invoked_object)
 
         # Some of the new Activation may have assigned a trigger-on-descendants
         # Thus, if new Activation have this trigger, we start its tracking
@@ -203,3 +215,26 @@ class EligibilityDetector:
         # Now update the whole pack
         for detector in self._activations_detectors.values():
             detector.update(invoked_object, new_activations)
+
+    def _start_tracking(self, activation):
+        """Start tracking of the given Activation.
+
+        Parameters
+        ----------
+        activation
+            Activation to be tracked.
+        """
+
+        self._activations_detectors[activation] = \
+            ActivationEligibilityDetector(activation)
+
+    def _end_tracking(self, activation):
+        """End tracking of the given Activation.
+
+        Parameters
+        ----------
+        activation
+            Activation whose tracking ends.
+        """
+
+        del self._activations_detectors[activation]
