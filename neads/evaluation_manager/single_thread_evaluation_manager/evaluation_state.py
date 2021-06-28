@@ -62,6 +62,9 @@ class EvaluationState(collections.abc.Iterable):
         self._activation_graph = activation_graph
         self._database = database
 
+        # If the ES is in complete state, i.e. the graph contains some triggers
+        self.is_complete = False
+
         # Some fields
         self._top_level = []
         self._objectives = []
@@ -82,7 +85,7 @@ class EvaluationState(collections.abc.Iterable):
         self._incorporate_activations(list(self._activation_graph))
 
         # Checking if some triggers are already eligible to be called
-        self._invoke_eligible_triggers_on_descendants()
+        self._invoke_eligible_non_result_triggers()
 
     def _incorporate_activations(self, activations):
         """Incorporate the given Activations to State's data structures.
@@ -296,17 +299,58 @@ class EvaluationState(collections.abc.Iterable):
         self._incorporate_activations(new_activations)
         self._trigger_detector.update(obj, new_activations)
 
-    def _invoke_eligible_triggers_on_descendants(self):
+    def _invoke_eligible_non_result_triggers(self):
         """Successively invoke all eligible triggers-on-descendants and graph's.
 
-        The trigger-on-result methods are handler separately.
+        The method invokes as much trigger-on-descendants as possible. If
+        graph's trigger is present and its invocation is eligible, the method
+        continues with it. Then it starts recursion (again checking
+        trigger-on-descendants methods).
+
+        If the graph's trigger is not present, then the ES switches to
+        complete state.
         """
 
+        # Process all eligible trigger-on-descendants methods
         while self._trigger_detector.eligible_activations:
-            eligible_activation = ...
+            eligible_activation = \
+                self._trigger_detector.eligible_activations[0]
+            self._process_trigger_on_descendants(
+                self._act_to_node[eligible_activation]
+            )
 
-        # Are there any activations TM?
-        # No --> Graph trigger
+        # No eligible Activations with trigger-on-descendants
+
+        # Are there any other Activations' trigger methods?
+        # It is sufficient to look only at trigger-on-result, because if
+        # there is no eligible trigger-on-descendants, then either no such
+        # method is present or a trigger-on-descendants is 'blocked' (made
+        # ineligible) by a trigger-on-result
+        if len(self._objectives):
+            # Nothing we can do right now
+            # No eligible activation and graph's trigger (if exists) is blocked
+            return
+        else:
+            # Check presence of graph's trigger
+            if self._activation_graph.trigger_method:
+                # Process the graphs trigger and repeat the check
+                self._process_graph_trigger()
+                self._invoke_eligible_non_result_triggers()
+            else:
+                self._switch_to_complete_state()
+
+    def _switch_to_complete_state(self):
+        """Switch the EvaluationState to 'complete' state.
+
+        The complete state means that no trigger methods are present in the
+        graph. Thus, it cannot be further modified.
+
+        That is, the method is supposed to be called only after all trigger
+        methods were invoked.
+        """
+
+        self._results = [node for node in self if len(node.children) == 0]
+        self._is_complete = True
 
     @property
     def used_virtual_memory(self) -> int:

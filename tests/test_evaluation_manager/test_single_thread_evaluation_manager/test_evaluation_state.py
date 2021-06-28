@@ -11,6 +11,12 @@ import tests.my_test_utilities.arithmetic_plugins as ar_plugins
 from tests.my_test_utilities.mock_database import MockDatabase
 
 
+def get_empty_trigger_mock():
+    """Return Mock with empty list as a return_value."""
+    trigger_mock = mock.Mock()
+    trigger_mock.return_value = []
+    return trigger_mock
+
 class TestEvaluationStateMemoryMethods(unittest.TestCase):
     def setUp(self):
         mock_path = 'neads.evaluation_manager' \
@@ -185,7 +191,7 @@ class TestEvaluationStateWithTriggersSimple(unittest.TestCase):
         # Cannot create ES right-away, first the triggers need be assigned
 
     def test_node_with_trigger_on_result(self):
-        act_trigger = mock.Mock()
+        act_trigger = get_empty_trigger_mock()
         self.act.trigger_on_result = act_trigger
         es = EvaluationState(self.ag, self.db)
         dn = next(iter(es))
@@ -210,7 +216,7 @@ class TestEvaluationStateWithTriggersSimple(unittest.TestCase):
         self.assertIsNone(self.act.trigger_on_result)  # It is removed now
 
     def test_node_with_trigger_on_descendants(self):
-        act_trigger = mock.Mock()
+        act_trigger = get_empty_trigger_mock()
         self.act.trigger_on_descendants = act_trigger
         es = EvaluationState(self.ag, self.db)
         dn = next(iter(es))
@@ -227,7 +233,7 @@ class TestEvaluationStateWithTriggersSimple(unittest.TestCase):
         self.assertIsNone(self.act.trigger_on_descendants)  # It is removed now
 
     def test_node_with_graph_trigger(self):
-        graph_trigger = mock.Mock()
+        graph_trigger = get_empty_trigger_mock()
         self.ag.trigger_method = graph_trigger
         es = EvaluationState(self.ag, self.db)
         dn = next(iter(es))
@@ -266,9 +272,9 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
 
     def test_trigger_cascade_result_descendants_graph(self):
         # Create graph
-        graph_trigger = mock.Mock()
-        act_1_trigger = mock.Mock()
-        act_2_trigger = mock.Mock()
+        graph_trigger = get_empty_trigger_mock()
+        act_1_trigger = get_empty_trigger_mock()
+        act_2_trigger = get_empty_trigger_mock()
         act_2_trigger.return_value = []
 
         act_1 = self.ag.add_activation(ar_plugins.const, 10)
@@ -317,8 +323,8 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
 
     def test_immediate_trigger_cascade_descendants_graph(self):
         # Create graph
-        graph_trigger = mock.Mock()
-        descendants_trigger = mock.Mock()
+        graph_trigger = get_empty_trigger_mock()
+        descendants_trigger = get_empty_trigger_mock()
 
         act_1 = self.ag.add_activation(ar_plugins.const, 10)
 
@@ -348,8 +354,9 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
         # Create graph
         act_1 = self.ag.add_activation(ar_plugins.const, 10)
         act_2 = None
-        act_2_trigger = mock.Mock()
-        act_1_trigger_call_watch = mock.Mock()  # Use for easy of act_1_trigger
+        act_2_trigger = get_empty_trigger_mock()
+        # For easy check act_1_trigger invocation
+        act_1_trigger_call_watch = mock.Mock()
 
         def act_1_trigger(_):
             nonlocal act_2
@@ -396,8 +403,9 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
     def test_result_sets_descendants_trigger_on_itself(self):
         # Create graph
         act_1 = self.ag.add_activation(ar_plugins.const, 10)
-        act_1_trigger_call_watch = mock.Mock()  # Use for easy of act_1_trigger
-        act_1_trigger_on_descendants = mock.Mock()
+        # For easy check act_1_trigger invocation
+        act_1_trigger_call_watch = mock.Mock()
+        act_1_trigger_on_descendants = get_empty_trigger_mock()
 
         def act_1_trigger_on_result(_):
             act_1_trigger_call_watch()
@@ -436,7 +444,6 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
 
         act_1_trigger_on_descendants.assert_called_once_with()
         self.assertIsNone(act_1.trigger_on_descendants)
-
 
 
 if __name__ == '__main__':
