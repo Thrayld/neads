@@ -232,7 +232,7 @@ class TestActivationEligibilityDetector(unittest.TestCase):
 
 
 class TestEligibilityDetector(unittest.TestCase):
-    def test_eligible_activations_simple(self):
+    def test_eligible_and_tracked_activations_simple(self):
         ag = SealedActivationGraph()
         act_1 = ag.add_activation(ar_plugins.const, 10)
         act_1.trigger_on_descendants = mock.Mock()
@@ -245,10 +245,13 @@ class TestEligibilityDetector(unittest.TestCase):
 
         ed = EligibilityDetector(ag)
 
-        actual = ed.eligible_activations
+        actual_eligible = ed.eligible_activations
+        actual_tracked = ed.tracked_activations
 
-        expected = [act_3]
-        self.assertCountEqual(expected, actual)
+        expected_eligible = [act_3]
+        expected_tracked = expected_eligible + [act_1]
+        self.assertCountEqual(expected_eligible, actual_eligible)
+        self.assertCountEqual(expected_tracked, actual_tracked)
 
     def test_graph_property(self):
         ag = SealedActivationGraph()
@@ -287,10 +290,13 @@ class TestEligibilityDetector(unittest.TestCase):
         # Update
         ed.update(act_2, new_acts)
 
-        actual = ed.eligible_activations
+        actual_eligible = ed.eligible_activations
+        actual_tracked = ed.tracked_activations
 
-        expected = [act_1, act_4]
-        self.assertCountEqual(expected, actual)
+        expected_eligible = [act_1, act_4]
+        expected_tracked = expected_eligible
+        self.assertCountEqual(expected_eligible, actual_eligible)
+        self.assertCountEqual(expected_tracked, actual_tracked)
 
     def test_update_with_creating_node_with_trigger(self):
         ag = SealedActivationGraph()
@@ -321,10 +327,13 @@ class TestEligibilityDetector(unittest.TestCase):
         # Update
         ed.update(act_2, new_acts)
 
-        actual = ed.eligible_activations
+        actual_eligible = ed.eligible_activations
+        actual_tracked = ed.tracked_activations
 
-        expected = [act_4] + new_acts
-        self.assertCountEqual(expected, actual)
+        expected_eligible = [act_4] + new_acts
+        expected_tracked = expected_eligible + [act_1]
+        self.assertCountEqual(expected_eligible, actual_eligible)
+        self.assertCountEqual(expected_tracked, actual_tracked)
 
     def test_update_after_trigger_on_descendants_invocation_and_reset(self):
         ag = SealedActivationGraph()
@@ -355,10 +364,13 @@ class TestEligibilityDetector(unittest.TestCase):
         # Update
         ed.update(act_2, new_acts)
 
-        actual = ed.eligible_activations
+        actual_eligible = ed.eligible_activations
+        actual_tracked = ed.tracked_activations
 
-        expected = [act_2, act_4]
-        self.assertCountEqual(expected, actual)
+        expected_eligible = [act_2, act_4]
+        expected_tracked = expected_eligible + [act_1]
+        self.assertCountEqual(expected_eligible, actual_eligible)
+        self.assertCountEqual(expected_tracked, actual_tracked)
 
     def test_update_remove_eligibility_of_previously_eligible_node(self):
         ag = SealedActivationGraph()
@@ -389,10 +401,13 @@ class TestEligibilityDetector(unittest.TestCase):
         # Update
         ed.update(act_2, new_acts)
 
-        actual = ed.eligible_activations
+        actual_eligible = ed.eligible_activations
+        actual_tracked = ed.tracked_activations
 
-        expected = [act_1]
-        self.assertCountEqual(expected, actual)
+        expected_eligible = [act_1]
+        expected_tracked = expected_eligible + [act_4]
+        self.assertCountEqual(expected_eligible, actual_eligible)
+        self.assertCountEqual(expected_tracked, actual_tracked)
 
 
 if __name__ == '__main__':

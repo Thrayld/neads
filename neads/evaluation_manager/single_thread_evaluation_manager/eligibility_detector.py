@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Deque
+from typing import TYPE_CHECKING, Iterable, Deque, Sequence
 import collections
 
 if TYPE_CHECKING:
@@ -142,7 +142,7 @@ class EligibilityDetector:
         return self._graph
 
     @property
-    def eligible_activations(self):
+    def eligible_activations(self) -> Sequence:
         """Return Activations whose triggers are eligible for invocation.
 
         Returns
@@ -151,9 +151,23 @@ class EligibilityDetector:
             eligible for invocation.
         """
 
-        return [act
-                for act, detector in self._activations_detectors.items()
-                if detector.is_eligible]
+        return tuple(
+            act
+            for act, detector in self._activations_detectors.items()
+            if detector.is_eligible
+        )
+
+    @property
+    def tracked_activations(self) -> Sequence:
+        """Return all tracked Activations.
+
+        Returns
+        -------
+            All tracked Activations. That is, the Activations with a
+            trigger-on-descendants.
+        """
+
+        return tuple(self._activations_detectors.keys())
 
     def update(self, invoked_activation: SealedActivation,
                new_activations: Iterable[SealedActivation]):
