@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any
 
-from ..i_evaluation_manager import IEvaluationManager
+from neads.evaluation_manager.i_evaluation_manager import IEvaluationManager
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph, SealedActivation
     from neads.database import IDatabase
+    from neads.evaluation_manager.single_thread_evaluation_manager \
+        .evaluation_algorithms.i_evaluation_algorithm import \
+        IEvaluationAlgorithm
 
 
 class SingleThreadEvaluationManager(IEvaluationManager):
@@ -20,8 +25,10 @@ class SingleThreadEvaluationManager(IEvaluationManager):
         """
 
         raise NotImplementedError()
+        # self._database = database
 
-    def evaluate(self, activation_graph: SealedActivationGraph) \
+    def evaluate(self, activation_graph: SealedActivationGraph,
+                 evaluation_algorithm: IEvaluationAlgorithm) \
             -> dict[SealedActivation, Any]:
         """Evaluate the given graph.
 
@@ -35,6 +42,8 @@ class SingleThreadEvaluationManager(IEvaluationManager):
             The graph to be evaluated. Note that it may be changed
             (mostly expanded) during the evaluation (as a consequence of
             trigger's evaluation).
+        evaluation_algorithm
+            The algorithm which will execute the evaluation.
 
         Returns
         -------
@@ -43,3 +52,6 @@ class SingleThreadEvaluationManager(IEvaluationManager):
         """
 
         raise NotImplementedError()
+        # with database ?
+        #     es = EvaluationState(graph, database)
+        #     alg = EvaluationAlgorithm

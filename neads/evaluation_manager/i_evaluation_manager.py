@@ -1,9 +1,13 @@
-import abc
+from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+import abc
 
 if TYPE_CHECKING:
-    from ..activation_model import SealedActivationGraph, SealedActivation
+    from neads.activation_model import SealedActivationGraph, SealedActivation
+    from neads.evaluation_manager.single_thread_evaluation_manager \
+        .evaluation_algorithms.i_evaluation_algorithm import \
+        IEvaluationAlgorithm
 
 
 class IEvaluationManager(abc.ABC):
@@ -21,7 +25,8 @@ class IEvaluationManager(abc.ABC):
     """
 
     @abc.abstractmethod
-    def evaluate(self, activation_graph: SealedActivationGraph) \
+    def evaluate(self, activation_graph: SealedActivationGraph,
+                 evaluation_algorithm: IEvaluationAlgorithm) \
             -> dict[SealedActivation, Any]:
         """Evaluate the given graph.
 
@@ -35,9 +40,13 @@ class IEvaluationManager(abc.ABC):
             The graph to be evaluated. Note that it may be changed
             (mostly expanded) during the evaluation (as a consequence of
             trigger's evaluation).
+        evaluation_algorithm
+            The algorithm which will execute the evaluation.
 
         Returns
         -------
             Dictionary which maps childless Activations of the graph to their
             results.
         """
+
+        raise NotImplementedError()
