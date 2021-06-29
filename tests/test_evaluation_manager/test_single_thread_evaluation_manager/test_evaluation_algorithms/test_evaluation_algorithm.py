@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import unittest
 
 from typing import TYPE_CHECKING, Callable, Any
@@ -44,7 +46,7 @@ class BaseTestClassWrapper:
 
             self.assertDictEqual(expected_results, actual_results, msg)
 
-        def test_graph_generator(
+        def do_test_graph_generator(
                 self,
                 graph_generator: Callable[
                     [],
@@ -58,14 +60,14 @@ class BaseTestClassWrapper:
             self.algorithm: IEvaluationAlgorithm = self.get_algorithm()
 
         def test_simple_tree(self):
-            self.test_graph_generator(graphs.simple_tree)
+            self.do_test_graph_generator(graphs.simple_tree)
 
         def test_simple_diamond(self):
-            self.test_graph_generator(graphs.simple_diamond)
+            self.do_test_graph_generator(graphs.simple_diamond)
 
         def test_simple_trigger_on_result(self):
-            self.test_graph_generator(graphs.simple_trigger_on_result)
+            self.do_test_graph_generator(graphs.simple_trigger_on_result)
 
         def test_trigger_on_result_with_graph_trigger(self):
-            self.test_graph_generator(
+            self.do_test_graph_generator(
                 graphs.trigger_on_result_with_graph_trigger)
