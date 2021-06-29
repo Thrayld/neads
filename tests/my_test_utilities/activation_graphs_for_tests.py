@@ -90,7 +90,7 @@ def simple_trigger_on_result():
         created = []
         for idx in range(data):
             new_act = ag.add_activation(ar_plugins.pow,
-                                        base=act_1.symbol, exp=idx)
+                                        base=act_1.symbol, x=idx)
             created.append(new_act)
             results[new_act] = data**idx
         return created
@@ -133,7 +133,7 @@ def trigger_on_result_with_graph_trigger():
             created = []
             for idx in range(data):
                 new_act = ag.add_activation(ar_plugins.pow,
-                                            base=act.symbol, exp=idx)
+                                            base=act.symbol, x=idx)
                 created.append(new_act)
             return created
 
