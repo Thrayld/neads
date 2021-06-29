@@ -11,6 +11,8 @@ if TYPE_CHECKING:
         .evaluation_state import EvaluationState
 
 
+# TODO: TODO.. maybe?
+
 class BttbAlgorithm(IEvaluationAlgorithm):
     """Algorithm running repeatedly from bottom to top and top to bottom.
 
