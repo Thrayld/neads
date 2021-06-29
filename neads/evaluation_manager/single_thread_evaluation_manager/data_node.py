@@ -98,6 +98,11 @@ class DataNode:
             parent._children.append(self)
 
     @property
+    def activation(self):
+        """The activation represented by the node."""
+        return self._activation
+
+    @property
     def state(self):
         """State of the DataNode."""
         return self._state

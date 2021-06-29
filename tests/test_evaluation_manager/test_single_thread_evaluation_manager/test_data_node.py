@@ -119,6 +119,9 @@ class TestDataNodeSingleNode(unittest.TestCase):
         expected_size = pympler.asizeof.asizeof(self.value)
         self.assertEqual(expected_size, self.dn.data_size)
 
+    def test_activation(self):
+        self.assertEqual(self.act, self.dn.activation)
+
 
 make_list = Plugin(PluginID('make_list', 0), lambda x: [x])
 
