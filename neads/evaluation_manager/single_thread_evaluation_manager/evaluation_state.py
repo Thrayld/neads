@@ -425,7 +425,7 @@ class EvaluationState(collections.abc.Iterable):
         return self._objectives
 
     @property
-    def results(self):
+    def results(self) -> Iterable[DataNode]:
         """Data nodes whose data are the result of computation.
 
         The childless nodes, whose data are the result of computation. Thus,
@@ -440,7 +440,7 @@ class EvaluationState(collections.abc.Iterable):
         return self._results
 
     @property
-    def has_graph_trigger(self):
+    def has_graph_trigger(self) -> bool:
         """Whether the corresponding graph has a trigger method."""
         return bool(self._activation_graph.trigger_method)
 
