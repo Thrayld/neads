@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, Iterator, Sequence
 import collections
+import math
 
 from neads.evaluation_manager.single_thread_evaluation_manager \
     .evaluation_algorithms.i_evaluation_algorithm import IEvaluationAlgorithm
@@ -29,7 +30,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
     storing data of some nodes to disk.
     """
 
-    def __init__(self, memory_limit):
+    def __init__(self, *, memory_limit=None):
         """Initialize the ComplexAlgorithm.
 
         Parameters
@@ -40,8 +41,9 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         """
 
         # Soft limit of virtual memory for the process
-        # TODO: check valid limit
-        self._memory_limit = memory_limit
+        self._memory_limit = memory_limit \
+            if memory_limit is not None \
+            else math.inf
 
         # Proportion of memory to swap from total memory occupied by node's data
         self._proportion_to_store = 0.3
