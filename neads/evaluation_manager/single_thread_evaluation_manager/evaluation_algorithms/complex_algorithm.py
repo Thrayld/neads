@@ -50,7 +50,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
 
         # State of processing the current node
         self._necessary = []  # Nodes whose data are guaranteed to be used
-        self._processed = []  # Visited and processed nodes
+        self._visited = []  # Visited and processed nodes
 
     def evaluate(self, evaluation_state: EvaluationState) \
             -> dict[SealedActivation, Any]:
@@ -71,7 +71,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         while node_to_process := self._get_node_to_process():
             # TODO: update swap order before 'forgetting' the search order
             self._necessary = []
-            self._processed = []
+            self._visited = []
             self._process(node_to_process)
 
         results = self._get_algorithm_result()
@@ -158,7 +158,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
 
         # Insert the node to structures describing the processing state
         self._necessary.append(node)
-        self._processed.append(node)
+        self._visited.append(node)
 
         # Check the limit, if new data arrived to memory
         if new_data_in_memory and self._too_much_memory():
@@ -226,7 +226,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         # It is chance that the first visited nodes are roots of the graph
         # Hence, it is a big chance of their re-use
         # Thus, they go last
-        self._swap_order.extend(reversed(self._processed))
+        self._swap_order.extend(reversed(self._visited))
         # We definitely do not swap the necessary nodes
         # The last in necessary are the first which will be used in _process
         # method
