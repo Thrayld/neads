@@ -4,7 +4,7 @@ import shutil
 from neads.database import FileDatabase
 
 
-DB_DIR = pathlib.Path(__file__) / 'file_database'
+DB_DIR = pathlib.Path(__file__).parent / 'file_database'
 
 
 def get():
