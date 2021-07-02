@@ -136,31 +136,32 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             Node to process, see `_is_processed` method.
         """
 
-        # If node has data in memory
-        if node.state is DataNodeState.MEMORY:
-            pass
-        # If node has data on disk
-        elif node.state is DataNodeState.DISK:
-            pass
-        # If node has data in database
-        elif node.state is DataNodeState.UNKNOWN and node.try_load():
-            pass  # Now node.state == MEMORY
+        # If node is not already processed
+        if not self._is_processed(node):
+            # If node has data in database (i.e. load was successful)
+            if node.state is DataNodeState.UNKNOWN and node.try_load():
+                pass  # Now node.state == MEMORY
+            else:
+                # Now node.state == NO_DATA and needs to be evaluated
+                # Get parents data
+                for parent in node.parents:
+                    self._process(parent)  # DFS recursion
+                # Load the nodes in case they were swapped to disk
+                self._load_nodes(node.parents)
+                node.evaluate()
+                for parent in reversed(node.parents):
+                    assert parent is self._necessary.pop()  # Parents were used
+            new_data_in_memory = True
         else:
-            # Now node.state == NO_DATA and needs to be evaluated
-            # Get parents data
-            for parent in node.parents:
-                self._process(parent)  # DFS recursion
-            # Load the nodes in case they were swapped to disk
-            self._load_nodes(node.parents)
-            node.evaluate()
-            for parent in reversed(node.parents):
-                assert parent is self._necessary.pop()  # Parents were used
+            # Processed nodes
+            new_data_in_memory = False
 
+        # Insert the node to structures describing the processing state
         self._necessary.append(node)
         self._processed.append(node)
 
-        # TODO: Run only if new data are in memory
-        if self._too_much_memory():
+        # Check the limit, if new data arrived to memory
+        if new_data_in_memory and self._too_much_memory():
             self._save_memory()
 
     def _load_nodes(self, nodes):
