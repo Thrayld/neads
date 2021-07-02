@@ -103,6 +103,17 @@ class BaseTestClassWrapper:
                 key
             )
 
+        def test_save_and_load_multiple_items(self):
+            self.database.open()
+            key_data_pairs = {str(idx): idx for idx in range(5)}
+
+            for key, data in key_data_pairs.items():
+                self.database.save(data, key)
+
+            for key, data in key_data_pairs.items():
+                actual = self.database.load(key)
+                self.assertEqual(data, actual)
+
         def test_open_close(self):
             self.assertFalse(self.database.is_open)
             self.database.open()
