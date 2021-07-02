@@ -7,7 +7,6 @@ from neads.evaluation_manager.single_thread_evaluation_manager \
 
 class TestTopologicalOrderAlgorithm(BaseTestClassWrapper.
                                     BaseTestEvaluationAlgorithm):
-    """Tests serializer based on the pickle protocol."""
 
     def get_algorithm(self):
         return TopologicalOrderAlgorithm()
