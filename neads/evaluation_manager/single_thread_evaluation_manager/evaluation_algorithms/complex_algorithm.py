@@ -30,7 +30,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
     storing data of some nodes to disk.
     """
 
-    def __init__(self, *, memory_limit=None):
+    def __init__(self, *, memory_limit=None, proportion_to_store=0.3):
         """Initialize the ComplexAlgorithm.
 
         Parameters
@@ -38,6 +38,9 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         memory_limit
             Soft limit of virtual memory for the process. The consumption of
             virtual memory should not greatly exceed the limit.
+        proportion_to_store
+            Which proportion of nodes' data is supposed to be stored,
+            when memory saving is requested. Must lie between 0 and 1.
         """
 
         # Soft limit of virtual memory for the process
@@ -46,7 +49,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             else math.inf
 
         # Proportion of memory to swap from total memory occupied by node's data
-        self._proportion_to_store = 0.3
+        self._proportion_to_store = proportion_to_store
 
         self._evaluation_state: Optional[EvaluationState] = None
 
