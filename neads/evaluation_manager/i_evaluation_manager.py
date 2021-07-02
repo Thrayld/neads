@@ -25,8 +25,7 @@ class IEvaluationManager(abc.ABC):
     """
 
     @abc.abstractmethod
-    def evaluate(self, activation_graph: SealedActivationGraph,
-                 evaluation_algorithm: IEvaluationAlgorithm) \
+    def evaluate(self, activation_graph: SealedActivationGraph) \
             -> dict[SealedActivation, Any]:
         """Evaluate the given graph.
 
@@ -40,8 +39,6 @@ class IEvaluationManager(abc.ABC):
             The graph to be evaluated. Note that it may be changed
             (mostly expanded) during the evaluation (as a consequence of
             trigger's evaluation).
-        evaluation_algorithm
-            The algorithm which will execute the evaluation.
 
         Returns
         -------
