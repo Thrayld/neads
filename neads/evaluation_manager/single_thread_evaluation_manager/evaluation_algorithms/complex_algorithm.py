@@ -217,6 +217,14 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         nodes_to_keep
             The nodes, whose state will be preserved, including the case when
             they are in the MEMORY state.
+
+        Warnings
+        --------
+        ResourceWarning
+            If the 'base' memory consumption (i.e. everything minus node's data)
+            exceeds the memory limit.
+            If the total size of `nodes_to_keep` do not allow release as large
+            memory proportion as requested by `_proportion_to_store`.
         """
 
         self._update_swap_order()
@@ -225,6 +233,8 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         base_estimate = self._evaluation_state.used_virtual_memory \
             - total_used_memory_estimate
 
+        # If we cannot comply to the given memory limit, as even the 'base'
+        # memory consumption is above the limit
         if base_estimate > self._memory_limit:
             warnings.warn(
                 f'Estimated base memory usage ({base_estimate}) is greater '
@@ -234,16 +244,57 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             )
             # Infinite _memory_limit does the job
             self._memory_limit = math.inf
+        else:
+            # Do memory saving
+            memory_to_store = total_used_memory_estimate \
+                * self._proportion_to_store
+            self._do_save_memory(memory_to_store, nodes_to_keep=nodes_to_keep)
 
-        memory_to_store = total_used_memory_estimate * self._proportion_to_store
+    def _do_save_memory(self, memory_to_store, *, nodes_to_keep=()):
+        """Save at least the given amount of memory by swapping nodes to disk.
 
-        current_sum = 0
-        while current_sum < memory_to_store:
-            node_to_store = self._swap_order[0]
+        The method guarantees that the given nodes `nodes_to_keep` stay in
+        their respective state. Their size is too big, the method cannot save
+        the requested amount of memory.
+
+        The method assumes that the swap order is already updated.
+
+        Parameters
+        ----------
+        memory_to_store
+            The amount of memory to store.
+        nodes_to_keep
+            The nodes, whose state will be preserved, including the case when
+            they are in the MEMORY state.
+
+        Warnings
+        --------
+        ResourceWarning
+            If the method cannot store the given amount of memory while
+            keeping the `nodes_to_keep` in their state.
+        """
+
+        candidate_for_store_idx = 0
+        current_saved_amount = 0  # Sum of sizes of swapped nodes
+        # While some more memory needs to be saved
+        # and there are still nodes available to swap
+        while current_saved_amount < memory_to_store \
+                and len(self._swap_order) > candidate_for_store_idx:
+            node_to_store = self._swap_order[candidate_for_store_idx]
             if node_to_store not in nodes_to_keep:
-                self._swap_order.popleft()
+                # IDEA: if too slow, improve deletion (now it's quadratic)
+                del self._swap_order[candidate_for_store_idx]
                 node_to_store.store()
-                current_sum += node_to_store.data_size
+                current_saved_amount += node_to_store.data_size
+            else:
+                candidate_for_store_idx += 1
+
+        # If we are not able store the given amount of memory
+        if current_saved_amount < memory_to_store:
+            warnings.warn(
+                f'Not able to store the given amount of memory.',
+                category=ResourceWarning
+            )
 
     def _update_swap_order(self):
         """Update order in which the nodes should be swapped.
@@ -316,7 +367,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             return False
         else:
             return self._evaluation_state.used_virtual_memory \
-                > self._memory_limit
+                   > self._memory_limit
 
     def _get_algorithm_result(self):
         """Return the expected result of EvaluationAlgorithm's evaluate method.
