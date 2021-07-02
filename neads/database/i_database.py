@@ -88,6 +88,8 @@ class IDatabase(abc.ABC):
         ------
         DatabaseAccessError
             If the database is not open.
+        DataNotFound
+            If there are no data for the given key in the database.
         """
 
         self._assert_database_is_open('The database must be open when loading '
@@ -130,6 +132,11 @@ class IDatabase(abc.ABC):
         Returns
         -------
             The data corresponding to the key.
+
+        Raises
+        ------
+        DataNotFound
+            If there are no data for the given key in the database.
         """
 
     def _assert_database_is_open(self, msg=''):
