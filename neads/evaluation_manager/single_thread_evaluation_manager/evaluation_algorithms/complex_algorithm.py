@@ -47,7 +47,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         self._evaluation_state: Optional[EvaluationState] = None
 
         # Order in which the nodes are stored to disk (from start)
-        self._previous_order = collections.deque()
+        self._swap_order = collections.deque()
 
         # State of processing the current node
         self._necessary = []  # Nodes whose data are guaranteed to be used
@@ -168,39 +168,39 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             they are in the MEMORY state.
         """
 
-        order = self._get_swap_order()
+        self._update_swap_order()
         # TODO
-        total_used_memory_estimate = sum(node.data_size for node in order)
+        total_used_memory_estimate = sum(node.data_size
+                                         for node in self._swap_order)
         # Swap **some** nodes
         # Remove them from the order
 
-    def _get_swap_order(self):
-        """Generate order for swapping the nodes.
+    def _update_swap_order(self):
+        """Update order in which the nodes should be swapped.
 
         The order is based on the previous order which is updated with
-        processing state of the current node.
+        processing state of the current node. That is, by fields `_processed`
+        and `_necessary`. More info on that is in the code.
 
-        Returns
-        -------
-            Order in which the nodes in MEMORY state should be swapped.
-            The swapping should start at the index 0.
+        The order has some nice properties, such as the parents of the last
+        visited node are last, i.e. they should be swapped last.
         """
 
         # It is chance that the first visited nodes are roots of the graph
         # Hence, it is a big chance of their re-use
         # Thus, they go last
-        self._previous_order.extend(reversed(self._processed))
+        self._swap_order.extend(reversed(self._processed))
         # We definitely do not swap the necessary nodes
         # The last in necessary are the first which will be used in _process
         # method
         # Thus, they go last
-        self._previous_order.extend(self._necessary)
+        self._swap_order.extend(self._necessary)
         # Keep only the last occurrences
         # The further the element occurs, the more important the node's data are
         new_order = collections.deque(
-            self._leave_only_last_occurrence(self._previous_order)
+            self._leave_only_last_occurrence(self._swap_order)
         )
-        self._previous_order = new_order
+        self._swap_order = new_order
         return new_order
 
     @staticmethod
