@@ -74,6 +74,9 @@ class EvaluationState(collections.abc.Iterable):
         self._nodes_by_state: dict[DataNodeState, set[DataNode]] = \
             collections.defaultdict(set)
 
+        # Cache for callbacks (so they need not to be created repeatedly)
+        self._callback_cache = {}
+
         # Important mappings
         self._act_to_node: dict[SealedActivation, DataNode] = {}
         self._node_to_act: dict[DataNode, SealedActivation] = {}
@@ -224,16 +227,28 @@ class EvaluationState(collections.abc.Iterable):
             does not occur, if the ES is complete.
         """
 
-        def callback(data_node: DataNode):
-            # Move node inside the ES's data structures
-            self._nodes_by_state[state_from].remove(data_node)
-            self._nodes_by_state[state_to].add(data_node)
+        # The invoke_trigger theoretically need not to be in the key,
+        # using the knowledge that the value in invoke_trigger is determined
+        # by the states.. but safety first
+        key = (state_from, state_to, invoke_trigger)
+        if callback := self._callback_cache.get(key, None):
+            # Use cached callback
+            pass
+        else:
+            # New callback is created
+            def callback(data_node: DataNode):
+                # Move node inside the ES's data structures
+                self._nodes_by_state[state_from].remove(data_node)
+                self._nodes_by_state[state_to].add(data_node)
 
-            if not self._is_complete:
-                # If requested, set off the trigger invocation
-                if invoke_trigger and data_node.has_trigger_on_result:
-                    self._process_trigger_on_result(data_node)
-                    self._invoke_eligible_non_result_triggers()
+                if not self._is_complete:
+                    # If requested, set off the trigger invocation
+                    if invoke_trigger and data_node.has_trigger_on_result:
+                        self._process_trigger_on_result(data_node)
+                        self._invoke_eligible_non_result_triggers()
+
+            # Caching the callback
+            self._callback_cache[key] = callback
 
         return callback
 
