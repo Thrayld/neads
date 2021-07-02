@@ -11,3 +11,6 @@ class TestComplexAlgorithmWithoutSwapping(BaseTestClassWrapper.
 
     def get_algorithm(self):
         return ComplexAlgorithm()
+
+
+# TODO: Add more test with use of DB etc.
