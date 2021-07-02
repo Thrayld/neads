@@ -40,6 +40,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         """
 
         # Soft limit of virtual memory for the process
+        # TODO: check valid limit
         self._memory_limit = memory_limit
 
         # Proportion of memory to swap from total memory occupied by node's data
@@ -193,6 +194,8 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             else:
                 raise ValueError(f'The node {node} must be either in MEMORY '
                                  f'or DISK state.')
+        # TODO: the loaded nodes should get to the swap order
+        #  probably just append to start suffice
 
     def _save_memory(self, *, nodes_to_keep=()):
         """Move some nodes from MEMORY state to DISK state.
