@@ -94,7 +94,7 @@ class IDatabase(abc.ABC):
 
         self._assert_database_is_open('The database must be open when loading '
                                       'data.')
-        self._do_load(key)
+        return self._do_load(key)
 
     @abc.abstractmethod
     def _do_open(self):
