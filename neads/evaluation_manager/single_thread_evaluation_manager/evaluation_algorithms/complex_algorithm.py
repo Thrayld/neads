@@ -71,10 +71,10 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
 
         self._evaluation_state = evaluation_state
         while node_to_process := self._get_significant_node():
-            # TODO: update swap order before 'forgetting' the search order
             self._necessary = []
             self._visited = []
             self._process(node_to_process)
+            self._update_swap_order()
 
         results = self._get_algorithm_result()
         return results
