@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, Iterator, Sequence
 import collections
-import itertools
 
 from neads.evaluation_manager.single_thread_evaluation_manager \
     .evaluation_algorithms.i_evaluation_algorithm import IEvaluationAlgorithm
@@ -187,12 +186,12 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             elif node.state is DataNodeState.DISK:
                 node.load()
                 if self._too_much_memory():
-                    self._save_memory(nodes)
+                    self._save_memory(nodes_to_keep=nodes)
             else:
                 raise ValueError(f'The node {node} must be either in MEMORY '
                                  f'or DISK state.')
 
-    def _save_memory(self, nodes_to_keep=()):
+    def _save_memory(self, *, nodes_to_keep=()):
         """Move some nodes from MEMORY state to DISK state.
 
         The order of nodes to swap is given by the `_get_swap_order` method.
