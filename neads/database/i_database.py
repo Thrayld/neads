@@ -12,8 +12,6 @@ class DatabaseAccessError(Exception):
 class IDatabase(abc.ABC):
     """General interface for Database with implemented basic error checking."""
 
-    # TODO: also add finalizer (via weakref)
-
     @property
     @abc.abstractmethod
     def is_open(self):
