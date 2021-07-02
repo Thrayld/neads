@@ -8,7 +8,6 @@ import abc
 from neads.database import IDatabase, DatabaseAccessError, DataNotFound
 
 
-
 class BaseTestClassWrapper:
     """Excludes the BaseTestDatabase class from test suite.
 
