@@ -4,11 +4,10 @@ from typing import TYPE_CHECKING, Any, Optional, Iterator, Sequence
 import collections
 import itertools
 
-from neads.evaluation_manager.single_thread_evaluation_manager\
+from neads.evaluation_manager.single_thread_evaluation_manager \
     .evaluation_algorithms.i_evaluation_algorithm import IEvaluationAlgorithm
 from neads.evaluation_manager.single_thread_evaluation_manager.data_node \
     import DataNodeState
-
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivation
@@ -69,21 +68,58 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         """
 
         self._evaluation_state = evaluation_state
-        while any(evaluation_state.objectives) or any(evaluation_state.results):
+        while node_to_process := self._get_node_to_process():
             # TODO: update swap order before 'forgetting' the search order
             self._necessary = []
             self._processed = []
-            node_to_process = next(iter(itertools.chain(
-                evaluation_state.objectives,
-                evaluation_state.results
-            )))
             self._process(node_to_process)
 
         results = self._get_algorithm_result()
         return results
 
+    def _get_node_to_process(self):
+        """Get next node to process.
+
+        Returns
+        -------
+            Next node to process or None, if there are none nodes to process.
+        """
+
+        if self._evaluation_state.objectives:
+            nodes_to_process = self._evaluation_state.objectives
+        else:
+            nodes_to_process = [node
+                                for node in self._evaluation_state.results
+                                if not self._is_processed(node)]
+
+        try:
+            next_node = next(iter(nodes_to_process))
+            return next_node
+        except StopIteration:
+            return None
+
+    @staticmethod
+    def _is_processed(node):
+        """Whether the node is processed.
+
+        Processed nodes are the ones either in MEMORY or DISK state.
+
+        Parameters
+        ----------
+        node
+            The examined node.
+
+        Returns
+        -------
+            True, if the node is processed, i.e. either in MEMORY or DISK
+            state. Otherwise False.
+        """
+
+        return node.state is DataNodeState.MEMORY \
+            or node.state is DataNodeState.DISK
+
     def _process(self, node):
-        """Bring the given node to MEMORY or DISK state.
+        """Process the given node.
 
         If the node need not to be evaluated (data on disk or in database),
         then it is easy. Otherwise, DFS is used for processing the parents of
@@ -97,7 +133,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         Parameters
         ----------
         node
-            Node to process, i.e. to get to MEMORY or DISK state.
+            Node to process, see `_is_processed` method.
         """
 
         # If node has data in memory
@@ -137,8 +173,8 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         Parameters
         ----------
         nodes
-            The nodes to get to the MEMORY state. They must be either in
-            the MEMORY or the DISK state.
+            The nodes to get to the MEMORY state. They must be processed,
+            see `_is_processed` method.
         """
 
         for node in nodes:
