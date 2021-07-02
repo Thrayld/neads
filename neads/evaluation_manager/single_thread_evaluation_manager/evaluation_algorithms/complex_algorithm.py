@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Any, Optional, Iterator, Sequence
 import collections
 import math
@@ -127,7 +128,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         """
 
         return node.state is DataNodeState.MEMORY \
-            or node.state is DataNodeState.DISK
+               or node.state is DataNodeState.DISK
 
     def _process(self, node):
         """Process the given node.
@@ -221,6 +222,19 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         self._update_swap_order()
         total_used_memory_estimate = sum(node.data_size
                                          for node in self._swap_order)
+        base_estimate = self._evaluation_state.used_virtual_memory \
+            - total_used_memory_estimate
+
+        if base_estimate > self._memory_limit:
+            warnings.warn(
+                f'Estimated base memory usage ({base_estimate}) is greater '
+                f'than the memory limit ({self._memory_limit}).\n'
+                f'Switching the memory checking off.',
+                category=ResourceWarning
+            )
+            # Infinite _memory_limit does the job
+            self._memory_limit = math.inf
+
         memory_to_store = total_used_memory_estimate * self._proportion_to_store
 
         current_sum = 0
@@ -298,7 +312,11 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
 
     def _too_much_memory(self):
         """True, if the consumed virtual memory exceeds the memory limit."""
-        return self._evaluation_state.used_virtual_memory > self._memory_limit
+        if self._memory_limit == math.inf:
+            return False
+        else:
+            return self._evaluation_state.used_virtual_memory \
+                > self._memory_limit
 
     def _get_algorithm_result(self):
         """Return the expected result of EvaluationAlgorithm's evaluate method.
