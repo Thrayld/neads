@@ -42,6 +42,9 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         # Soft limit of virtual memory for the process
         self._memory_limit = memory_limit
 
+        # Proportion of memory to swap from total memory occupied by node's data
+        self._proportion_to_store = 0.3
+
         self._evaluation_state: Optional[EvaluationState] = None
 
         # Order in which the nodes are stored to disk (from start)
@@ -208,11 +211,17 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         """
 
         self._update_swap_order()
-        # TODO
         total_used_memory_estimate = sum(node.data_size
                                          for node in self._swap_order)
-        # Swap **some** nodes
-        # Remove them from the order
+        memory_to_store = total_used_memory_estimate * self._proportion_to_store
+
+        current_sum = 0
+        while current_sum < memory_to_store:
+            node_to_store = self._swap_order[0]
+            if node_to_store not in nodes_to_keep:
+                self._swap_order.popleft()
+                node_to_store.store()
+                current_sum += node_to_store.data_size
 
     def _update_swap_order(self):
         """Update order in which the nodes should be swapped.
