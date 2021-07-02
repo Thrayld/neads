@@ -219,29 +219,38 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         """Update order in which the nodes should be swapped.
 
         The order is based on the previous order which is updated with
-        processing state of the current node. That is, by fields `_processed`
+        processing state of the current node. That is, by fields `_visited`
         and `_necessary`. More info on that is in the code.
 
         The order has some nice properties, such as the parents of the last
         visited node are last, i.e. they should be swapped last.
         """
 
+        # For keeping the invariant that nodes in the order are in MEMORY
+        # It does no harm to not include the node in DISK state to the order
+        # In case they data are needed (and they are transferred to MEMORY),
+        # they will be added to the order, with the appropriate importance
+        # given by their position in `_visited` and `_necessary`
+        visited_in_memory = [node for node in self._visited
+                             if node.state is DataNodeState.MEMORY]
+        necessary_in_memory = [node for node in self._necessary
+                               if node.state is DataNodeState.MEMORY]
+
         # It is chance that the first visited nodes are roots of the graph
         # Hence, it is a big chance of their re-use
         # Thus, they go last
-        self._swap_order.extend(reversed(self._visited))
+        self._swap_order.extend(reversed(visited_in_memory))
         # We definitely do not swap the necessary nodes
         # The last in necessary are the first which will be used in _process
         # method
         # Thus, they go last
-        self._swap_order.extend(self._necessary)
+        self._swap_order.extend(necessary_in_memory)
         # Keep only the last occurrences
         # The further the element occurs, the more important the node's data are
         new_order = collections.deque(
             self._leave_only_last_occurrence(self._swap_order)
         )
         self._swap_order = new_order
-        return new_order
 
     @staticmethod
     def _leave_only_last_occurrence(order: Sequence[DataNode]) \
