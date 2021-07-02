@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from neads.activation_model import SealedActivation, SealedActivationGraph
 
 
+# TODO: Add tests which use Database
+
 class BaseTestClassWrapper:
     """Excludes the BaseTestEvaluationAlgorithm class from test suite.
 
