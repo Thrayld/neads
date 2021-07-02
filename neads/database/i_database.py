@@ -96,19 +96,41 @@ class IDatabase(abc.ABC):
 
     @abc.abstractmethod
     def _do_open(self):
+        """Do open the database."""
         pass
 
     @abc.abstractmethod
     def _do_close(self):
+        """Do close the database."""
         pass
 
     @abc.abstractmethod
     def _do_save(self, data, data_definition):
+        """Do save the given data under the given key.
+
+        Parameters
+        ----------
+        data
+            The data to save to the database.
+        data_definition
+            The key for the data.
+        """
+
         pass
 
     @abc.abstractmethod
     def _do_load(self, data_definition):
-        pass
+        """Do load data under the given data_definition key from the database.
+
+        Parameters
+        ----------
+        data_definition
+            The key for the data.
+
+        Returns
+        -------
+            The data corresponding to the key.
+        """
 
     def _assert_database_is_open(self, msg=''):
         """Check that the database is open, raise exception if not.
