@@ -48,7 +48,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         # Order in which the nodes are stored to disk (from start)
         self._swap_order = collections.deque()
 
-        # State of processing the current node
+        # State of processing the current significant node
         self._necessary = []  # Nodes whose data are guaranteed to be used
         self._visited = []  # Visited and processed nodes
 
@@ -68,7 +68,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         """
 
         self._evaluation_state = evaluation_state
-        while node_to_process := self._get_node_to_process():
+        while node_to_process := self._get_significant_node():
             # TODO: update swap order before 'forgetting' the search order
             self._necessary = []
             self._visited = []
@@ -77,23 +77,26 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         results = self._get_algorithm_result()
         return results
 
-    def _get_node_to_process(self):
-        """Get next node to process.
+    def _get_significant_node(self):
+        """Get next significant node.
+
+        The significant nodes are the ES's objectives and unprocessed ES's
+        results. These nodes needs to be processed eventually.
 
         Returns
         -------
-            Next node to process or None, if there are none nodes to process.
+            Next significant node or None, if there are no such nodes.
         """
 
         if self._evaluation_state.objectives:
-            nodes_to_process = self._evaluation_state.objectives
+            significant_nodes = self._evaluation_state.objectives
         else:
-            nodes_to_process = [node
-                                for node in self._evaluation_state.results
-                                if not self._is_processed(node)]
+            significant_nodes = [node
+                                 for node in self._evaluation_state.results
+                                 if not self._is_processed(node)]
 
         try:
-            next_node = next(iter(nodes_to_process))
+            next_node = next(iter(significant_nodes))
             return next_node
         except StopIteration:
             return None
