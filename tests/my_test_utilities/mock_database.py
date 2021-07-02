@@ -22,8 +22,14 @@ class MockDatabase(IDatabase):
     def _do_load(self, key):
         try:
             return self._content[key]
-        except KeyError as e:
-            raise DataNotFound() from e
+        except KeyError:
+            raise DataNotFound()
+
+    def _do_delete(self, key):
+        try:
+            del self._content[key]
+        except KeyError:
+            raise DataNotFound()
 
     def __init__(self,
                  database_content: Optional[dict[DataDefinition, Any]] = None):
