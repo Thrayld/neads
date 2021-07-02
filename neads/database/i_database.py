@@ -96,6 +96,26 @@ class IDatabase(abc.ABC):
                                       'data.')
         return self._do_load(key)
 
+    def delete(self, key):
+        """Delete data under the given key from the database.
+
+        Parameters
+        ----------
+        key
+            The key for the data.
+
+        Raises
+        ------
+        DatabaseAccessError
+            If the database is not open.
+        DataNotFound
+            If there are no data for the given key in the database.
+        """
+
+        self._assert_database_is_open('The database must be open when deleting '
+                                      'data.')
+        self._do_delete(key)
+
     @abc.abstractmethod
     def _do_open(self):
         """Do open the database."""
@@ -122,7 +142,7 @@ class IDatabase(abc.ABC):
 
     @abc.abstractmethod
     def _do_load(self, key):
-        """Do load data under the given data_definition key from the database.
+        """Do load data under the given key from the database.
 
         Parameters
         ----------
@@ -132,6 +152,21 @@ class IDatabase(abc.ABC):
         Returns
         -------
             The data corresponding to the key.
+
+        Raises
+        ------
+        DataNotFound
+            If there are no data for the given key in the database.
+        """
+
+    @abc.abstractmethod
+    def _do_delete(self, key):
+        """Do delete data under the given key from the database.
+
+        Parameters
+        ----------
+        key
+            The key for the data.
 
         Raises
         ------

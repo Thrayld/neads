@@ -48,6 +48,13 @@ class BaseTestClassWrapper:
                 'key'
             )
 
+        def test_delete_when_not_open(self):
+            self.assertRaises(
+                DatabaseAccessError,
+                self.database.delete,
+                'key'
+            )
+
         def test_close_when_not_open(self):
             self.assertRaises(
                 DatabaseAccessError,
@@ -71,7 +78,16 @@ class BaseTestClassWrapper:
                 'key'
             )
 
-        def test_save_load(self):
+        def test_delete_non_present_data(self):
+            self.database.open()
+
+            self.assertRaises(
+                DataNotFound,
+                self.database.delete,
+                'key'
+            )
+
+        def test_save_load_delete(self):
             self.database.open()
             data, key = 'data', 'key'
             self.database.save(data, key)
@@ -79,6 +95,14 @@ class BaseTestClassWrapper:
             actual = self.database.load(key)
 
             self.assertEqual(data, actual)
+
+            self.database.delete(key)
+
+            self.assertRaises(
+                DataNotFound,
+                self.database.load,
+                key
+            )
 
         def test_open_close(self):
             self.assertFalse(self.database.is_open)
