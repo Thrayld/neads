@@ -5,28 +5,121 @@ class DataNotFound(Exception):
     pass
 
 
+class DatabaseAccessError(Exception):
+    pass
+
+
 class IDatabase(abc.ABC):
+    """General interface for Database with implemented basic error checking."""
+
     # TODO: also add finalizer (via weakref)
+
+    @property
+    @abc.abstractmethod
+    def is_open(self):
+        """Whether the database is open."""
+        pass
 
     def __enter__(self):
         self.open()
-        return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
 
-    @abc.abstractmethod
     def open(self):
-        raise NotImplementedError()
+        """Open the database, i.e. prepare it for use.
 
-    @abc.abstractmethod
+        Raises
+        ------
+        DatabaseAccessError
+            If the database is not closed (reopening signals logical error in
+            the user's code).
+        """
+
+        if self.is_open:
+            raise DatabaseAccessError('The database must be closed when '
+                                      'opening.')
+        self._do_open()
+
     def close(self):
-        raise NotImplementedError()
+        """Close the database, i.e. end the use.
 
-    @abc.abstractmethod
+        Raises
+        ------
+        DatabaseAccessError
+            If the database is not open (closing a closed database signals
+            logical error in the user's code).
+        """
+
+        self._assert_database_is_open('The database must be open when closing.')
+        self._do_close()
+
     def save(self, data, data_definition):
-        raise NotImplementedError()
+        """Save the given data under the given data_definition key.
+
+        Parameters
+        ----------
+        data
+            The data to save to the database.
+        data_definition
+            The key for the data.
+
+        Raises
+        ------
+        DatabaseAccessError
+            If the database is not open.
+        """
+
+        self._assert_database_is_open('The database must be open when saving '
+                                      'data.')
+        self._do_save(data, data_definition)
+
+    def load(self, data_definition):
+        """Load data under the given data_definition key from the database.
+
+        Parameters
+        ----------
+        data_definition
+            The key for the data.
+
+        Returns
+        -------
+            The data corresponding to the key.
+
+        Raises
+        ------
+        DatabaseAccessError
+            If the database is not open.
+        """
+
+        self._assert_database_is_open('The database must be open when loading '
+                                      'data.')
+        self._do_load(data_definition)
 
     @abc.abstractmethod
-    def load(self, data_definition):
-        raise NotImplementedError()
+    def _do_open(self):
+        pass
+
+    @abc.abstractmethod
+    def _do_close(self):
+        pass
+
+    @abc.abstractmethod
+    def _do_save(self, data, data_definition):
+        pass
+
+    @abc.abstractmethod
+    def _do_load(self, data_definition):
+        pass
+
+    def _assert_database_is_open(self, msg=''):
+        """Check that the database is open, raise exception if not.
+
+        Raises
+        ------
+        DatabaseAccessError
+            If the database is not open.
+        """
+
+        if not self.is_open:
+            raise DatabaseAccessError(msg)
