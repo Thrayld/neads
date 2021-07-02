@@ -194,8 +194,8 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             else:
                 raise ValueError(f'The node {node} must be either in MEMORY '
                                  f'or DISK state.')
-        # TODO: the loaded nodes should get to the swap order
-        #  probably just append to start suffice
+        # So the `_save_memory` method knows about them
+        self._swap_order.extendleft(nodes)
 
     def _save_memory(self, *, nodes_to_keep=()):
         """Move some nodes from MEMORY state to DISK state.
