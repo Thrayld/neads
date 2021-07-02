@@ -3,3 +3,5 @@ from neads.evaluation_manager.single_thread_evaluation_manager \
 from neads.evaluation_manager.single_thread_evaluation_manager \
     .evaluation_algorithms.topological_order_algorithm import \
     TopologicalOrderAlgorithm
+from neads.evaluation_manager.single_thread_evaluation_manager \
+    .evaluation_algorithms.complex_algorithm import ComplexAlgorithm
