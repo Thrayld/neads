@@ -52,14 +52,14 @@ class IDatabase(abc.ABC):
         self._assert_database_is_open('The database must be open when closing.')
         self._do_close()
 
-    def save(self, data, data_definition):
-        """Save the given data under the given data_definition key.
+    def save(self, data, key):
+        """Save the given data under the given key.
 
         Parameters
         ----------
         data
             The data to save to the database.
-        data_definition
+        key
             The key for the data.
 
         Raises
@@ -70,14 +70,14 @@ class IDatabase(abc.ABC):
 
         self._assert_database_is_open('The database must be open when saving '
                                       'data.')
-        self._do_save(data, data_definition)
+        self._do_save(data, key)
 
-    def load(self, data_definition):
-        """Load data under the given data_definition key from the database.
+    def load(self, key):
+        """Load data under the given key from the database.
 
         Parameters
         ----------
-        data_definition
+        key
             The key for the data.
 
         Returns
@@ -94,7 +94,7 @@ class IDatabase(abc.ABC):
 
         self._assert_database_is_open('The database must be open when loading '
                                       'data.')
-        self._do_load(data_definition)
+        self._do_load(key)
 
     @abc.abstractmethod
     def _do_open(self):
@@ -107,26 +107,26 @@ class IDatabase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _do_save(self, data, data_definition):
+    def _do_save(self, data, key):
         """Do save the given data under the given key.
 
         Parameters
         ----------
         data
             The data to save to the database.
-        data_definition
+        key
             The key for the data.
         """
 
         pass
 
     @abc.abstractmethod
-    def _do_load(self, data_definition):
+    def _do_load(self, key):
         """Do load data under the given data_definition key from the database.
 
         Parameters
         ----------
-        data_definition
+        key
             The key for the data.
 
         Returns
