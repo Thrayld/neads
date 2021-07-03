@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+import psutil
 
 from neads.evaluation_manager.i_evaluation_manager import IEvaluationManager
+from neads.evaluation_manager.single_thread_evaluation_manager \
+    .evaluation_state import EvaluationState
+from neads.evaluation_manager.single_thread_evaluation_manager\
+    .evaluation_algorithms.complex_algorithm import ComplexAlgorithm
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph, SealedActivation
@@ -21,14 +26,15 @@ class SingleThreadEvaluationManager(IEvaluationManager):
         Parameters
         ----------
         database
-            Database for Activations' data.
+            Database for Activations' data. The database is supposed to be
+            closed.
         """
 
-        raise NotImplementedError()
-        # self._database = database
+        # raise NotImplementedError()
+        self._database = database
 
     def evaluate(self, activation_graph: SealedActivationGraph,
-                 evaluation_algorithm: IEvaluationAlgorithm) \
+                 evaluation_algorithm: IEvaluationAlgorithm = None) \
             -> dict[SealedActivation, Any]:
         """Evaluate the given graph.
 
@@ -44,6 +50,8 @@ class SingleThreadEvaluationManager(IEvaluationManager):
             trigger's evaluation).
         evaluation_algorithm
             The algorithm which will execute the evaluation.
+            The default algorithm is the ComplexAlgorithm with memory limit
+            set to 3/4 of total physical memory (provided by psutil).
 
         Returns
         -------
@@ -51,7 +59,26 @@ class SingleThreadEvaluationManager(IEvaluationManager):
             results.
         """
 
-        raise NotImplementedError()
-        # with database ?
-        #     es = EvaluationState(graph, database)
-        #     alg = EvaluationAlgorithm
+        # raise NotImplementedError()
+        algorithm = evaluation_algorithm \
+            if evaluation_algorithm is not None \
+            else self._get_default_algorithm()
+        with self._database:
+            evaluation_state = EvaluationState(activation_graph, self._database)
+            results = algorithm.evaluate(evaluation_state)
+        return results
+
+    @staticmethod
+    def _get_default_algorithm():
+        """Create the default EvaluationAlgorithm.
+
+        Returns
+        -------
+            ComplexAlgorithm with memory limit set to 1/2 of total physical
+            memory (provided by psutil).
+        """
+
+        coefficient = 1/2
+        memory_limit = psutil.virtual_memory().total * coefficient
+        algorithm = ComplexAlgorithm(memory_limit=memory_limit)
+        return algorithm
