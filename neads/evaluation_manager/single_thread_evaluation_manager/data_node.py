@@ -260,6 +260,7 @@ class DataNode:
         self._data = plugin(*argument_set.args, **argument_set.kwargs)
 
         # Finishing the state-transition
+        self._database.save(self._data, self._activation.definition)
         self._data_size = memory_info.get_object_size(self._data)
         self._change_state(DataNodeState.MEMORY)
 
