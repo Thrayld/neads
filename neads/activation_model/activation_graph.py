@@ -62,6 +62,7 @@ class ActivationGraph(collections.abc.Iterable):
 
         self._input_symbols = tuple(Symbol() for _ in range(inputs_count))
         self._trigger_method = None
+        self._top_level: list[Activation] = []
 
         # Data structure for activations' data and for look up
         self._act_to_data: dict[
@@ -88,8 +89,8 @@ class ActivationGraph(collections.abc.Iterable):
         trigger method is present in the graph. That is, after all the
         trigger methods of all Activations have been called.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates. It can reset the graph's trigger method.
 
         The one who calls the method must remove it from the graph at first.
         """
@@ -267,7 +268,6 @@ class ActivationGraph(collections.abc.Iterable):
         """
 
         # Try find the activation
-
         lookup_key = self._get_activations_lookup_key(plugin, argument_set)
         act_candidate = self._lookup_activation(lookup_key)
         if act_candidate is None:
@@ -276,6 +276,7 @@ class ActivationGraph(collections.abc.Iterable):
             self._add_into_lookup_structure(lookup_key, new_activation)
             return new_activation
         else:
+            # If there already is, return it
             return act_candidate
 
     def _get_activations_lookup_key(self, plugin, argument_set):
@@ -346,6 +347,8 @@ class ActivationGraph(collections.abc.Iterable):
         # Integrate activation into graph data structures
         self._act_to_data[activation] = act_data
         self._symbol_to_act[act_data.symbol] = activation
+        if act_data.level == 0:
+            self._top_level.append(activation)
 
         # Change state of other activations
         for parent in act_data.parents:
@@ -435,8 +438,9 @@ class ActivationGraph(collections.abc.Iterable):
         Its usual purpose is to add new Activations to the graph whose count
         depends on the computed data.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates. Also it must not modify the graph's trigger (if
+        there is any).
 
         The one who calls the method must remove it from the graph at first.
 
@@ -491,12 +495,14 @@ class ActivationGraph(collections.abc.Iterable):
         That is, after all trigger methods of descendants of the Activation
         have been already called.
 
-        Its usual purpose is to gather results of its descendants in a
+        Its usual purpose is to gather results of its descendants to a
         common Activation, which was not possible to create right away
         due to presence of descendants' trigger methods.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates and self trigger-on-descendants (the method can
+        be reset). Also it must not modify the graph's trigger (if there is
+        any).
 
         The one who calls the method must remove it from the graph at first.
 
@@ -539,6 +545,18 @@ class ActivationGraph(collections.abc.Iterable):
 
         data = self._get_activation_data(activation)
         self._arrange_trigger_remove(data, 'trigger_on_descendants')
+
+    def get_top_level(self) -> tuple[Activation]:
+        """Return list of all Activations on level 0.
+
+        The top Activations are exactly all the Activations without parents.
+
+        Returns
+        -------
+            The list of all Activations on level 0.
+        """
+
+        return tuple(self._top_level)
 
     def get_parents(self, activation) -> list[Activation]:
         """Return parents of the given Activation.
@@ -744,7 +762,7 @@ class ActivationGraph(collections.abc.Iterable):
         """Iterate over the Activations.
 
         Note that adding activation to the graph while iterating over the
-        activations may result in undefined behavior.
+        activations may result in an undefined behavior.
 
         Returns
         -------
@@ -888,6 +906,21 @@ class SealedActivationGraph(ActivationGraph):
         # The "override" exists only to hint the proper return type
         # Thus, pollution of wrong type inference will not be spread
         return super().add_activation(plugin, *args, **kwargs)  # noqa
+
+    def get_top_level(self) -> tuple[SealedActivation]:
+        """Return list of all SealedActivations on level 0.
+
+        The top SealedActivations are exactly all the SealedActivations
+        without parents.
+
+        Returns
+        -------
+            The list of all SealedActivations on level 0.
+        """
+
+        # The "override" exists only to hint the proper return type
+        # Thus, pollution of wrong type inference will not be spread
+        return super().get_top_level()  # noqa
 
     def _get_activations_lookup_key(self, plugin, argument_set):
         """Create activation look-up key for check whether such such Act exists.
@@ -1109,8 +1142,11 @@ class Activation:
         Its usual purpose is to add new Activations to the owning graph whose
         count depends on the computed data.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates. There is one exception, i.e. trigger-on-result
+        method of an Activation may assign trigger-on-descendant to the
+        Activation itself. However, it must not modify the graph's trigger (if
+        there is any) as well.
 
         The one who calls the method must remove it at first.
 
@@ -1169,8 +1205,10 @@ class Activation:
         common Activation, which was not possible to create right away
         due to presence of descendants' trigger methods.
 
-        The method must not add trigger methods to Activations except to
-        those which creates.
+        The method must not modify trigger methods of Activations except to
+        those which creates and self trigger-on-descendants (the method can
+        be reset). Also it must not modify the graph's trigger (if there is
+        any).
 
         The one who calls the method must remove it from the graph at first.
 

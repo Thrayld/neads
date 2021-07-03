@@ -1,5 +1,9 @@
 from neads.plugin import Plugin, PluginID
 
+built_in_max = max
+built_in_min = min
+built_in_pow = pow
+
 
 def _const(a):
     return a
@@ -22,11 +26,11 @@ def _div(a, b):
 
 
 def _max(*args):
-    return max(*args)
+    return built_in_max(*args)
 
 
 def _min(*args):
-    return min(*args)
+    return built_in_min(*args)
 
 
 def _pow(x, base=2):
