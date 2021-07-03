@@ -38,6 +38,7 @@ class BaseTestClassWrapper:
         @staticmethod
         def get_evaluation_state(activation_graph):
             db = MockDatabase()
+            db.open()
             es = EvaluationState(activation_graph, db)
             return es
 

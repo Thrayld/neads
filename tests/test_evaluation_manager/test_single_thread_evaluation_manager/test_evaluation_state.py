@@ -104,6 +104,7 @@ class TestEvaluationStateSimpleStateChangesNoTriggers(unittest.TestCase):
         self.act = ag.add_activation(ar_plugins.const, 10)
 
         self.db = MockDatabase()
+        self.db.open()
         self.es = EvaluationState(ag, self.db)
 
         assert len(self.es.top_level) == 1
@@ -188,6 +189,7 @@ class TestEvaluationStateWithTriggersSimple(unittest.TestCase):
         self.act = self.ag.add_activation(ar_plugins.const, 10)
 
         self.db = MockDatabase()
+        self.db.open()
         # Cannot create ES right-away, first the triggers need be assigned
 
     def test_node_with_trigger_on_result(self):
@@ -254,6 +256,7 @@ class TestEvaluationStateWithTriggersComplex(unittest.TestCase):
     def setUp(self) -> None:
         self.ag = SealedActivationGraph()
         self.db = MockDatabase()
+        self.db.open()
 
     @staticmethod
     def get_expected_state_template():
