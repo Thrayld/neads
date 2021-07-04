@@ -63,17 +63,21 @@ class SymbolicArgumentSet:
     @property
     def signature(self):
         """Signature for the arguments."""
-        raise NotImplementedError()
+        return self._signature
 
     @property
     def args(self) -> Sequence[SymbolicObject]:
         """SymbolicObjects of positional arguments."""
-        raise NotImplementedError()
+        return self._bound_args_object[0]
 
     @property
     def kwargs(self) -> dict[str, SymbolicObject]:
         """SymbolicObjects of keyword arguments."""
-        raise NotImplementedError()
+
+        # Keys are always Values with a string, so we can extract their value
+        kwargs = {k.get_value(): v
+                  for k, v in self._bound_args_object[1].items()}
+        return kwargs
 
     @staticmethod
     def _extract_signature(
