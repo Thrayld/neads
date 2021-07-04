@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union, Callable, Any
+from typing import Union, Callable, Any, Hashable
 import collections.abc
 
 from neads.plugin import Plugin
@@ -424,6 +424,56 @@ class ActivationGraph(collections.abc.Iterable):
             level=level,
             used_inputs=used_inputs
         )
+
+    def attach_graph(
+        self,
+        graph_to_attach: ActivationGraph,
+        inputs_realization: dict[Symbol, Hashable]
+    ) -> dict[Activation, Activation]:
+        """Attach the given graph to the `self` graph.
+
+        The method takes a graph to attach and copies its Activations to
+        the `self` graph. The input symbols of the graph to attach are mapped
+        to their replacements in Activations which are admitted to the `self`
+        graph. It can be some symbols from the `self` graph, i.e. its own
+        inputs or symbols of its Activations, or some other arguments.
+        As for the `add_activation` method, the instances of SymbolicObject are
+        regarded as the descriptions of the actual objects and they are
+        processed correspondingly (i.e. their value is later extracted).
+
+        A mapping of Activations of the graph to attach the corresponding
+        Activations in the `self` graph is returned. Note that some of the
+        Activations in the `self` graph might existed before the attach.
+        Also, be aware of the fact that the attachment does not preserve
+        trigger methods.
+
+        Parameters
+        ----------
+        graph_to_attach
+            The graph which is attached to `self` graph.
+        inputs_realization
+            The mapping of inputs to their substitutes in the `self` graph,
+            which are inputs of `self` graph, symbols of its Activations or
+            other arguments.
+
+        Returns
+        -------
+            Mapping of Activations of the graph to attach the corresponding
+            Activations in the `self` graph.
+
+        Raises
+        ------
+        ValueError
+            If keys of `inputs_realization` argument do not correspond to the
+            inputs of the graph to attach (i.e. there are some excessive or
+            missing elements).
+            If a symbol in values of `inputs_realization` is not input of the
+            `self` graph or symbol of its Activation.
+        TypeError
+            If argument in values of `inputs_realization` is not hashable.
+        """
+
+        raise NotImplementedError()
 
     def set_activation_trigger_on_result(
         self,
@@ -903,7 +953,8 @@ class SealedActivationGraph(ActivationGraph):
             Activation.
         """
 
-        # The "override" exists only to hint the proper return type
+        # The "override" exists only to hint the proper return type (i.e.
+        # SealedActivation)
         # Thus, pollution of wrong type inference will not be spread
         return super().add_activation(plugin, *args, **kwargs)  # noqa
 
