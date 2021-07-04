@@ -52,3 +52,26 @@ def assert_no_triggers(graph: ActivationGraph):
 
     if has_graph_trigger or has_trigger_on_result or has_trigger_on_descendants:
         raise ValueError('The graph contains a trigger method')
+
+
+def assert_inputs_count(graph: ActivationGraph, expected: int):
+    """Assert that the graph has the given number of inputs.
+
+    Parameters
+    ----------
+    graph
+        The examined graph.
+    expected
+        The expected number of inputs.
+
+    Raises
+    ------
+    ValueError
+        If the graph has different number of inputs than expected.
+    """
+
+    raise NotImplementedError()
+    # number_of_inputs = len(graph.inputs)
+    # if number_of_inputs != expected:
+    #     raise ValueError(f"The number of graph's inputs ({number_of_inputs}) "
+    #                      f"differs from the expected ({expected})")
