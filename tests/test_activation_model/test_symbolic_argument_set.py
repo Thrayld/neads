@@ -70,6 +70,39 @@ class TestSymbolicArgumentSet(unittest.TestCase):
             x=1
         )
 
+    def test_signature_property(self):
+        sas = SymbolicArgumentSet(self.f_x_y, 1, 2)
+
+        actual = sas.signature
+
+        expected = inspect.signature(self.f_x_y)
+        self.assertEqual(expected, actual)
+
+    def test_args_property(self):
+        sas = SymbolicArgumentSet(self.f_x_y, 1, 2)
+
+        actual = sas.args
+
+        expected = (Value(1), Value(2))
+        self.assertSequenceEqual(expected, actual)
+
+    def test_kwargs_property_empty(self):
+        # Although passed as keyword, the args are rewritten as positional
+        sas = SymbolicArgumentSet(self.f_x_y, x=1, y=2)
+
+        actual = sas.kwargs
+
+        expected = {}
+        self.assertSequenceEqual(expected, actual)
+
+    def test_kwargs_property_with_some_values(self):
+        sas = SymbolicArgumentSet(self.g_args_kwargs, b=1, a=2)
+
+        actual = sas.kwargs
+
+        expected = {'b': Value(1), 'a': Value(2)}
+        self.assertSequenceEqual(expected, actual)
+
     def test_get_symbols_no_symbols(self):
         sas = SymbolicArgumentSet(self.f_x_y, 1, 2)
 
