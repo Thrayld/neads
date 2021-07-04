@@ -28,8 +28,8 @@ class TestGetResultActivation(unittest.TestCase):
         self.assertIs(act_2, actual)
 
 
-class TestAssertGraphHasNotTriggers(unittest.TestCase):
-    def test_assert_graph_has_no_triggers_with_graph_trigger(self):
+class TestAssertNoTriggers(unittest.TestCase):
+    def test_assert_no_triggers_with_graph_trigger(self):
         ag = ActivationGraph(2)
         ag.add_activation(ar_plugins.const, ag.inputs[0])
         ag.trigger_method = lambda: None
@@ -40,7 +40,7 @@ class TestAssertGraphHasNotTriggers(unittest.TestCase):
             ag
         )
 
-    def test_assert_graph_has_no_triggers_with_trigger_on_result(self):
+    def test_assert_no_triggers_with_trigger_on_result(self):
         ag = ActivationGraph(2)
         act_1 = ag.add_activation(ar_plugins.const, ag.inputs[0])
         act_1.trigger_on_result = lambda _: None
@@ -51,7 +51,7 @@ class TestAssertGraphHasNotTriggers(unittest.TestCase):
             ag
         )
 
-    def test_assert_graph_has_no_triggers_with_trigger_on_descendants(self):
+    def test_assert_no_triggers_with_trigger_on_descendants(self):
         ag = ActivationGraph(2)
         act_1 = ag.add_activation(ar_plugins.const, ag.inputs[0])
         act_1.trigger_on_descendants = lambda: None
@@ -62,11 +62,26 @@ class TestAssertGraphHasNotTriggers(unittest.TestCase):
             ag
         )
 
-    def test_assert_graph_has_no_triggers_without_triggers(self):
+    def test_assert_no_triggers_without_triggers(self):
         ag = ActivationGraph(2)
         ag.add_activation(ar_plugins.const, ag.inputs[0])
 
         graph_utils.assert_no_triggers(ag)
+
+
+class TestInputsCount(unittest.TestCase):
+    def test_assert_inputs_count_different(self):
+        ag = ActivationGraph(2)
+        self.assertRaises(
+            ValueError,
+            graph_utils.assert_inputs_count,
+            ag,
+            1
+        )
+
+    def test_assert_inputs_count_correct(self):
+        ag = ActivationGraph(2)
+        graph_utils.assert_inputs_count(ag, 2)
 
 
 if __name__ == '__main__':
