@@ -173,7 +173,7 @@ class TestActivationGraphFailureCases(unittest.TestCase):
 
     def test_attach_graph_with_non_hashable_argument(self):
         self.assertRaises(
-            ValueError,
+            TypeError,
             self.ag.attach_graph,
             self.other_ag,
             [self.ag.inputs[0], ['non-hashable arg']]
@@ -419,8 +419,8 @@ class TestActivationGraphOtherMethods(unittest.TestCase):
         # Act's result after next substitution
         # To see whether the `bound_value` was actually bound
         next_value = 20
-        ba = act_result.argument_set.substitute(ag.inputs[0], next_value)\
-            .get_actual_arguments()
+        ba = act_result.argument_set.substitute(
+            ag.inputs[0], Value(next_value)).get_actual_arguments()
 
         actual = act_result.plugin(*ba.args, **ba.kwargs)
 
