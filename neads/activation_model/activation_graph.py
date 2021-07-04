@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union, Callable, Any, Hashable
+from typing import Union, Callable, Any, Hashable, Iterable
 import collections.abc
 
 from neads.plugin import Plugin
@@ -218,23 +218,27 @@ class ActivationGraph(collections.abc.Iterable):
             hash(argument_set)
         except TypeError as e:
             raise TypeError('One of the arguments was not hashable.') from e
-        self._check_arguments_symbols_are_from_the_graph(argument_set)
+        try:
+            self._check_symbols_are_from_the_graph(argument_set.get_symbols())
+        except ValueError as e:
+            raise ValueError('There is a foreign Symbol in the arguments.') \
+                from e
 
         return argument_set
 
-    def _check_arguments_symbols_are_from_the_graph(
+    def _check_symbols_are_from_the_graph(
         self,
-        argument_set: SymbolicArgumentSet
+        symbols: Iterable[Symbol]
     ):
-        """Check that all Symbols used in the argument set are from the graph.
+        """Check that all the given Symbols are from the graph.
 
         As 'Symbols from the graph' are considered Symbols of other activations
         and input Symbols of the graph.
 
         Parameters
         ----------
-        argument_set
-            Argument whose Symbols are going to be examined.
+        symbols
+            Symbols to be examined.
 
         Raises
         ------
@@ -242,10 +246,10 @@ class ActivationGraph(collections.abc.Iterable):
             If there is a foreign Symbol.
         """
 
-        for sym in argument_set.get_symbols():
+        for sym in symbols:
             if sym not in self._symbol_to_act \
                     and sym not in self._input_symbols:
-                raise ValueError('There is a foreign Symbol in the arguments')
+                raise ValueError('There is a foreign Symbol')
 
     def _get_corresponding_activation(self, plugin, argument_set) -> Activation:
         """Return Activation described by arguments and create new, if needed.
