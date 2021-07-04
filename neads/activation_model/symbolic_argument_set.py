@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Union, Callable
+from typing import TYPE_CHECKING, Iterable, Union, Callable, Sequence
 import inspect
-import itertools
 
 from .symbolic_objects import Value, ListObject, DictObject
 from .symbolic_objects.symbolic_object import SymbolicObject
-from .symbolic_objects.symbolic_object_exception import SymbolicObjectException
 
 if TYPE_CHECKING:
     from .symbolic_objects import Symbol
@@ -61,6 +59,21 @@ class SymbolicArgumentSet:
         kwargs = DictObject(conv_kwargs)
 
         self._bound_args_object = ListObject(args, kwargs)
+
+    @property
+    def signature(self):
+        """Signature for the arguments."""
+        raise NotImplementedError()
+
+    @property
+    def args(self) -> Sequence[SymbolicObject]:
+        """SymbolicObjects of positional arguments."""
+        raise NotImplementedError()
+
+    @property
+    def kwargs(self) -> dict[str, SymbolicObject]:
+        """SymbolicObjects of keyword arguments."""
+        raise NotImplementedError()
 
     @staticmethod
     def _extract_signature(
