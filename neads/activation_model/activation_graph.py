@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import Union, Callable, Any, Hashable, Iterable
+from typing import Union, Callable, Any, Hashable, Sequence, Iterable
 import collections.abc
 
 from neads.plugin import Plugin
-from neads.activation_model.symbolic_objects import Symbol
+from neads.activation_model.symbolic_objects import Symbol, Value
+from neads.activation_model.symbolic_objects.symbolic_object import \
+    SymbolicObject
 from neads.activation_model.symbolic_argument_set import SymbolicArgumentSet
 from neads.activation_model.data_definition import DataDefinition
 
@@ -472,16 +474,63 @@ class ActivationGraph(collections.abc.Iterable):
         Raises
         ------
         ValueError
-            If keys of `inputs_realization` argument do not correspond to the
-            inputs of the graph to attach (i.e. there are some excessive or
-            missing elements).
-            If a symbol in values of `inputs_realization` is not input of the
-            `self` graph or symbol of its Activation.
+            If length of `inputs_realizations` do not match the number of
+            inputs of the graph to attach.
+            If a symbol in `inputs_realizations` is not input of the `self`
+            graph or symbol of its Activation.
         TypeError
-            If argument in values of `inputs_realization` is not hashable.
+            If argument in values of `inputs_realizations` is not hashable.
         """
 
-        raise NotImplementedError()
+        # Error checking
+        if len(inputs_realizations) != len(graph_to_attach.inputs):
+            raise ValueError(
+                'The number of realizations must be equal to the number of '
+                'inputs of the graph to attach.'
+            )
+        for realization in inputs_realizations:
+            if isinstance(realization, SymbolicObject):
+                try:
+                    self._check_symbols_are_from_the_graph(
+                        realization.get_symbols())
+                except ValueError as e:
+                    raise ValueError(
+                        f'The realization contains a foreign symbol:'
+                        f' {realization}'
+                    ) from e
+            try:
+                hash(realization)
+            except TypeError:
+                raise TypeError(
+                    f'The realization is not hashable: {realization}'
+                )
+
+        # The mapping for substitution in argument sets of the old Activations
+        # It starts only with the inputs realizations, but later the pairs of
+        # symbols from old Activation to new Activation are added
+        substitution_mapping = {
+            input_: real if isinstance(real, SymbolicObject) else Value(real)
+            for input_, real
+            in zip(graph_to_attach.inputs, inputs_realizations)
+        }
+        # Maps old Activations to new ones, i.e. the method's return value
+        old_to_new_acts = {}
+
+        # Transfer the old Activations one by one
+        sorted_old_acts = sorted(graph_to_attach, key=lambda act: act.level)
+        for old_act in sorted_old_acts:
+            # Transforming the old Activation's argument set
+            old_arg_set = old_act.argument_set
+            new_arg_set = old_arg_set.substitute(substitution_mapping)
+            # Creating the corresponding new Activation
+            new_act = self.add_activation(old_act.plugin,
+                                          *new_arg_set.args,
+                                          **new_arg_set.kwargs)
+            # Updating the support structures
+            substitution_mapping[old_act.symbol] = new_act.symbol
+            old_to_new_acts[old_act] = new_act
+
+        return old_to_new_acts
 
     def set_activation_trigger_on_result(
         self,
