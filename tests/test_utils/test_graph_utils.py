@@ -36,7 +36,7 @@ class TestAssertGraphHasNotTriggers(unittest.TestCase):
 
         self.assertRaises(
             ValueError,
-            graph_utils.assert_graph_has_no_triggers,
+            graph_utils.assert_no_triggers,
             ag
         )
 
@@ -47,7 +47,7 @@ class TestAssertGraphHasNotTriggers(unittest.TestCase):
 
         self.assertRaises(
             ValueError,
-            graph_utils.assert_graph_has_no_triggers,
+            graph_utils.assert_no_triggers,
             ag
         )
 
@@ -58,7 +58,7 @@ class TestAssertGraphHasNotTriggers(unittest.TestCase):
 
         self.assertRaises(
             ValueError,
-            graph_utils.assert_graph_has_no_triggers,
+            graph_utils.assert_no_triggers,
             ag
         )
 
@@ -66,7 +66,7 @@ class TestAssertGraphHasNotTriggers(unittest.TestCase):
         ag = ActivationGraph(2)
         ag.add_activation(ar_plugins.const, ag.inputs[0])
 
-        graph_utils.assert_graph_has_no_triggers(ag)
+        graph_utils.assert_no_triggers(ag)
 
 
 if __name__ == '__main__':

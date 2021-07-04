@@ -30,13 +30,13 @@ def get_result_activation(graph: ActivationGraph):
         )
 
 
-def assert_graph_has_no_triggers(graph: ActivationGraph):
+def assert_no_triggers(graph: ActivationGraph):
     """Assert that the graph has no trigger (graph's nor Activations').
 
     Parameters
     ----------
     graph
-        The checked graph.
+        The examined graph.
 
     Raises
     ------
