@@ -155,22 +155,12 @@ class TestActivationGraphFailureCases(unittest.TestCase):
             -1
         )
 
-    def test_attach_graph_with_missing_inputs(self):
+    def test_attach_graph_with_incorrect_number_of_realizations(self):
         self.assertRaises(
             ValueError,
             self.ag.attach_graph,
             self.other_ag,
-            {self.other_ag.inputs[0]: self.ag.inputs[0]}
-        )
-
-    def test_attach_graph_with_excessive_inputs(self):
-        self.assertRaises(
-            ValueError,
-            self.ag.attach_graph,
-            self.other_ag,
-            {self.other_ag.inputs[0]: self.ag.inputs[0],
-             self.other_ag.inputs[1]: self.ag.inputs[1],
-             self.ag.inputs[1]: self.ag.inputs[1]}
+            [self.ag.inputs[0]]
         )
 
     def test_attach_graph_with_foreign_symbol(self):
@@ -178,8 +168,7 @@ class TestActivationGraphFailureCases(unittest.TestCase):
             ValueError,
             self.ag.attach_graph,
             self.other_ag,
-            {self.other_ag.inputs[0]: self.ag.inputs[0],
-             self.other_ag.inputs[1]: self.foreign_act.symbol}
+            [self.ag.inputs[0], self.foreign_act.symbol]
         )
 
     def test_attach_graph_with_non_hashable_argument(self):
@@ -187,8 +176,7 @@ class TestActivationGraphFailureCases(unittest.TestCase):
             ValueError,
             self.ag.attach_graph,
             self.other_ag,
-            {self.other_ag.inputs[0]: self.ag.inputs[0],
-             self.other_ag.inputs[1]: ['non-hashable arg']}
+            [self.ag.inputs[0], ['non-hashable arg']]
         )
 
 
@@ -393,8 +381,7 @@ class TestActivationGraphOtherMethods(unittest.TestCase):
         other_act_3 = other_ag.add_activation(ar_plugins.pow,
                                               other_act_2.symbol)
 
-        realizations = {other_ag.inputs[0]: ag.inputs[1],
-                        other_ag.inputs[1]: act_1.symbol}
+        realizations = [ag.inputs[1], act_1.symbol]
 
         mapping = ag.attach_graph(other_ag, realizations)
 
@@ -421,8 +408,7 @@ class TestActivationGraphOtherMethods(unittest.TestCase):
                                       other_ag.inputs[0],
                                       other_ag.inputs[1])
 
-        realizations = {other_ag.inputs[0]: ag.inputs[0],
-                        other_ag.inputs[1]: bound_value}
+        realizations = [ag.inputs[0], bound_value]
 
         mapping = ag.attach_graph(other_ag, realizations)
 
@@ -451,7 +437,7 @@ class TestActivationGraphOtherMethods(unittest.TestCase):
         other_ag = ActivationGraph(1)
         act = other_ag.add_activation(ar_plugins.pow, other_ag.inputs[0])
 
-        realizations = {other_ag.inputs[0]: bound_value}
+        realizations = [bound_value]
 
         mapping = ag.attach_graph(other_ag, realizations)
 

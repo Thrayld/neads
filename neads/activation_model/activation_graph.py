@@ -432,7 +432,7 @@ class ActivationGraph(collections.abc.Iterable):
     def attach_graph(
         self,
         graph_to_attach: ActivationGraph,
-        inputs_realization: dict[Symbol, Hashable]
+        inputs_realizations: Sequence[Hashable]
     ) -> dict[Activation, Activation]:
         """Attach the given graph to the `self` graph.
 
@@ -455,10 +455,14 @@ class ActivationGraph(collections.abc.Iterable):
         ----------
         graph_to_attach
             The graph which is attached to `self` graph.
-        inputs_realization
-            The mapping of inputs to their substitutes in the `self` graph,
-            which are inputs of `self` graph, symbols of its Activations or
-            other arguments.
+        inputs_realizations
+            The realizations of the inputs of the graph to attach in the `self`
+            graph. The length of the sequence equal to the number of graph to
+            attach inputs. Realization of each input lies in the
+            corresponding index.
+            A realization is either an input of the `self` graph, symbol
+            of its Activation or an other argument (which works as a
+            bound constant for the input).
 
         Returns
         -------
