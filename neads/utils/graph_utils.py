@@ -44,12 +44,11 @@ def assert_graph_has_no_triggers(graph: ActivationGraph):
         If the graph or one of its Activations has a trigger method.
     """
 
-    raise NotImplementedError()
-    # has_graph_trigger = bool(graph.trigger_method)
-    # has_trigger_on_result = bool(act for act in graph
-    #                              if act.trigger_on_result)
-    # has_trigger_on_descendants = bool(act for act in graph
-    #                                   if act.trigger_on_descendants)
-    #
-    # if has_graph_trigger or has_trigger_on_result or has_trigger_on_descendants:
-    #     raise ValueError('The graph contains a trigger method')
+    has_graph_trigger = bool(graph.trigger_method)
+    has_trigger_on_result = bool([act for act in graph
+                                  if act.trigger_on_result])
+    has_trigger_on_descendants = bool([act for act in graph
+                                       if act.trigger_on_descendants])
+
+    if has_graph_trigger or has_trigger_on_result or has_trigger_on_descendants:
+        raise ValueError('The graph contains a trigger method')
