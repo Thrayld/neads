@@ -4,6 +4,7 @@ from parameterized import parameterized
 from neads.activation_model.activation_graph import ActivationGraph, \
     SealedActivationGraph, Activation
 from neads.activation_model.symbolic_argument_set import SymbolicArgumentSet
+from neads.activation_model.symbolic_objects import Value
 
 import tests.my_test_utilities.arithmetic_plugins as ar_plugins
 
@@ -319,6 +320,11 @@ class TestActivationGraphOtherMethods(unittest.TestCase):
 
     def test_add_existing_activation_due_positional_vs_keyword_pass(self):
         new_act = self.ag.add_activation(ar_plugins.add, b=2, a=1)
+
+        self.assertIs(self.act, new_act)
+
+    def test_add_existing_activation_due_actual_value_vs_symbolic_object(self):
+        new_act = self.ag.add_activation(ar_plugins.add, Value(1), Value(2))
 
         self.assertIs(self.act, new_act)
 
