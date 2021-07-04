@@ -24,7 +24,7 @@ from neads.activation_model.data_definition import DataDefinition
 # IDEA: change NetworkX-like approach (all data in Graph) to OOP approach
 #  (node data in nodes), see report from 11.5. for discussion
 
-# IDEA: maybe add a shortcut to a set of all activations with trigger methods
+# IDEA: maybe add a shortcut to the set of all activations with trigger methods
 
 
 class ActivationGraph(collections.abc.Iterable):
