@@ -70,8 +70,7 @@ def assert_inputs_count(graph: ActivationGraph, expected: int):
         If the graph has different number of inputs than expected.
     """
 
-    raise NotImplementedError()
-    # number_of_inputs = len(graph.inputs)
-    # if number_of_inputs != expected:
-    #     raise ValueError(f"The number of graph's inputs ({number_of_inputs}) "
-    #                      f"differs from the expected ({expected})")
+    number_of_inputs = len(graph.inputs)
+    if number_of_inputs != expected:
+        raise ValueError(f"The number of graph's inputs ({number_of_inputs}) "
+                         f"differs from the expected ({expected})")
