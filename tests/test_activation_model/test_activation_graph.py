@@ -155,6 +155,42 @@ class TestActivationGraphFailureCases(unittest.TestCase):
             -1
         )
 
+    def test_attach_graph_with_missing_inputs(self):
+        self.assertRaises(
+            ValueError,
+            self.ag.attach_graph,
+            self.other_ag,
+            {self.other_ag.inputs[0]: self.ag.inputs[0]}
+        )
+
+    def test_attach_graph_with_excessive_inputs(self):
+        self.assertRaises(
+            ValueError,
+            self.ag.attach_graph,
+            self.other_ag,
+            {self.other_ag.inputs[0]: self.ag.inputs[0],
+             self.other_ag.inputs[1]: self.ag.inputs[1],
+             self.ag.inputs[1]: self.ag.inputs[1]}
+        )
+
+    def test_attach_graph_with_foreign_symbol(self):
+        self.assertRaises(
+            ValueError,
+            self.ag.attach_graph,
+            self.other_ag,
+            {self.other_ag.inputs[0]: self.ag.inputs[0],
+             self.other_ag.inputs[1]: self.foreign_act.symbol}
+        )
+
+    def test_attach_graph_with_non_hashable_argument(self):
+        self.assertRaises(
+            ValueError,
+            self.ag.attach_graph,
+            self.other_ag,
+            {self.other_ag.inputs[0]: self.ag.inputs[0],
+             self.other_ag.inputs[1]: ['non-hashable arg']}
+        )
+
 
 class TestActivationGraphExampleGraph(unittest.TestCase):
     """Test class for examining correct shape of an example graph."""
@@ -345,6 +381,92 @@ class TestActivationGraphOtherMethods(unittest.TestCase):
         actual = ag.get_top_level()
 
         self.assertCountEqual(expected, actual)
+
+    def test_attach_graph_add_graph_with_2_nodes(self):
+        ag = ActivationGraph(2)
+        act_1 = ag.add_activation(ar_plugins.const, ag.inputs[0])
+
+        other_ag = ActivationGraph(2)
+        other_act_2 = other_ag.add_activation(ar_plugins.add,
+                                              other_ag.inputs[0],
+                                              other_ag.inputs[1])
+        other_act_3 = other_ag.add_activation(ar_plugins.pow,
+                                              other_act_2.symbol)
+
+        realizations = {other_ag.inputs[0]: ag.inputs[1],
+                        other_ag.inputs[1]: act_1.symbol}
+
+        mapping = ag.attach_graph(other_ag, realizations)
+
+        # Act_2's result input
+        self.assertCountEqual([ag.inputs[1]], mapping[other_act_2].used_inputs)
+        # Act_2's result parent
+        self.assertCountEqual([act_1], mapping[other_act_2].parents)
+        # Act_3's result parent
+        self.assertCountEqual([mapping[other_act_2]],
+                              mapping[other_act_3].parents)
+
+    def test_attach_graph_bind_one_input(self):
+        # This can be viewed as quite general use-case of the attach method
+        # That is, partially or fully bind inputs of the attached graph to a
+        # certain value
+        # That can be obtain by attaching the graph to another graph will
+        # fewer inputs
+        bound_value = 10
+
+        ag = ActivationGraph(1)
+
+        other_ag = ActivationGraph(2)
+        act = other_ag.add_activation(ar_plugins.add,
+                                      other_ag.inputs[0],
+                                      other_ag.inputs[1])
+
+        realizations = {other_ag.inputs[0]: ag.inputs[0],
+                        other_ag.inputs[1]: bound_value}
+
+        mapping = ag.attach_graph(other_ag, realizations)
+
+        act_result = mapping[act]
+        # Act's result input
+        self.assertCountEqual([ag.inputs[0]], act_result.used_inputs)
+
+        # Act's result after next substitution
+        # To see whether the `bound_value` was actually bound
+        next_value = 20
+        ba = act_result.argument_set.substitute(ag.inputs[0], next_value)\
+            .get_actual_arguments()
+
+        actual = act_result.plugin(*ba.args, **ba.kwargs)
+
+        expected = bound_value + next_value
+        self.assertEqual(expected, actual)
+
+    def test_attach_graph_bind_and_make_sealed_graph(self):
+        # Continuation of the test above
+        # After all the inputs were bound, we can make a SealedActivationGraph
+        bound_value = 2
+
+        ag = SealedActivationGraph()
+
+        other_ag = ActivationGraph(1)
+        act = other_ag.add_activation(ar_plugins.pow, other_ag.inputs[0])
+
+        realizations = {other_ag.inputs[0]: bound_value}
+
+        mapping = ag.attach_graph(other_ag, realizations)
+
+        act_result = mapping[act]
+        # Act's result input
+        self.assertCountEqual([], act_result.used_inputs)
+
+        # Act's result after next substitution
+        # To see whether the `bound_value` was actually bound
+        ba = act_result.argument_set.get_actual_arguments()
+
+        actual = act_result.plugin(*ba.args, **ba.kwargs)
+
+        expected = 2**bound_value
+        self.assertEqual(expected, actual)
 
 
 class TestSealedActivationGraph(unittest.TestCase):
