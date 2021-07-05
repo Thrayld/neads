@@ -71,12 +71,12 @@ class TestPlain1In1RGraphWrapper(ExclusionWrapper.
         ag = ActivationGraph(1)
         ag.add_activation(ar_plugins.const, ag.inputs[0])
 
-        choice = self.get_class()(ag)
+        wrapper = self.get_class()(ag)
 
         target_graph = SealedActivationGraph()
         act = target_graph.add_activation(ar_plugins.const, 10)
 
-        result_act = choice.attach(target_graph, act)
+        result_act = wrapper.attach(target_graph, act)
 
         self.assertIs(act.children[0], result_act)
 
