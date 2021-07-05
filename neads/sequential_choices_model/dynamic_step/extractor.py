@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from neads.utils.plain_graph_wrappers import Plain3In1RGraphWrapper
+
 if TYPE_CHECKING:
     from neads.activation_model import ActivationGraph, SealedActivation, \
         SealedActivationGraph
 
 
-class Extractor:
+class Extractor(Plain3In1RGraphWrapper):
     """Part of dynamic step, process the subtasks produces by separator.
 
     The extractor is an ActivationGraph with 3 inputs, the first for the data
@@ -41,12 +43,12 @@ class Extractor:
             If the graph has a trigger method.
         """
 
-        raise NotImplementedError()
+        super().__init__(graph)
 
     def attach(self, target_graph: SealedActivationGraph,
                data_activation: SealedActivation,
                instruction_activation: SealedActivation,
-               instruction_index: int):
+               instruction_index: int) -> SealedActivation:
         """Attach the extractor's graph to the given graph.
 
         Parameters
@@ -74,4 +76,12 @@ class Extractor:
             Activation of the extractor's graph.
         """
 
-        raise NotImplementedError()
+        inputs_realizations = [
+            data_activation.symbol,
+            instruction_activation.symbol,
+            instruction_index
+        ]
+        old_to_new_mapping = target_graph.attach_graph(self._graph,
+                                                       inputs_realizations)
+        new_result_act = old_to_new_mapping[self._result_act]
+        return new_result_act  # noqa: The activation is really a SealedAct
