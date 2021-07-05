@@ -92,6 +92,10 @@ class ResultNode:
         return self._name
 
     @property
+    def level(self) -> int:
+        return len(self._name)
+
+    @property
     def has_data(self):
         """Whether any data was assigned to the node."""
         return self._has_data

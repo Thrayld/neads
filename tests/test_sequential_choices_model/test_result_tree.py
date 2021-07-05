@@ -11,6 +11,7 @@ class TestResultNode(unittest.TestCase):
         self.assertEqual((), self.root.name)
         self.assertEqual(None, self.root.parent)
         self.assertEqual((), self.root.children)
+        self.assertEqual(0, self.root.level)
 
     def test_add_child(self):
         child_0 = self.root.add_child()
