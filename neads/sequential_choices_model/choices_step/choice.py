@@ -27,6 +27,7 @@ class Choice:
         ------
         ValueError
             If the graph does not have one input and one result Activation.
+            If the graph has a trigger method.
         """
 
         self._graph = choice_graph
