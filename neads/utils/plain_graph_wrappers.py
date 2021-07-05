@@ -22,13 +22,12 @@ class Plain1RGraphWrapper(abc.ABC):
         """Return expected number of graph's inputs."""
 
     def __init__(self, graph: ActivationGraph):
-        """Initialize Choice with its graph.
+        """Initialize wrapper with its graph.
 
         Parameters
         ----------
         graph
-            The graph which represent the operations of the Choice. It has
-            one input and one result Activation (i.e. single childless
+            It has one input and one result Activation (i.e. single childless
             Activation) and does not have a trigger method (nor its
             Activations).
 
@@ -61,14 +60,14 @@ class Plain1In1RGraphWrapper(Plain1RGraphWrapper):
 
     def attach(self, target_graph: SealedActivationGraph,
                parent_activation: SealedActivation) -> SealedActivation:
-        """Attach the graph to the given graph and its Activation.
+        """Attach the wrapper's graph to the given graph and its Activation.
 
         Parameters
         ----------
         target_graph
-            The graph to which will be the choice attached.
+            The graph to which will be the wrapper's graph attached.
         parent_activation
-            The Activation to which will be the choice attached.
+            The Activation to which will be the wrapper's graph attached.
 
         Returns
         -------
@@ -93,5 +92,3 @@ class Plain3In1RGraphWrapper(Plain1RGraphWrapper):
     def _expected_inputs():
         """Return expected number of graph's inputs."""
         return 3
-
-
