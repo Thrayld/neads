@@ -28,10 +28,9 @@ class TreeView:
             Root node of the TreeView.
         """
 
-        raise NotImplementedError()
-        # self._tree_graph = nx.DiGraph()
-        # self._tree_graph.add_node(root)
-        # self._root = root
+        self._tree_graph = nx.DiGraph()
+        self._tree_graph.add_node(root)
+        self._root = root
 
     def add_child(self, parent: SealedActivation, child: SealedActivation):
         """Add new child to the given parent.
@@ -53,15 +52,14 @@ class TreeView:
             If the child is already present in the graph.
         """
 
-        raise NotImplementedError()
-        # if parent not in self._tree_graph:
-        #     raise ValueError(
-        #         f'The parent in not present in the graph: {parent}')
-        # if child in self._tree_graph:
-        #     raise ValueError(
-        #         f'The child in already present in the graph: {child}')
-        #
-        # self._tree_graph.add_edge(parent, child)
+        if parent not in self._tree_graph:
+            raise ValueError(
+                f'The parent in not present in the graph: {parent}')
+        if child in self._tree_graph:
+            raise ValueError(
+                f'The child in already present in the graph: {child}')
+
+        self._tree_graph.add_edge(parent, child)
 
     def create_result_description(self, levels_with_data: set[int]) \
             -> Sequence[frozendict]:
@@ -88,30 +86,30 @@ class TreeView:
             that corresponds to the node in the TreeView).
         """
 
-        raise NotImplementedError()
-        # result_desc = []
-        # current_level = [self._root]
-        # no_current_level = 0
-        # next_level = []
-        # # While there are some on the current level
-        # while current_level:
-        #     # Process each node in current level
-        #     for node in current_level:
-        #         nodes_children = self._tree_graph.successors(node)
-        #         children_no = len(nodes_children)
-        #         if no_current_level in levels_with_data:
-        #             node_description = frozendict(children_no=children_no,
-        #                                           data=node.symbol)
-        #         else:
-        #             node_description = frozendict(children_no=children_no)
-        #         result_desc.append(node_description)
-        #         next_level.extend(nodes_children)
-        #     # Prepare processing of the next level
-        #     current_level = next_level
-        #     no_current_level += 1
-        #     next_level = []
-        #
-        # return result_desc
+        result_desc = []
+        current_level = [self._root]
+        no_current_level = 0
+        next_level = []
+        # While there are some on the current level
+        while current_level:
+            # Process each node in current level
+            for node in current_level:
+                nodes_children = [node for node
+                                  in self._tree_graph.successors(node)]
+                children_no = len(nodes_children)
+                if no_current_level in levels_with_data:
+                    node_description = frozendict(children_no=children_no,
+                                                  data=node.symbol)
+                else:
+                    node_description = frozendict(children_no=children_no)
+                result_desc.append(node_description)
+                next_level.extend(nodes_children)
+            # Prepare processing of the next level
+            current_level = next_level
+            no_current_level += 1
+            next_level = []
+
+        return result_desc
 
     # def draw(self):
     #     """Draw the captured tree structure."""
