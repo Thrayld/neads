@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable, Sequence
 import abc
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph, SealedActivation
+    from neads.sequential_choices_model.tree_view import TreeView
 
 
 class IStep(abc.ABC):
@@ -18,8 +19,8 @@ class IStep(abc.ABC):
     def create(self,
                target_graph: SealedActivationGraph,
                parent_activation: SealedActivation,
-               tree_view,
-               next_steps: list[IStep]):
+               tree_view: TreeView,
+               next_steps: Sequence[IStep]):
         """Create the portion of graph described by the step and next steps.
 
         The step adds new Activations to the given graph a recursively makes the
@@ -48,3 +49,34 @@ class IStep(abc.ABC):
         """
 
         pass
+
+    @staticmethod
+    def _create_next_steps(target_graph: SealedActivationGraph,
+                           step_results: Iterable[SealedActivation],
+                           tree_view: TreeView,
+                           next_steps: Sequence[IStep]):
+        """Let create the next steps their portion of the graph.
+
+        Parameters
+        ----------
+        target_graph
+            The graph to which will be the Activations added,
+            i.e. `target_graph` argument for the `create` method of the next
+            steps.
+        step_results
+            All result Activation of the given step, i.e. the added children
+            to the tree view. Each of these Activations will serve as
+            `parent_activation` argument for the create method of the next
+            steps.
+        tree_view
+            The TreeView of the `target_graph`.
+        next_steps
+            The next steps to create. It may be empty.
+        """
+
+        if len(next_steps) > 0:
+            next_step = next_steps[0]
+            following_steps = next_steps[1:]
+            for result_act in step_results:
+                next_step.create(target_graph, result_act, tree_view,
+                                 following_steps)

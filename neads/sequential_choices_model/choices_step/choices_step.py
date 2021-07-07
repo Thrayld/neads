@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from neads.sequential_choices_model.i_step import IStep
 
@@ -24,7 +24,7 @@ class ChoicesStep(IStep):
     def create(self, target_graph: SealedActivationGraph,
                parent_activation: SealedActivation,
                tree_view: TreeView,
-               next_steps: list[IStep]):
+               next_steps: Sequence[IStep]):
         """Add each choice to the graph and recursively adds the next steps.
 
         Each choice is added and serves as a base for nodes created by the
@@ -50,9 +50,5 @@ class ChoicesStep(IStep):
             tree_view.add_child(parent_activation, result_act)
             step_results.append(result_act)
         # Invoking next steps to create their part of the graph
-        if next_steps:
-            next_step = next_steps[0]
-            following_steps = next_steps[1:]
-            for result_act in step_results:
-                next_step.create(target_graph, result_act, tree_view,
-                                 following_steps)
+        self._create_next_steps(target_graph, step_results, tree_view,
+                                next_steps)

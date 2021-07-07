@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from neads.activation_model import SealedActivationGraph, SealedActivation
 from neads.sequential_choices_model.i_step import IStep
 
 if TYPE_CHECKING:
+    from neads.sequential_choices_model.tree_view import TreeView
     from neads.sequential_choices_model.dynamic_step import Separator, Extractor
 
 
@@ -76,8 +77,9 @@ class DynamicStep(IStep):
         self._extractor = extractor
 
     def create(self, target_graph: SealedActivationGraph,
-               parent_activation: SealedActivation, tree_view,
-               next_steps: list[IStep]):
+               parent_activation: SealedActivation,
+               tree_view: TreeView,
+               next_steps: Sequence[IStep]):
         """Add the separator to the graph and leave the rest for its trigger.
 
         See class's docstring for more info.
@@ -98,6 +100,7 @@ class DynamicStep(IStep):
         """
 
         def trigger(data):
+            # Creating the extractors
             step_results = []
             for idx in range(len(data)):
                 ext_result_act = self._extractor.attach(target_graph,
@@ -105,12 +108,10 @@ class DynamicStep(IStep):
                                                         sep_result_act, idx)
                 tree_view.add_child(parent_activation, ext_result_act)
                 step_results.append(ext_result_act)
-            if next_steps:
-                next_step = next_steps[0]
-                following_steps = next_steps[1:]
-                for result_act in step_results:
-                    next_step.create(target_graph, result_act, tree_view,
-                                     following_steps)
+            # Invoking next steps to create their part of the graph
+            self._create_next_steps(target_graph, step_results, tree_view,
+                                    next_steps)
 
+        # Creating the separator a the trigger method
         sep_result_act = self._separator.attach(target_graph, parent_activation)
         sep_result_act.trigger_on_result = trigger
