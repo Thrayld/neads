@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING
 from neads.activation_model import SealedActivationGraph, SealedActivation
 from neads.sequential_choices_model.i_step import IStep
 
+if TYPE_CHECKING:
+    from neads.sequential_choices_model.dynamic_step import Separator, Extractor
+
 
 class DynamicStep(IStep):
     """Step which creates choices dynamically by the partial evaluation results.
@@ -69,7 +72,8 @@ class DynamicStep(IStep):
             Extractor of the DynamicStep.
         """
 
-        raise NotImplementedError()
+        self._separator = separator
+        self._extractor = extractor
 
     def create(self, target_graph: SealedActivationGraph,
                parent_activation: SealedActivation, tree_view,
@@ -93,4 +97,20 @@ class DynamicStep(IStep):
             part of the graph created by the step.
         """
 
-        raise NotImplementedError()
+        def trigger(data):
+            step_results = []
+            for idx in range(len(data)):
+                ext_result_act = self._extractor.attach(target_graph,
+                                                        parent_activation,
+                                                        sep_result_act, idx)
+                tree_view.add_child(parent_activation, ext_result_act)
+                step_results.append(ext_result_act)
+            if next_steps:
+                next_step = next_steps[0]
+                following_steps = next_steps[1:]
+                for result_act in step_results:
+                    next_step.create(target_graph, result_act, tree_view,
+                                     following_steps)
+
+        sep_result_act = self._separator.attach(target_graph, parent_activation)
+        sep_result_act.trigger_on_result = trigger
