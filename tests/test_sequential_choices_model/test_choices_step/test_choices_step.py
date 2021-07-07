@@ -25,8 +25,6 @@ class TestChoicesStep(unittest.TestCase):
         self.target_graph = SealedActivationGraph()
         self.parent_act = self.target_graph.add_activation(ar_plugins.const, 0)
         self.tree_view_mock = mock.Mock()
-        self.add_child_mock = mock.Mock()
-        self.tree_view_mock.add_child = self.add_child_mock
 
     def test_choices_step_create_with_next_step(self):
         # Create Choices
@@ -71,16 +69,9 @@ class TestChoicesStep(unittest.TestCase):
             (act_1, act_10),
             (act_1, act_11)
         ]
-        actual = [args for args, _ in self.add_child_mock.call_args_list]
+        actual = [args for args, _
+                  in self.tree_view_mock.add_child.call_args_list]
         self.assertCountEqual(expected, actual)
-        # self.add_child_mock.assert_called_with(self.parent_act, act_0)
-        # self.add_child_mock.assert_called_with(self.parent_act, act_1)
-        #
-        # self.add_child_mock.assert_called_with(act_0, act_00)
-        # self.add_child_mock.assert_called_with(act_0, act_01)
-        #
-        # self.add_child_mock.assert_called_with(act_1, act_10)
-        # self.add_child_mock.assert_called_with(act_1, act_11)
 
 
 if __name__ == '__main__':
