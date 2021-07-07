@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from neads.activation_model import SealedActivationGraph, SealedActivation
 from neads.sequential_choices_model.i_step import IStep
 
@@ -52,7 +56,7 @@ class DynamicStep(IStep):
         Then, in the next step we can start with an analysis of each cluster.
     """
 
-    def __init__(self, separator, extractor):
+    def __init__(self, separator: Separator, extractor: Extractor):
         """Initialize DynamicStep.
 
         See class's docstring for more info.
@@ -60,9 +64,9 @@ class DynamicStep(IStep):
         Parameters
         ----------
         separator
-            The ActivationGraph with one input and one result Activation.
+            Separator of the DynamicStep.
         extractor
-            The ActivationGraph with three inputs and one result Activation.
+            Extractor of the DynamicStep.
         """
 
         raise NotImplementedError()
