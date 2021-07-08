@@ -58,6 +58,8 @@ class SequentialChoicesModel:
             If the `data_presence` argument contains invalid index,
             i.e. a value which is less than 0 or equal to or greater than
             the length of the `self.steps` list.
+        RuntimeError
+            If the SCM instance is without steps.
         """
 
         raise NotImplementedError()
