@@ -1,4 +1,4 @@
-from neads import Plugin, PluginID
+from neads.plugin import Plugin, PluginID
 
 
 def _plugin_method():
