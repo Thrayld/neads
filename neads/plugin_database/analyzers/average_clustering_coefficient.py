@@ -19,4 +19,5 @@ def method(network):
     return av_cc
 
 
-average_clustering_coefficient = Plugin(PluginID('average_degree', 0), method)
+average_clustering_coefficient = \
+    Plugin(PluginID('average_clustering_coefficient', 0), method)
