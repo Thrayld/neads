@@ -41,7 +41,16 @@ class ChoicesStep(IStep):
         next_steps
             The steps which are supposed to be created at the bottom of the
             part of the graph created by the step.
+
+        Raises
+        ------
+        RuntimeError
+            If the step has no choices.
         """
+
+        # Error checking
+        if len(self.choices) == 0:
+            raise RuntimeError('ChoicesStep must have at least one choice.')
 
         # Creating the step's part of the graph
         step_results = []

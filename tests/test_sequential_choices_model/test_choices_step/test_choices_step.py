@@ -26,7 +26,7 @@ class TestChoicesStep(unittest.TestCase):
         self.parent_act = self.target_graph.add_activation(ar_plugins.const, 0)
         self.tree_view_mock = mock.Mock()
 
-    def test_choices_step_create_with_next_step(self):
+    def test_create_with_one_next_step(self):
         # Create Choices
         c_a0 = get_single_node_choice(ar_plugins.const)
         c_a1 = get_single_node_choice(ar_plugins.add, 10)
@@ -72,6 +72,18 @@ class TestChoicesStep(unittest.TestCase):
         actual = [args for args, _
                   in self.tree_view_mock.add_child.call_args_list]
         self.assertCountEqual(expected, actual)
+
+    def test_create_without_any_choice(self):
+        cs = ChoicesStep()
+
+        self.assertRaises(
+            RuntimeError,
+            cs.create,
+            self.target_graph,
+            self.parent_act,
+            self.tree_view_mock,
+            []
+        )
 
 
 if __name__ == '__main__':
