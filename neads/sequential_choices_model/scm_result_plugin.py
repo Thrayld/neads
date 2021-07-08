@@ -36,7 +36,6 @@ def _plugin_method(structure_description):
         different from the length of the description - 1.
     """
 
-    raise NotImplementedError()
     # Error checking
     child_sum = sum(node_desc['child_count']
                     for node_desc in structure_description)
