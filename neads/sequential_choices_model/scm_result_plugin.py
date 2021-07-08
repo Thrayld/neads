@@ -66,4 +66,4 @@ def _plugin_method(structure_description):
     return tree
 
 
-plugin = Plugin(PluginID('scm_result_plugin', 0), _plugin_method)
+result_plugin = Plugin(PluginID('scm_result_plugin', 0), _plugin_method)

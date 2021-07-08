@@ -5,4 +5,4 @@ def _plugin_method():
     return None
 
 
-plugin = Plugin(PluginID('scm_root_plugin', 0), _plugin_method)
+root_plugin = Plugin(PluginID('scm_root_plugin', 0), _plugin_method)
