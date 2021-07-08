@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import abc
 
-import neads.utils.graph_utils as graph_utils
+import neads._internal_utils.graph_utils as graph_utils
 
 if TYPE_CHECKING:
     from neads.activation_model import ActivationGraph, SealedActivation, \

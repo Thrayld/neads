@@ -3,7 +3,7 @@ import unittest
 import os
 
 
-from neads.utils.object_temp_file import ObjectTempFile
+from neads._internal_utils.object_temp_file import ObjectTempFile
 
 
 class TestObjectTempFileWithGivenName(unittest.TestCase):

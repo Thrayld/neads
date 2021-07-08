@@ -5,8 +5,8 @@ from enum import Enum, auto
 from collections import defaultdict
 import copy as copy_module
 
-from neads.utils.object_temp_file import ObjectTempFile
-import neads.utils.memory_info as memory_info
+from neads._internal_utils.object_temp_file import ObjectTempFile
+import neads._internal_utils.memory_info as memory_info
 from neads.database import DataNotFound
 
 if TYPE_CHECKING:

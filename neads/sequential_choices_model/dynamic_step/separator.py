@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from neads.utils.plain_graph_wrappers import \
+from neads._internal_utils.plain_graph_wrappers import \
     Plain1In1RGraphWrapper
 
 

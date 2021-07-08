@@ -1,7 +1,7 @@
 import abc
 import unittest
 
-from neads.utils.plain_graph_wrappers import Plain1RGraphWrapper, \
+from neads._internal_utils.plain_graph_wrappers import Plain1RGraphWrapper, \
     Plain1In1RGraphWrapper, Plain3In1RGraphWrapper
 from neads.activation_model import ActivationGraph, SealedActivationGraph
 

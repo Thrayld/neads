@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from neads.utils.plain_graph_wrappers import Plain3In1RGraphWrapper
+from neads._internal_utils.plain_graph_wrappers import Plain3In1RGraphWrapper
 
 if TYPE_CHECKING:
     from neads.activation_model import ActivationGraph, SealedActivation, \

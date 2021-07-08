@@ -3,8 +3,8 @@ import tempfile
 import weakref
 
 
-from neads.utils.serializers.i_iserializer import ISerializer
-from neads.utils.serializers.pickle_serializer import PickleSerializer
+from neads._internal_utils.serializers.i_iserializer import ISerializer
+from neads._internal_utils.serializers.pickle_serializer import PickleSerializer
 
 
 # TODO: Add IObjectTempFileProvider class which will create IObjectTempFile

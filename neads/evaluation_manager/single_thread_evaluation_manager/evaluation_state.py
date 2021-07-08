@@ -4,7 +4,7 @@ import itertools
 from typing import TYPE_CHECKING, Iterator, Iterable
 import collections.abc
 
-import neads.utils.memory_info as memory_info
+import neads._internal_utils.memory_info as memory_info
 from neads.evaluation_manager.single_thread_evaluation_manager.data_node \
     import DataNode, DataNodeState
 from neads.evaluation_manager.single_thread_evaluation_manager \

@@ -2,7 +2,7 @@ import unittest
 import abc
 import os
 
-from neads.utils.serializers.i_iserializer import ISerializer
+from neads._internal_utils.serializers.i_iserializer import ISerializer
 
 
 class BaseTestClassWrapper:

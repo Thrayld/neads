@@ -4,10 +4,10 @@ import pathlib
 import pickle as pkl
 
 from neads.database import IDatabase, DataNotFound
-from neads.utils.serializers import PickleSerializer
+from neads._internal_utils.serializers import PickleSerializer
 
 if TYPE_CHECKING:
-    from neads.utils.serializers import ISerializer
+    from neads._internal_utils.serializers import ISerializer
 
 
 class FileDatabase(IDatabase):

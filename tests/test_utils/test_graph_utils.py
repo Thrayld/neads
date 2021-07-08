@@ -1,6 +1,6 @@
 import unittest
 
-import neads.utils.graph_utils as graph_utils
+import neads._internal_utils.graph_utils as graph_utils
 from neads.activation_model import ActivationGraph
 
 import tests.my_test_utilities.arithmetic_plugins as ar_plugins
