@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Sequence
-from frozendict import frozendict
+from typing import TYPE_CHECKING, Sequence
 import networkx as nx
-
-from neads.sequential_choices_model.result_tree import ResultTree
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivation
@@ -61,29 +58,29 @@ class TreeView:
 
         self._tree_graph.add_edge(parent, child)
 
-    def create_result_description(self, levels_with_data: set[int]) \
-            -> Sequence[frozendict]:
-        """Create args list for the 'SCM result plugin' for ResultTree.
+    def get_result_description(self, levels_with_data: set[int]) \
+            -> Sequence[dict]:
+        """Create description of the captured tree shape of the SCM's graph.
 
-        The arguments are used by the plugin to create corresponding ResultTree.
+        In addition, Activations on some levels (given by the argument) have
+        their symbol in the result.
 
         Parameters
         ----------
         levels_with_data
             Set of levels whose nodes are suppose to have their data in the
-            ResultTree. The levels start with 0.
+            ResultTree. The levels start with 0 (which is root's level).
 
         Returns
         -------
-            Return sequence which uniquely describes the ResultTree which is
-            the result of SCM's evaluation (i.e. of the graph created by SCM).
+            Return sequence which uniquely describes captured tree shape.
             The sequence contain one entry for each node in the tree. The
             entries are in BFS order.
-            Each entry consists of a frozendict, which contains the number of
+            Each entry consists of a dictionary, which contains the number of
             node's children (to determine the tree shape) under key
-            'child_count'. For some nodes, the frozendict also contain key
-            'data' with symbol of the appropriate Activation (i.e. the one
-            that corresponds to the node in the TreeView).
+            'child_count'. For some nodes, the dictionary also contain key
+            'data' with symbol of the Activation that corresponds to the node
+            in the TreeView.
         """
 
         result_desc = []
@@ -98,10 +95,10 @@ class TreeView:
                                   in self._tree_graph.successors(node)]
                 children_no = len(nodes_children)
                 if no_current_level in levels_with_data:
-                    node_description = frozendict(child_count=children_no,
-                                                  data=node.symbol)
+                    node_description = dict(child_count=children_no,
+                                            data=node.symbol)
                 else:
-                    node_description = frozendict(child_count=children_no)
+                    node_description = dict(child_count=children_no)
                 result_desc.append(node_description)
                 next_level.extend(nodes_children)
             # Prepare processing of the next level

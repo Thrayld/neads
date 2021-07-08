@@ -1,5 +1,4 @@
 import unittest
-from frozendict import frozendict
 
 from neads.activation_model import SealedActivationGraph
 from neads.sequential_choices_model.tree_view import TreeView
@@ -54,7 +53,7 @@ class TestTreeViewOnExampleGraph(unittest.TestCase):
 
         Returns
         -------
-            List of the frozendicts by the description.
+            List of the dictionaries by the description.
         """
 
         assert len(data_presence) == len(self.bfs_order)
@@ -62,9 +61,9 @@ class TestTreeViewOnExampleGraph(unittest.TestCase):
         for data, c, act \
                 in zip(data_presence, self.child_count, self.bfs_order):
             if data:
-                entry = frozendict(child_count=c, data=act.symbol)
+                entry = dict(child_count=c, data=act.symbol)
             else:
-                entry = frozendict(child_count=c)
+                entry = dict(child_count=c)
             result.append(entry)
         return result
 
@@ -104,22 +103,22 @@ class TestTreeViewOnExampleGraph(unittest.TestCase):
         ]
 
     def test_create_result_description_level_0(self):
-        actual = self.tree_view.create_result_description({0})
+        actual = self.tree_view.get_result_description({0})
         expected = self.get_result(True, *([False]*5))
         self.assertEqual(expected, actual)
 
     def test_create_result_description_level_1(self):
-        actual = self.tree_view.create_result_description({1})
+        actual = self.tree_view.get_result_description({1})
         expected = self.get_result(False, True, True, *([False]*3))
         self.assertEqual(expected, actual)
 
     def test_create_result_description_level_2(self):
-        actual = self.tree_view.create_result_description({2})
+        actual = self.tree_view.get_result_description({2})
         expected = self.get_result(*([False]*3), *([True]*3))
         self.assertEqual(expected, actual)
 
     def test_create_result_description_all_levels(self):
-        actual = self.tree_view.create_result_description({0, 1, 2})
+        actual = self.tree_view.get_result_description({0, 1, 2})
         expected = self.get_result(*([True]*6))
         self.assertEqual(expected, actual)
 
