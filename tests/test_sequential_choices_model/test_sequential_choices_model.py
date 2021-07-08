@@ -3,8 +3,8 @@ import unittest.mock as mock
 
 from neads import SequentialChoicesModel, ChoicesStep, Choice, \
     ActivationGraph, ListObject, DictObject, Value
-from neads.sequential_choices_model.scm_root_plugin import root_plugin
-from neads.sequential_choices_model.scm_result_plugin import result_plugin
+from neads.sequential_choices_model.scm_plugins import root_plugin, \
+    result_plugin
 
 from tests.my_test_utilities.assert_methods import assertArgSetsEqual
 import tests.my_test_utilities.arithmetic_plugins as ar_plugins

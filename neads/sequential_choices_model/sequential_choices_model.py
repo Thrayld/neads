@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING, Iterable, Optional
 
 from neads.activation_model import SealedActivationGraph
 from neads.sequential_choices_model.tree_view import TreeView
-from neads.sequential_choices_model.scm_root_plugin import root_plugin
-from neads.sequential_choices_model.scm_result_plugin import result_plugin
+from neads.sequential_choices_model.scm_plugins import root_plugin, \
+    result_plugin
 from neads import ListObject, DictObject, Value
 from neads.activation_model.symbolic_objects.symbolic_object import \
     SymbolicObject

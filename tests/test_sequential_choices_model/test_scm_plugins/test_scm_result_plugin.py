@@ -1,6 +1,7 @@
 import unittest
 
-from neads.sequential_choices_model.scm_result_plugin import _plugin_method
+from neads.sequential_choices_model.scm_plugins.scm_result_plugin import \
+    _plugin_method
 from neads.sequential_choices_model.result_tree import ResultTree
 
 from tests.my_test_utilities.assert_methods import assertResultTreeEqual
