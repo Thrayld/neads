@@ -1,4 +1,4 @@
-from typing import Sequence, Optional
+from typing import Iterable, Optional
 
 from neads.activation_model import SealedActivationGraph
 
@@ -25,7 +25,7 @@ class SequentialChoicesModel:
         raise NotImplementedError()
         # self.steps: IStep = []
 
-    def create_graph(self, data_presence: Optional[Sequence[bool]] = None) -> \
+    def create_graph(self, data_presence: Optional[Iterable[int]] = None) -> \
             SealedActivationGraph:
         """Create the graph described by the SCM.
 
@@ -34,19 +34,30 @@ class SequentialChoicesModel:
         Parameters
         ----------
         data_presence
-            Sequence of boolean values of length which equals the number of
-            steps.
-            For each step, it determines whether the result structure of the
-            graph evaluation will contain data produced by result Activation
-            of the step.
-            In case None is provided, all data are preserved.
+            Set of integers to determine the steps whose data will appear in
+            the graph's result structure (after evaluation via
+            EvaluationManager).
+            That is, for each step, the result structure of the graph evaluation
+            will contain data produced by result Activations of the step,
+            if the `data_presence` iterable contain the step's index in the
+            `self.steps` list.
+            In case None is provided (default), the data of all steps are
+            preserved.
 
         Returns
         -------
-            The graph described by the SCM. Its result of evaluation is an
-            instance of ResultTree whose number of levels corresponds
-            to the number of steps + 1 (each steps occupies one level and +1 is
-            for the root).
+            The graph described by the SCM. After all trigger invocations,
+            it has single result Activation whose produces data (SCM's result
+            structure) is an instance of ResultTree whose number of levels
+            corresponds to the number of steps + 1 (each steps occupies one
+            level and +1 is for the root).
+
+        Raises
+        ------
+        ValueError
+            If the `data_presence` argument contains invalid index,
+            i.e. a value which is less than 0 or equal to or greater than
+            the length of the `self.steps` list.
         """
 
         raise NotImplementedError()
