@@ -5,7 +5,7 @@ from neads import ActivationGraph, Choice, ChoicesStep
 from neads.activation_model import SealedActivationGraph
 
 import tests.my_test_utilities.arithmetic_plugins as ar_plugins
-from tests.my_test_utilities.assert_methods import assertEqualArgSets
+from tests.my_test_utilities.assert_methods import assertArgSetsEqual
 
 
 def get_single_node_choice(plugin, /, *args, **kwargs):
@@ -51,14 +51,14 @@ class TestChoicesStep(unittest.TestCase):
         act_10, act_11 = act_1.children
 
         # Test their ArgumentsSets
-        assertEqualArgSets(act_0, ar_plugins.const, self.parent_act.symbol)
-        assertEqualArgSets(act_1, ar_plugins.add, self.parent_act.symbol, 10)
+        assertArgSetsEqual(act_0, ar_plugins.const, self.parent_act.symbol)
+        assertArgSetsEqual(act_1, ar_plugins.add, self.parent_act.symbol, 10)
 
-        assertEqualArgSets(act_00, ar_plugins.sub, act_0.symbol, 20)
-        assertEqualArgSets(act_01, ar_plugins.mul, act_0.symbol, 2)
+        assertArgSetsEqual(act_00, ar_plugins.sub, act_0.symbol, 20)
+        assertArgSetsEqual(act_01, ar_plugins.mul, act_0.symbol, 2)
 
-        assertEqualArgSets(act_10, ar_plugins.sub, act_1.symbol, 20)
-        assertEqualArgSets(act_11, ar_plugins.mul, act_1.symbol, 2)
+        assertArgSetsEqual(act_10, ar_plugins.sub, act_1.symbol, 20)
+        assertArgSetsEqual(act_11, ar_plugins.mul, act_1.symbol, 2)
 
         # Assert calls to the TreeView object
         expected = [

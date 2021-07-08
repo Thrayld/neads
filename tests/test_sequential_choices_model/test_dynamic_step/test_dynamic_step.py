@@ -5,7 +5,7 @@ from neads import ActivationGraph, DynamicStep, Extractor, Separator
 from neads.activation_model import SealedActivationGraph
 
 import tests.my_test_utilities.arithmetic_plugins as ar_plugins
-from tests.my_test_utilities.assert_methods import assertEqualArgSets
+from tests.my_test_utilities.assert_methods import assertArgSetsEqual
 
 
 def get_single_node_separator(plugin, /, *args, **kwargs):
@@ -58,7 +58,7 @@ class TestDynamicStep(unittest.TestCase):
         act_sep_0, = self.parent_act.children
 
         # Test their ArgumentsSets
-        assertEqualArgSets(act_sep_0, ar_plugins.factor, self.parent_act.symbol)
+        assertArgSetsEqual(act_sep_0, ar_plugins.factor, self.parent_act.symbol)
 
         # Assert calls to the TreeView object
         self.tree_view_mock.assert_not_called()
@@ -81,13 +81,13 @@ class TestDynamicStep(unittest.TestCase):
         sep_1b, = ext_1.children
 
         # Test their ArgumentsSets
-        assertEqualArgSets(ext_0, ar_plugins.max, self.parent_act.symbol,
+        assertArgSetsEqual(ext_0, ar_plugins.max, self.parent_act.symbol,
                            sep_a.symbol, 0)
-        assertEqualArgSets(ext_1, ar_plugins.max, self.parent_act.symbol,
+        assertArgSetsEqual(ext_1, ar_plugins.max, self.parent_act.symbol,
                            sep_a.symbol, 1)
 
-        assertEqualArgSets(sep_0b, ar_plugins.factor, ext_0.symbol)
-        assertEqualArgSets(sep_1b, ar_plugins.factor, ext_1.symbol)
+        assertArgSetsEqual(sep_0b, ar_plugins.factor, ext_0.symbol)
+        assertArgSetsEqual(sep_1b, ar_plugins.factor, ext_1.symbol)
 
         # Assert calls to the TreeView object
         expected = [
