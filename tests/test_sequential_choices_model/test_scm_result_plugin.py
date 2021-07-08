@@ -24,6 +24,7 @@ def get_description(nodes_child_count, nodes_data):
         key 'data' with the corresponding value in `nodes_data` if it is not
         Ellipsis (in that case, the key 'data' is missing).
     """
+
     assert len(nodes_child_count) == len(nodes_data)
 
     description = []
