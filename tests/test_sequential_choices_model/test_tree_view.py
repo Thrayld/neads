@@ -60,11 +60,11 @@ class TestTreeViewOnExampleGraph(unittest.TestCase):
         assert len(data_presence) == len(self.bfs_order)
         result = []
         for data, c, act \
-                in zip(data_presence, self.children_no, self.bfs_order):
+                in zip(data_presence, self.child_count, self.bfs_order):
             if data:
-                entry = frozendict(children_no=c, data=act.symbol)
+                entry = frozendict(child_count=c, data=act.symbol)
             else:
-                entry = frozendict(children_no=c)
+                entry = frozendict(child_count=c)
             result.append(entry)
         return result
 
@@ -94,7 +94,7 @@ class TestTreeViewOnExampleGraph(unittest.TestCase):
             self.act_01,
             self.act_10
         ]
-        self.children_no = [
+        self.child_count = [
             2,
             2,
             1,

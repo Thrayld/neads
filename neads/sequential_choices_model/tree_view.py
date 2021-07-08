@@ -81,7 +81,7 @@ class TreeView:
             entries are in BFS order.
             Each entry consists of a frozendict, which contains the number of
             node's children (to determine the tree shape) under key
-            'children_no'. For some nodes, the frozendict also contain key
+            'child_count'. For some nodes, the frozendict also contain key
             'data' with symbol of the appropriate Activation (i.e. the one
             that corresponds to the node in the TreeView).
         """
@@ -98,10 +98,10 @@ class TreeView:
                                   in self._tree_graph.successors(node)]
                 children_no = len(nodes_children)
                 if no_current_level in levels_with_data:
-                    node_description = frozendict(children_no=children_no,
+                    node_description = frozendict(child_count=children_no,
                                                   data=node.symbol)
                 else:
-                    node_description = frozendict(children_no=children_no)
+                    node_description = frozendict(child_count=children_no)
                 result_desc.append(node_description)
                 next_level.extend(nodes_children)
             # Prepare processing of the next level
