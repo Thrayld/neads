@@ -215,6 +215,7 @@ class DataNode:
         self._check_appropriate_state(DataNodeState.UNKNOWN)
         try:
             self._data = self._database.load(self._activation.definition)
+            self._data_size = memory_info.get_object_size(self._data)
             self._change_state(DataNodeState.MEMORY)
             return True
         except DataNotFound:
