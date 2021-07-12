@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING, Any, Optional, Iterator, Sequence
 import collections
 import math
@@ -19,6 +18,10 @@ if TYPE_CHECKING:
 
 import logging
 logger = logging.getLogger('neads.complex_algorithm')
+
+
+# IDEA: Encapsulate 'new_order' so it is better protected from changes
+#  it will make the code much less confusing
 
 
 class ComplexAlgorithm(IEvaluationAlgorithm):
@@ -151,10 +154,9 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             Node to process, see `_is_processed` method.
         """
 
-        logger.info(f'Start processing: {node}.')
-
         # If node is not already processed
         if not self._is_processed(node):
+            logger.info(f'Start processing: {node}.')
             # If node has data in database (i.e. load was successful)
             if node.state is DataNodeState.UNKNOWN and node.try_load():
                 pass  # Now node.state == MEMORY
@@ -169,23 +171,24 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
                 for parent in reversed(node.parents):
                     assert parent is self._necessary.pop()  # Parents were used
             new_data_in_memory = True
+
+            logger.info(f'End processing: {node}.')
+            # Calculation of unprocessed nodes purely for logging purposes
+            unprocessed_nodes = [node for node in self._evaluation_state
+                                 if not self._is_processed(node)]
+            logger.info(f'Unprocessed nodes: {len(unprocessed_nodes)}.')
         else:
             # Processed nodes
             new_data_in_memory = False
 
         # Insert the node to structures describing the processing state
+        # The update is here to maintain the DFS post-order
         self._necessary.append(node)
         self._visited.append(node)
 
         # Check the limit, if new data arrived to memory
-        if new_data_in_memory and self._too_much_memory():
+        if new_data_in_memory and self._too_much_allocated():
             self._save_memory()
-
-        logger.info(f'End processing: {node}.')
-        # Calculation of unprocessed nodes purely for logging purposes
-        unprocessed_nodes = [node for node in self._evaluation_state
-                             if not self._is_processed(node)]
-        logger.info(f'Number of unprocessed nodes is {len(unprocessed_nodes)}.')
 
     def _load_nodes(self, nodes):
         """Ensure that the given nodes are in MEMORY state.
@@ -206,7 +209,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
                 continue
             elif node.state is DataNodeState.DISK:
                 node.load()
-                if self._too_much_memory():
+                if self._too_much_allocated():
                     self._save_memory(nodes_to_keep=nodes)
             else:
                 raise ValueError(f'The node {node} must be either in MEMORY '
@@ -249,14 +252,13 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         # If we cannot comply to the given memory limit, as even the 'base'
         # memory consumption is above the limit
         if base_estimate > self._memory_limit:
-            warnings.warn(
+            logger.warning(
                 f'Estimated base memory usage ({base_estimate}) is greater '
                 f'than the memory limit ({self._memory_limit}).\n'
-                f'Switching the memory checking off.',
-                category=ResourceWarning
+                f'Doubling the memory limit.'
             )
             # Infinite _memory_limit does the job
-            self._memory_limit = math.inf
+            self._memory_limit = 2 * self._memory_limit
         else:
             # Do memory saving
             memory_to_store = total_used_memory_estimate \
@@ -378,7 +380,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         )
         return filtered_order
 
-    def _too_much_memory(self):
+    def _too_much_allocated(self):
         """True, if the consumed virtual memory exceeds the memory limit."""
         if self._memory_limit == math.inf:
             return False
