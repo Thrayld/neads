@@ -17,6 +17,7 @@ if TYPE_CHECKING:
         import DataNode
 
 import logging
+
 logger = logging.getLogger('neads.complex_algorithm')
 
 
@@ -254,15 +255,15 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         if base_estimate > self._memory_limit:
             logger.warning(
                 f'Estimated base memory usage ({base_estimate}) is greater '
-                f'than the memory limit ({self._memory_limit}).\n'
+                f'than the memory limit ({self._memory_limit}). '
                 f'Doubling the memory limit.'
             )
             # Infinite _memory_limit does the job
             self._memory_limit = 2 * self._memory_limit
         else:
             # Do memory saving
-            memory_to_store = total_used_memory_estimate \
-                              * self._proportion_to_store
+            memory_to_store = int(total_used_memory_estimate
+                                  * self._proportion_to_store)
             self._do_save_memory(memory_to_store, nodes_to_keep=nodes_to_keep)
 
     def _do_save_memory(self, memory_to_store, *, nodes_to_keep=()):
