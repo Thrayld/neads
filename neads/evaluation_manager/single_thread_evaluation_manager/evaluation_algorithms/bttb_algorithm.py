@@ -11,7 +11,7 @@ if TYPE_CHECKING:
         .evaluation_state import EvaluationState
 
 
-# TODO: TODO.. maybe?
+# TODO: delete
 
 class BttbAlgorithm(IEvaluationAlgorithm):
     """Algorithm running repeatedly from bottom to top and top to bottom.
