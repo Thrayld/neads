@@ -11,7 +11,8 @@ if TYPE_CHECKING:
 
 
 def method(data: pd.DataFrame):
-    """Compute a weighted networks using the Pearson correlation.
+    """Compute a weighted networks using the Pearson correlation of DataFrame.
+
     The Pearson correlation of pairs of series defines the weights in
     the network.
 
@@ -22,9 +23,8 @@ def method(data: pd.DataFrame):
 
     Returns
     -------
-    networkx.Graph
-        Weighted network whose weights are determined by Pearson
-        correlation of the series of the adjacent nodes.
+        Weighted network whose weights are determined by Pearson correlation
+        of the series of the adjacent nodes. The loops are removed.
     """
 
     g = nx.from_pandas_adjacency(data.corr())
