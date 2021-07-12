@@ -277,6 +277,11 @@ class SymbolicArgumentSet:
     def __hash__(self):
         return hash(self._bound_args_object)
 
+    def __str__(self):
+        positional = f'*{self._bound_args_object[0]}'
+        keyword = f'**{self._bound_args_object[1]}'
+        return f'SymbolicArgumentSet({positional}, {keyword})'
+
 
 class SymbolicArgumentSetException(Exception):
     pass

@@ -1347,6 +1347,9 @@ class Activation:
 
         self._owner.remove_activation_trigger_on_descendants(self)
 
+    def __str__(self):
+        return f'Activation({self.plugin}, {self.argument_set})'
+
 
 class SealedActivation(Activation):
     """An individual activation in an SealedActivationGraph.
@@ -1383,3 +1386,6 @@ class SealedActivation(Activation):
         """
 
         return self._owner.get_definition(self)
+
+    def __str__(self):
+        return f'SealedActivation({self.plugin}, {self.argument_set})'

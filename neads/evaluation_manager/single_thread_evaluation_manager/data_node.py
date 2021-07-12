@@ -474,3 +474,7 @@ class DataNode:
         self._state = state_to
         callback_list = self._callbacks[(state_from, state_to)]
         self._call_callbacks(callback_list)
+
+    def __str__(self):
+        return f'DataNode({self.activation.plugin.id},' \
+               f' {self._activation.argument_set})'

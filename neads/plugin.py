@@ -77,6 +77,9 @@ class Plugin:
         except Exception as e:
             raise PluginException('Plugin raised an exception.') from e
 
+    def __str__(self):
+        return f'Plugin({self._plugin_id})'
+
 
 class PluginID:
 
@@ -92,6 +95,9 @@ class PluginID:
 
     def __hash__(self):
         return hash((self._name, self._version))
+
+    def __str__(self):
+        return f'PluginID({self._name}, {self._version})'
 
 
 class PluginException(Exception):

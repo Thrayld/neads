@@ -137,3 +137,8 @@ class DictObject(collections.abc.Mapping, CompositeObject):
 
     def __getitem__(self, key):
         return self._dict_subobjects[key]
+
+    def __str__(self):
+        content = ', '.join(map(lambda kv: f'{kv[0]}: {kv[1]}',
+                                self._dict_subobjects.items()))
+        return f'DictObject({{{ content }}})'

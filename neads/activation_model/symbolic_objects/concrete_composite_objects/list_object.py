@@ -122,3 +122,6 @@ class ListObject(collections.abc.Sequence, CompositeObject):
     def __len__(self) -> int:
         return len(self._subobjects)
 
+    def __str__(self):
+        content = ', '.join(map(lambda x: str(x), self._subobjects))
+        return f'ListObject({content})'

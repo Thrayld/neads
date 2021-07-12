@@ -349,6 +349,9 @@ class Symbol(SymbolicObject):
     def __hash__(self):
         return id(self)
 
+    def __str__(self):
+        return f'Symbol at {id(self)}'
+
 
 class SubstitutionPairsParsingUtility:
     # IDEA: Is it necessary to have substitution pairs instead of dict?
