@@ -8,6 +8,7 @@ from neads.evaluation_manager.single_thread_evaluation_manager \
     .evaluation_state import EvaluationState
 from neads.evaluation_manager.single_thread_evaluation_manager\
     .evaluation_algorithms.complex_algorithm import ComplexAlgorithm
+from neads.logging_autoconfig import configure_logging
 
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph, SealedActivation
@@ -59,7 +60,6 @@ class SingleThreadEvaluationManager(IEvaluationManager):
             results.
         """
 
-        # raise NotImplementedError()
         algorithm = evaluation_algorithm \
             if evaluation_algorithm is not None \
             else self._get_default_algorithm()
