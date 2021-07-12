@@ -5,3 +5,4 @@ from neads.sequential_choices_model import SequentialChoicesModel, \
 from neads.plugin import Plugin, PluginID
 from neads.evaluation_manager import SingleThreadEvaluationManager
 from neads.database import FileDatabase
+from neads.logging_autoconfig import configure_logging
