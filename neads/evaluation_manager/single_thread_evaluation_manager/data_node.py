@@ -13,6 +13,9 @@ if TYPE_CHECKING:
     from neads.activation_model import SealedActivation
     from neads.database import IDatabase
 
+import logging
+logger = logging.getLogger('neads.data_node')
+
 
 class DataNodeState(Enum):
     """State of the DataNode."""
@@ -96,6 +99,8 @@ class DataNode:
 
         for parent in self._parents:
             parent._children.append(self)
+
+        logger.info(f'{self} created.')
 
     @property
     def activation(self):
@@ -212,14 +217,18 @@ class DataNode:
             If the DataNode is in different state than UNKNOWN.
         """
 
+        logger.debug(f'Trying to load {self}.')
+
         self._check_appropriate_state(DataNodeState.UNKNOWN)
         try:
             self._data = self._database.load(self._activation.definition)
             self._data_size = memory_info.get_object_size(self._data)
             self._change_state(DataNodeState.MEMORY)
+            logger.debug(f'Data of {self} found.')
             return True
         except DataNotFound:
             self._change_state(DataNodeState.NO_DATA)
+            logger.debug(f'Data of {self} not found.')
             return False
 
     def evaluate(self):
@@ -238,6 +247,8 @@ class DataNode:
         PluginException
             When the plugin raises an exception.
         """
+
+        logger.debug(f'Evaluating {self}.')
 
         # Initial state checks
         self._check_appropriate_state(DataNodeState.NO_DATA)
@@ -265,6 +276,9 @@ class DataNode:
         self._data_size = memory_info.get_object_size(self._data)
         self._change_state(DataNodeState.MEMORY)
 
+        logger.debug(f'Evaluation of {self} finished.')  
+        # Two log (start and end) are there due to possible low speed of eval 
+
     def store(self):
         """Store data on disk.
 
@@ -280,6 +294,8 @@ class DataNode:
         DataNodeStateException
             If the DataNode is in different state than MEMORY.
         """
+
+        logger.debug(f'Storing data of {self} to disk.')
 
         self._check_appropriate_state(DataNodeState.MEMORY)
         if self._temp_file is None:
@@ -300,6 +316,8 @@ class DataNode:
         DataNodeStateException
             If the DataNode is in different state than DISK.
         """
+
+        logger.debug(f'Loading data of {self} to memory.')
 
         self._check_appropriate_state(DataNodeState.DISK)
         self._data = self._temp_file.load()

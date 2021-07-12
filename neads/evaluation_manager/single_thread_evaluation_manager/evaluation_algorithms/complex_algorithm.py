@@ -17,6 +17,9 @@ if TYPE_CHECKING:
     from neads.evaluation_manager.single_thread_evaluation_manager.data_node \
         import DataNode
 
+import logging
+logger = logging.getLogger('neads.complex_algorithm')
+
 
 class ComplexAlgorithm(IEvaluationAlgorithm):
     """The algorithm which uses all EvaluationState capabilities.
@@ -128,7 +131,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         """
 
         return node.state is DataNodeState.MEMORY \
-               or node.state is DataNodeState.DISK
+            or node.state is DataNodeState.DISK
 
     def _process(self, node):
         """Process the given node.
@@ -147,6 +150,8 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         node
             Node to process, see `_is_processed` method.
         """
+
+        logger.info(f'Start processing {node}.')
 
         # If node is not already processed
         if not self._is_processed(node):
@@ -175,6 +180,12 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         # Check the limit, if new data arrived to memory
         if new_data_in_memory and self._too_much_memory():
             self._save_memory()
+
+        logger.info(f'End processing {node}.')
+        # Calculation of
+        unprocessed_nodes = [node for node in self._evaluation_state
+                             if not self._is_processed(node)]
+        logger.info(f'Number of unprocessed nodes is {len(unprocessed_nodes)}.')
 
     def _load_nodes(self, nodes):
         """Ensure that the given nodes are in MEMORY state.
@@ -227,6 +238,8 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             memory proportion as requested by `_proportion_to_store`.
         """
 
+        logger.debug('Saving memory.')
+
         self._update_swap_order()
         total_used_memory_estimate = sum(node.data_size
                                          for node in self._swap_order)
@@ -247,7 +260,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         else:
             # Do memory saving
             memory_to_store = total_used_memory_estimate \
-                * self._proportion_to_store
+                              * self._proportion_to_store
             self._do_save_memory(memory_to_store, nodes_to_keep=nodes_to_keep)
 
     def _do_save_memory(self, memory_to_store, *, nodes_to_keep=()):
@@ -283,17 +296,21 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             node_to_store = self._swap_order[candidate_for_store_idx]
             if node_to_store not in nodes_to_keep:
                 # IDEA: if too slow, improve deletion (now it's quadratic)
+                #  first find all the nodes to store, then remove then at once
+                #  that is a linear solution
+                # Store the node
                 del self._swap_order[candidate_for_store_idx]
                 node_to_store.store()
                 current_saved_amount += node_to_store.data_size
             else:
+                # The `node_to_store` must not be stored; thus, moving on
                 candidate_for_store_idx += 1
 
         # If we are not able store the given amount of memory
         if current_saved_amount < memory_to_store:
-            warnings.warn(
-                f'Not able to store the given amount of memory.',
-                category=ResourceWarning
+            logger.warning(
+                f'Not get below the memory limit. Saved '
+                f'{current_saved_amount} instead {memory_to_store}.'
             )
 
     def _update_swap_order(self):
