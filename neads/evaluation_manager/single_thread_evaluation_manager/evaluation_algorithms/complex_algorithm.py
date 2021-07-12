@@ -151,7 +151,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
             Node to process, see `_is_processed` method.
         """
 
-        logger.info(f'Start processing {node}.')
+        logger.info(f'Start processing: {node}.')
 
         # If node is not already processed
         if not self._is_processed(node):
@@ -181,8 +181,8 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         if new_data_in_memory and self._too_much_memory():
             self._save_memory()
 
-        logger.info(f'End processing {node}.')
-        # Calculation of
+        logger.info(f'End processing: {node}.')
+        # Calculation of unprocessed nodes purely for logging purposes
         unprocessed_nodes = [node for node in self._evaluation_state
                              if not self._is_processed(node)]
         logger.info(f'Number of unprocessed nodes is {len(unprocessed_nodes)}.')
@@ -309,7 +309,7 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
         # If we are not able store the given amount of memory
         if current_saved_amount < memory_to_store:
             logger.warning(
-                f'Not get below the memory limit. Saved '
+                f'Not able to get below the memory limit. Saved '
                 f'{current_saved_amount} instead {memory_to_store}.'
             )
 

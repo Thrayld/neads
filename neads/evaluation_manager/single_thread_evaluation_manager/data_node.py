@@ -100,7 +100,7 @@ class DataNode:
         for parent in self._parents:
             parent._children.append(self)
 
-        logger.info(f'{self} created.')
+        logger.info(f'Created node: {self}.')
 
     @property
     def activation(self):
@@ -217,18 +217,18 @@ class DataNode:
             If the DataNode is in different state than UNKNOWN.
         """
 
-        logger.debug(f'Trying to load {self}.')
+        logger.debug(f'Trying to load: {self}.')
 
         self._check_appropriate_state(DataNodeState.UNKNOWN)
         try:
             self._data = self._database.load(self._activation.definition)
             self._data_size = memory_info.get_object_size(self._data)
             self._change_state(DataNodeState.MEMORY)
-            logger.debug(f'Data of {self} found.')
+            logger.debug(f'Data found: {self}.')
             return True
         except DataNotFound:
             self._change_state(DataNodeState.NO_DATA)
-            logger.debug(f'Data of {self} not found.')
+            logger.debug(f'Data not found: {self}.')
             return False
 
     def evaluate(self):
@@ -248,7 +248,7 @@ class DataNode:
             When the plugin raises an exception.
         """
 
-        logger.debug(f'Evaluating {self}.')
+        logger.debug(f'Evaluating: {self}.')
 
         # Initial state checks
         self._check_appropriate_state(DataNodeState.NO_DATA)
@@ -276,7 +276,7 @@ class DataNode:
         self._data_size = memory_info.get_object_size(self._data)
         self._change_state(DataNodeState.MEMORY)
 
-        logger.debug(f'Evaluation of {self} finished.')  
+        logger.debug(f'Evaluation finished: {self}.')
         # Two log (start and end) are there due to possible low speed of eval 
 
     def store(self):
@@ -295,7 +295,7 @@ class DataNode:
             If the DataNode is in different state than MEMORY.
         """
 
-        logger.debug(f'Storing data of {self} to disk.')
+        logger.debug(f'Storing data to disk: {self}.')
 
         self._check_appropriate_state(DataNodeState.MEMORY)
         if self._temp_file is None:
@@ -317,7 +317,7 @@ class DataNode:
             If the DataNode is in different state than DISK.
         """
 
-        logger.debug(f'Loading data of {self} to memory.')
+        logger.debug(f'Loading data to memory: {self}.')
 
         self._check_appropriate_state(DataNodeState.DISK)
         self._data = self._temp_file.load()
