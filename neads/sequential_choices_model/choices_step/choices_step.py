@@ -7,6 +7,7 @@ from neads.sequential_choices_model.i_step import IStep
 if TYPE_CHECKING:
     from neads.activation_model import SealedActivationGraph, SealedActivation
     from neads.sequential_choices_model.tree_view import TreeView
+    from neads.sequential_choices_model.choices_step.choice import Choice
 
 
 class ChoicesStep(IStep):
@@ -19,7 +20,7 @@ class ChoicesStep(IStep):
     def __init__(self):
         """Initialize empty ChoicesStep."""
 
-        self.choices = []
+        self.choices: list[Choice] = []
 
     def create(self, target_graph: SealedActivationGraph,
                parent_activation: SealedActivation,
