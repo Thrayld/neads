@@ -6,6 +6,10 @@ from neads import Plugin, PluginID
 def method(_, *args, **kwargs) -> pd.DataFrame:
     """Load the data using pandas' `read_csv` method.
 
+    Be aware of the fact that the `method` work behave as a pure function,
+    that is, its output must be determined solely by its input. Thus,
+    the data in a particular file must remain constant.
+
     Parameters
     ----------
     _
