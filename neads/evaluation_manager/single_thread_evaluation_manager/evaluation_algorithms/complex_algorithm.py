@@ -258,7 +258,6 @@ class ComplexAlgorithm(IEvaluationAlgorithm):
                 f'than the memory limit ({self._memory_limit}). '
                 f'Doubling the memory limit.'
             )
-            # Infinite _memory_limit does the job
             self._memory_limit = 2 * self._memory_limit
         else:
             # Do memory saving
