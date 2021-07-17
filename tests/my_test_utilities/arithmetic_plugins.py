@@ -1,4 +1,4 @@
-from neads.plugin import Plugin, PluginID
+from neads.activation_model.plugin import Plugin, PluginID
 
 built_in_max = max
 built_in_min = min

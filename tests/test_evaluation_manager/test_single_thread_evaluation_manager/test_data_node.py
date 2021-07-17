@@ -7,7 +7,7 @@ from parameterized import parameterized
 from neads.evaluation_manager.single_thread_evaluation_manager.data_node \
     import DataNode, DataNodeStateException, DataNodeState
 from neads.activation_model import *
-from neads.plugin import Plugin, PluginID
+from neads.activation_model.plugin import Plugin, PluginID
 
 import tests.my_test_utilities.arithmetic_plugins as ar_plugins
 from tests.my_test_utilities.mock_database import MockDatabase

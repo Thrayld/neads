@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Deque
 import collections
 
-from neads.plugin import Plugin, PluginID
+from neads.activation_model.plugin import Plugin, PluginID
 from neads.sequential_choices_model.result_tree import ResultTree
 
 if TYPE_CHECKING:

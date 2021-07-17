@@ -1,7 +1,7 @@
 import unittest
 import inspect
 
-from neads.plugin import Plugin, PluginID, PluginException
+from neads.activation_model.plugin import Plugin, PluginID, PluginException
 
 
 class TestPlugin(unittest.TestCase):

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Union, Callable, Any, Hashable, Sequence, Iterable
 import collections.abc
 
-from neads.plugin import Plugin
+from neads.activation_model.plugin import Plugin
 from neads.activation_model.symbolic_objects import Symbol, Value
 from neads.activation_model.symbolic_objects.symbolic_object import \
     SymbolicObject

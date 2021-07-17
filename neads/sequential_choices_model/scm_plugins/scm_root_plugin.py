@@ -1,4 +1,4 @@
-from neads.plugin import Plugin, PluginID
+from neads.activation_model.plugin import Plugin, PluginID
 
 
 def _plugin_method():
