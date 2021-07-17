@@ -285,10 +285,6 @@ class DataNode:
         Allowed only in MEMORY state and the resulting state is DISK. It stores
         the data to tmp file and releases the pointer to the data instance.
 
-        TODO: how much entanglement is there between data instances in
-         usual case?
-         Is there any?
-         Will we really release as much memory as promised (after run of GC)
         Raises
         ------
         DataNodeStateException
