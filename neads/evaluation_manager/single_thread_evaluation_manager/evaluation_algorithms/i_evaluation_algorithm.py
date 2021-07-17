@@ -24,11 +24,6 @@ class IEvaluationAlgorithm(abc.ABC):
         Then, the algorithm must get data from all 'result nodes' which are
         then returned.
 
-        TODO: find way to get activation from the DataNode.. maybe let ES
-         to return the result 'structure' (i.e. the dict Act to Data)
-         ale to se mi moc nelibi, proc do toho takhle zatahovat ES, lepsi DN,
-         kdyz uz jsme dosli ke get_data
-
         Parameters
         ----------
         evaluation_state
