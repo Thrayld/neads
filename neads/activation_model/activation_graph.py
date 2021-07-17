@@ -39,12 +39,12 @@ class ActivationGraph(collections.abc.Iterable):
         """Return factory method for creation of Activations."""
         return Activation
 
-    def __init__(self, inputs_count):
+    def __init__(self, input_count):
         """Initialize a new ActivationGraph.
 
         Parameters
         ----------
-        inputs_count
+        input_count
             Number of inputs of the graph.
 
         Raises
@@ -59,10 +59,10 @@ class ActivationGraph(collections.abc.Iterable):
             is probably a better choice.
         """
 
-        if inputs_count < 0:
-            raise ValueError(f'Inputs count must be at least 0: {inputs_count}')
+        if input_count < 0:
+            raise ValueError(f'Input count must be at least 0: {input_count}')
 
-        self._input_symbols = tuple(Symbol() for _ in range(inputs_count))
+        self._input_symbols = tuple(Symbol() for _ in range(input_count))
         self._trigger_method = None
         self._top_level: list[Activation] = []
 
