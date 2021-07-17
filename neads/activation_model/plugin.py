@@ -67,6 +67,7 @@ class Plugin:
         TypeError
             If the arguments do not match plugins signature.
         PluginException
+            If the plugin method raises exception.
         """
 
         # Throws TypeException if, the arguments does not fit
