@@ -87,7 +87,7 @@ class TreeView:
         current_level = [self._root]
         no_current_level = 0
         next_level = []
-        # While there are some on the current level
+        # While there are some nodes on the current level
         while current_level:
             # Process each node in current level
             for node in current_level:
