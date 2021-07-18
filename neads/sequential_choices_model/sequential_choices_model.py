@@ -51,7 +51,7 @@ class SequentialChoicesModel:
             if the `data_presence` iterable contain the step's index in the
             `self.steps` list.
             In case None is provided (default), the data of all steps are
-            preserved.
+            present.
 
         Returns
         -------
