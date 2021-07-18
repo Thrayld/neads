@@ -40,6 +40,8 @@ mutual_information = Plugin(PluginID('mutual_information', 0), method)
 
 
 # Original author: Nikola Jajcay, jajcay(at)cs.cas.cz
+# https://github.com/jajcayn/multi-scale/blob/master/src/mutual_information.py
+
 # Some errors with new versions of numpy (such as indexing with float) were
 # fixed, the docstring rewritten and the code split into several methods
 def _mi(x, y, binning_algorithm='EQQ', bins=8, log2=True):
