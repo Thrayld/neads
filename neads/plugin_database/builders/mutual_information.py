@@ -4,7 +4,7 @@ import networkx as nx
 from neads import Plugin, PluginID
 
 
-def method(df, normalize):
+def method(df, normalize=False):
     """Compute a weighted networks using the mutual information.
 
     The mutual information between pairs of series defines the weights in
@@ -15,8 +15,10 @@ def method(df, normalize):
     df : pandas.DataFrame
         Time series to be transformed into network.
     normalize : bool
-        Whether the weights are normalized, so that the greatest value
-        is 1. Note, that then the values loses their units.
+        Whether the weights are normalized, so that the greatest absolute value
+        is 1 (i.e. all entries are divided bz the greatest absolute value
+        among all entries).
+        Note, that then the values loses the units.
 
     Returns
     -------
@@ -152,8 +154,7 @@ def eqq2_bins(x, bins):
             expand_idx = 1
             while where.size == 0:
                 where = np.where(np.diff(
-                    x_sorted[idx - expand_idx:idx + 1 + expand_idx]) != 0)[
-                    0]
+                    x_sorted[idx - expand_idx:idx + 1 + expand_idx]) != 0)[0]
                 expand_idx += 1
             if where[0] == 0:
                 x_bins.append(x_sorted[idx - expand_idx])
