@@ -49,7 +49,7 @@ class Plain1RGraphWrapper(abc.ABC):
 class Plain1In1RGraphWrapper(Plain1RGraphWrapper):
     """Wrapper for graph with three inputs and one result without triggers.
 
-    Serves as common base class for some classes requiring ste same
+    Serves as common base class for some classes requiring the same
     functionality.
     """
 
@@ -84,7 +84,7 @@ class Plain1In1RGraphWrapper(Plain1RGraphWrapper):
 class Plain3In1RGraphWrapper(Plain1RGraphWrapper):
     """Wrapper for graph with three inputs and one result without triggers.
 
-    Serves as common base class for some classes requiring ste same
+    Serves as common base class for some classes requiring the same
     functionality.
     """
 
