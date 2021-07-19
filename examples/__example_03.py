@@ -4,7 +4,7 @@ import neads as nd
 from examples import example_01
 
 DATA_PATH = 'C:\\Users\\Honst\\BP\\evaluations\\my_df'
-DATABASE_PATH = 'C:\\Users\\Honst\\BP\\evaluations\\my_example_01'
+DATABASE_PATH = 'C:\\Users\\Honst\\BP\\evaluations\\my_example_03'
 
 nd.configure_logging(logging.DEBUG)
 
