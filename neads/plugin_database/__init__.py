@@ -5,3 +5,4 @@ from neads.plugin_database.dynamic_pairs import *
 from neads.plugin_database.filters import *
 from neads.plugin_database.loaders import *
 from neads.plugin_database.preprocessors import *
+from neads.plugin_database.surrogates_related import *
