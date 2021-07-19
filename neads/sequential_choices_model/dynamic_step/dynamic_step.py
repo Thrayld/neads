@@ -100,6 +100,8 @@ class DynamicStep(IStep):
         """
 
         def trigger(data):
+            # Record existing Activation for later detection of added Acts
+            existing_before = set(target_graph)
             # Creating the extractors
             step_results = []
             for idx in range(len(data)):
@@ -111,6 +113,11 @@ class DynamicStep(IStep):
             # Invoking next steps to create their part of the graph
             self._create_next_steps(target_graph, step_results, tree_view,
                                     next_steps)
+
+            # Return newly created Activations
+            existing_now = set(target_graph)
+            new_activations = existing_now.difference(existing_before)
+            return new_activations
 
         # Creating the separator a the trigger method
         sep_result_act = self._separator.attach(target_graph, parent_activation)
