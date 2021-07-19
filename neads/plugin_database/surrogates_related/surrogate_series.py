@@ -22,13 +22,7 @@ def method(data, *, seed):
         to the original one.
     """
 
-    result_data = data.copy()
-
-    seed_seq = np.random.SeedSequence(seed)
-    seeds = seed_seq.generate_state(len(data))
-    for seed, column in zip(seeds, data):
-        result_data[column] = get_single_ft_surrogate(data[column], seed)
-
+    result_data = data.apply(lambda x: get_single_ft_surrogate(x, seed))
     return result_data
 
 
