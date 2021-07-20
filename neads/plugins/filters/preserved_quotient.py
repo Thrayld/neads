@@ -33,4 +33,4 @@ def method(network, quotient):
     return new_network
 
 
-preserving_quotient = Plugin(PluginID('preserving_quotient', 0), method)
+preserved_quotient = Plugin(PluginID('preserved_quotient', 0), method)
