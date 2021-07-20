@@ -8,4 +8,4 @@ Thus, each use case have itself directory with (again) usually one extractor
 and many separators.
 """
 
-from neads.plugin_database.dynamic_pairs.evolution import *
+from neads.plugins.dynamic_pairs.evolution import *

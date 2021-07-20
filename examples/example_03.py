@@ -1,6 +1,6 @@
 import neads as nd
 from neads.utils import get_single_node_choice
-import neads.plugin_database as pl
+import neads.plugins as pl
 
 
 def get_example(data_filename):

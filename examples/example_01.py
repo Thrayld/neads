@@ -1,6 +1,6 @@
 import neads as nd
 from neads.utils import get_single_node_choice
-import neads.plugin_database as pl
+import neads.plugins as pl
 
 
 def get_example(data_filename):
@@ -16,19 +16,19 @@ def get_example(data_filename):
     preprocessing.choices.append(choice)
 
     # Creating step for building the network
-    choice = get_single_node_choice(pl.mutual_information)
+    choice = get_single_node_choice(pl.pearson_correlation)
     building = nd.ChoicesStep()
     building.choices.append(choice)
 
     # Creating step for filtering the network
-    choice_a = get_single_node_choice(pl.planar_maximally_filtered_graph)
-    choice_b = get_single_node_choice(pl.weight_threshold, 0.7)
+    choice_a = get_single_node_choice(pl.weight_threshold, 0.6)
+    choice_b = get_single_node_choice(pl.planar_maximally_filtered_graph)
     filtering = nd.ChoicesStep()
     filtering.choices.extend([choice_a, choice_b])
 
     # Creating step for final analysis of the network
-    choice_a = get_single_node_choice(pl.average_clustering_coefficient)
-    choice_b = get_single_node_choice(pl.average_degree)
+    choice_a = get_single_node_choice(pl.average_degree)
+    choice_b = get_single_node_choice(pl.average_clustering_coefficient)
     analyzing = nd.ChoicesStep()
     analyzing.choices.extend([choice_a, choice_b])
 

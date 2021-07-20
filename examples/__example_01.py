@@ -6,7 +6,7 @@ from examples import example_01
 DATA_PATH = 'C:\\Users\\Honst\\BP\\evaluations\\my_df'
 DATABASE_PATH = 'C:\\Users\\Honst\\BP\\evaluations\\my_example_01'
 
-nd.configure_logging(logging.DEBUG)
+nd.configure_logging(logging.INFO)
 
 nd.FileDatabase.create(DATABASE_PATH)
 db = nd.FileDatabase(DATABASE_PATH)

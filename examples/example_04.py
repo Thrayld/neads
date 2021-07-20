@@ -2,7 +2,7 @@ import collections
 
 import neads as nd
 from neads.utils import *
-import neads.plugin_database as pl
+import neads.plugins as pl
 
 
 def get_example(data_filename, grid):
