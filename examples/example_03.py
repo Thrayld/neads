@@ -5,7 +5,7 @@ import neads.plugins as pl
 
 def get_example(data_filename):
     # Creating step for loading the data
-    choice = get_single_node_choice(pl.csv_loader, data_filename,
+    choice = get_single_node_choice(pl.read_csv, data_filename,
                                     index_col='Date')
     loading = nd.ChoicesStep()
     loading.choices.append(choice)

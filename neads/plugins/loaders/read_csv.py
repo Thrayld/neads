@@ -28,7 +28,7 @@ def method(_, *args, **kwargs) -> pd.DataFrame:
     return df
 
 
-csv_loader = Plugin(PluginID('read_csv', 0), method)
+read_csv = Plugin(PluginID('read_csv', 0), method)
 
 # import inspect
 #

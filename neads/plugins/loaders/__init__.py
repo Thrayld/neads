@@ -1,1 +1,1 @@
-from neads.plugins.loaders.read_csv import csv_loader
+from neads.plugins.loaders.read_csv import read_csv
