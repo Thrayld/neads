@@ -73,6 +73,7 @@ class TestDynamicStep(unittest.TestCase):
         # Trigger invocation
         trigger = sep_a.trigger_on_result
         del sep_a.trigger_on_result
+        # TODO: assert trigger returns what it should
         trigger([2, 3])
 
         # Get created Activations
