@@ -14,10 +14,10 @@ def method(df):
         The relative change series of the given series.
     """
 
-    relative_changes = (df - df.shift(1)) / df.shift(1)
-    relative_changes = relative_changes.iloc[1:]
+    relative_change_ = (df / df.shift(1)) - 1
+    relative_change_ = relative_change_.iloc[1:]
 
-    return relative_changes
+    return relative_change_
 
 
 relative_change = Plugin(PluginID('relative_change', 0), method)
