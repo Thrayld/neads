@@ -79,6 +79,8 @@ class SingleThreadEvaluationManager(IEvaluationManager):
         """
 
         coefficient = 1/2
-        memory_limit = psutil.virtual_memory().total * coefficient
+        # Surprisingly, this is actually the total physical memory, see the doc
+        total_physical_memory = psutil.virtual_memory().total
+        memory_limit = total_physical_memory * coefficient
         algorithm = ComplexAlgorithm(memory_limit=memory_limit)
         return algorithm
