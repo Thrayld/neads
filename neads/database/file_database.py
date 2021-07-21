@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from neads._internal_utils.serializers import ISerializer
 
 
+# TODO: Add 'destroy' method and add optional param 'create' to __init__
+
 class FileDatabase(IDatabase):
     """Database which saves each data instance to its own file via serializer.
 
