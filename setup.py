@@ -21,9 +21,9 @@ data = ['requirements.txt', 'README.rst']
 
 setup(
     name='neads',
-    version='1.0.1',
-    description='Modular tool to analysis of dynamic system with a complex '
-                'internal structure.',
+    version='1.0.2',
+    description='Neads is a modular tool for modelling of dynamical systems '
+                'with complex internal structure by complex networks.',
     long_description=README,
     url='https://github.com/Thrayld/neads',
     author='Tomáš Hons',
