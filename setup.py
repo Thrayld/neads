@@ -25,6 +25,7 @@ setup(
     description='Neads is a modular tool for modelling of dynamical systems '
                 'with complex internal structure by complex networks.',
     long_description=README,
+    long_description_content_type='text/x-rst',
     url='https://github.com/Thrayld/neads',
     author='Tomáš Hons',
     author_email='Hons.T.m@seznam.cz',
